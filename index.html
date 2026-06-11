@@ -929,6 +929,34 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
 </div>
 
 
+<!-- Section: จัดการทีม HR -->
+<div class="section" id="sec-manage-users">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:var(--primary-d)">ทีม HR</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">
+        ทั้งหมด <strong id="ustat_total">—</strong> คน &nbsp;·&nbsp;
+        Admin <strong id="ustat_admin">—</strong> &nbsp;·&nbsp;
+        Staff <strong id="ustat_staff">—</strong>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="openAddUserModal()">+ เพิ่มผู้ใช้</button>
+  </div>
+  <div id="userCardGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:20px">
+    <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px;font-size:13px">กำลังโหลด…</div>
+  </div>
+  <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;gap:7px;align-items:center">
+      <span class="role-badge role-admin">Admin</span>
+      <span style="font-size:12px;color:var(--muted)">เข้าถึงได้ทุกส่วน รวมถึงหน้านี้</span>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <span class="role-badge role-user">Staff</span>
+      <span style="font-size:12px;color:var(--muted)">เข้าถึงและกรอกข้อมูลได้ แต่ไม่เห็นหน้านี้</span>
+    </div>
+  </div>
+</div>
+
 </div><!-- /content -->
 </div><!-- /main-wrap -->
 
@@ -1023,39 +1051,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <button onclick="closeModal('auditModal')" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
     </div>
     <div id="auditTimeline" style="max-height:360px;overflow-y:auto"></div>
-  </div>
-</div>
-
-<!-- Section: จัดการทีม HR -->
-<div class="section" id="sec-manage-users">
-  <div class="sec-title">จัดการทีม HR <span></span></div>
-  <div class="user-table-card">
-    <div class="table-card-header">
-      <h3>รายชื่อผู้ใช้งาน</h3>
-      <button class="btn btn-primary" style="font-size:12px;padding:7px 14px" onclick="openAddUserModal()">+ เพิ่มผู้ใช้</button>
-    </div>
-    <div class="table-wrap">
-      <table id="userTable">
-        <thead>
-          <tr>
-            <th>ชื่อ</th>
-            <th>อีเมล</th>
-            <th>บทบาท</th>
-            <th>เพิ่มเมื่อ</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody">
-          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">กำลังโหลด…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="chart-card" style="margin-top:16px;font-size:13px;color:var(--muted);line-height:1.8">
-    <strong style="color:var(--text);font-size:13px">หมายเหตุ</strong><br>
-    • <strong>Admin</strong> — เข้าถึงได้ทุกส่วน รวมถึงหน้านี้<br>
-    • <strong>Staff</strong> — เข้าถึงข้อมูลและกรอกข้อมูลได้ทุกส่วน แต่ไม่เห็นหน้าจัดการทีม HR<br>
-    • รหัสผ่านแรกที่ตั้งจะถูกส่งให้ผู้ใช้ โดย Admin แจ้งด้วยตนเอง — ผู้ใช้สามารถ reset ผ่าน Firebase ได้ในภายหลัง
   </div>
 </div>
 
@@ -2571,28 +2566,45 @@ function changeUserRole(uid, newRole){
 function renderUserTable(){
   USERS_DOC().get().then(doc=>{
     const users=doc.exists?doc.data():{};
-    const rows=Object.values(users);
-    const tbody=document.getElementById('userTableBody');
-    if(!tbody)return;
+    const rows=Object.values(users).sort((a,b)=>(a.displayName||'').localeCompare(b.displayName||'','th'));
+    const grid=document.getElementById('userCardGrid');
+    if(!grid)return;
+    // Stats
+    const adminCount=rows.filter(u=>u.role==='admin').length;
+    const staffCount=rows.filter(u=>u.role==='staff').length;
+    const t=document.getElementById('ustat_total');const ad=document.getElementById('ustat_admin');const st=document.getElementById('ustat_staff');
+    if(t)t.textContent=rows.length;if(ad)ad.textContent=adminCount;if(st)st.textContent=staffCount;
     if(rows.length===0){
-      tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีผู้ใช้</td></tr>';
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px;font-size:13px">ยังไม่มีผู้ใช้</div>';
       return;
     }
-    tbody.innerHTML=rows.sort((a,b)=>a.displayName?.localeCompare(b.displayName,'th')||0).map(u=>`
-      <tr>
-        <td><strong>${u.displayName||'-'}</strong>${u.uid===_currentUser?.uid?'<span style="font-size:10px;color:var(--teal);margin-left:6px">(คุณ)</span>':''}</td>
-        <td style="color:var(--muted);font-family:monospace">${u.username||u.email||'-'}</td>
-        <td>
-          <select onchange="changeUserRole('${u.uid}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12px;outline:none" ${u.uid===_currentUser?.uid?'disabled':''}>
-            <option value="staff" ${u.role==='staff'?'selected':''}>Staff</option>
-            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-          </select>
-        </td>
-        <td style="font-size:12px;color:var(--muted)">${u.createdAt?u.createdAt.split('T')[0]:'-'}</td>
-        <td>
-          ${u.uid!==_currentUser?.uid?`<button class="tbl-del-btn" onclick="deleteUser('${u.uid}','${(u.displayName||'').replace(/'/g,'\\x27')}')">ลบ</button>`:'<span style="font-size:11px;color:var(--muted)">ลบไม่ได้</span>'}
-        </td>
-      </tr>`).join('');
+    grid.innerHTML=rows.map(u=>{
+      const isSelf=u.uid===_currentUser?.uid;
+      const initials=(u.displayName||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+      const isAdmin=u.role==='admin';
+      return `<div style="background:var(--card);border-radius:12px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--border);border-top:3px solid ${isAdmin?'var(--teal)':'var(--border)'}">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="width:38px;height:38px;border-radius:50%;background:${isAdmin?'var(--teal-light)':'var(--primary-light)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${isAdmin?'var(--teal-d)':'var(--primary-d)'};flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">${u.displayName||'-'}${isSelf?' <span style="font-size:10px;color:var(--teal);font-weight:400">(คุณ)</span>':''}</div>
+            <div style="font-size:11px;color:var(--muted);font-family:monospace">${u.username||'-'}</div>
+          </div>
+          <span class="role-badge ${isAdmin?'role-admin':'role-user'}">${isAdmin?'Admin':'Staff'}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:11px;color:var(--muted)">${u.createdAt?u.createdAt.split('T')[0]:'-'}</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${!isSelf?`
+            <select onchange="changeUserRole('${u.uid}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:11px;outline:none;background:var(--bg);color:var(--text);cursor:pointer">
+              <option value="staff" ${u.role==='staff'?'selected':''}>Staff</option>
+              <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+            </select>
+            <button class="tbl-del-btn" onclick="deleteUser('${u.uid}','${(u.displayName||'').replace(/'/g,'\\x27')}')" style="font-size:11px;padding:3px 8px">ลบ</button>
+            `:'<span style="font-size:11px;color:var(--muted)">บัญชีของคุณ</span>'}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
   });
 }
 
