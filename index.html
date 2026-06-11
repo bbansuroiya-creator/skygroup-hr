@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <style>
 :root {
   /* Sky Teal Refresh */
@@ -204,7 +205,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
 .entry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .entry-grid .full{grid-column:1/-1}
 .entry-field{display:flex;flex-direction:column;gap:5px}
-.entry-field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.entry-field label{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
 .entry-field input,.entry-field select,.entry-field textarea{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;outline:none;background:#fff;font-family:inherit;transition:border-color .15s;width:100%}
 .entry-field input:focus,.entry-field select:focus,.entry-field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(61,148,148,.1)}
 .entry-actions{display:flex;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);align-items:center}
@@ -225,6 +226,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
 .hbar-track{flex:1;background:var(--bg);border-radius:6px;height:26px;overflow:hidden;position:relative}
 .hbar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;color:#fff;font-size:12px;font-weight:700;min-width:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
 .hbar-count{width:30px;text-align:left;font-size:13px;font-weight:700;color:var(--text);flex-shrink:0}
+
+/* USER MANAGEMENT */
+.user-table-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border);margin-top:16px}
+.user-table-card .table-card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.user-table-card .table-card-header h3{font-size:14px;font-weight:700;color:var(--primary-d)}
+.user-row-actions{display:flex;gap:6px}
 
 @media(max-width:1200px){.cards-6{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.sidebar{display:none}.cards-4,.cards-3{grid-template-columns:repeat(2,1fr)}.row-2,.row-3,.row-32,.row-23{grid-template-columns:1fr}.content{padding:16px}}
@@ -251,12 +258,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       </svg>
     </div>
     <h2>HR Recruitment Dashboard</h2>
-    <p>กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน</p>
+    <p>เข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสผ่าน</p>
+    <div class="login-field">
+      <label>ชื่อผู้ใช้</label>
+      <input id="l_email" type="text" placeholder="ชื่อผู้ใช้" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
     <div class="login-field">
       <label>รหัสผ่าน</label>
       <input id="l_pass" type="password" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
     <div class="login-err" id="l_err"></div>
   </div>
 </div>
@@ -320,6 +331,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
     <div class="nav-item" onclick="showSection('entry-emp',this)"><span class="icon">🏢</span>ฐานข้อมูลพนักงาน</div>
     <div class="nav-item" onclick="showSection('entry-pos',this)"><span class="icon">✏️</span>ตำแหน่งว่าง</div>
     <div class="nav-item" onclick="showSection('entry-app',this)"><span class="icon">📝</span>ผู้สมัคร</div>
+  </div>
+  <div class="nav-group" id="adminUserNav" style="display:none">
+    <div class="nav-label">ผู้ดูแลระบบ</div>
+    <div class="nav-item" onclick="showSection('manage-users',this)"><span class="icon">👤</span>จัดการทีม HR</div>
+  </div>
+  <!-- Sidebar user info -->
+  <div id="sidebarUserInfo" style="margin-top:auto;padding:14px 14px 16px;border-top:1px solid rgba(255,255,255,.1);display:none">
+    <div style="font-size:11px;color:rgba(255,255,255,.45);margin-bottom:4px;letter-spacing:.3px">ผู้ใช้งาน</div>
+    <div id="sidebarUserName" style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px"></div>
+    <div id="sidebarUserRole" style="margin-bottom:10px"></div>
+    <button onclick="doLogout()" style="width:100%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.7);transition:all .15s" onmouseenter="this.style.background='rgba(255,255,255,.14)'" onmouseleave="this.style.background='rgba(255,255,255,.07)'">ออกจากระบบ</button>
   </div>
 </div>
 
@@ -450,17 +472,31 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="cards cards-4" id="prob-cards"></div>
   <div class="table-card" style="margin-top:16px">
     <div class="table-card-header">
-      <h3>📋 พนักงานในช่วงทดลองงาน</h3>
+      <h3>พนักงานในช่วงทดลองงาน</h3>
       <div style="display:flex;gap:8px;align-items:center">
         <select id="prob_result_filter" onchange="renderProbation()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
           <option value="">สถานะทั้งหมด</option><option>ทดลองงาน</option><option>ผ่าน</option><option>ไม่ผ่าน</option>
         </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="archiveAllFinished()">Archive ที่จบแล้วทั้งหมด</button>
       </div>
     </div>
     <div class="table-wrap"><table>
       <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>ระยะทดลองงาน</th><th>วันที่ครบกำหนด</th><th>เหลืออีก</th><th>ผล</th><th>จัดการ</th></tr></thead>
       <tbody id="probTbody"></tbody>
     </table></div>
+  </div>
+  <!-- Archive Panel -->
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header" style="cursor:pointer;user-select:none" onclick="toggleProbArchive()">
+      <h3 style="display:flex;align-items:center;gap:8px">Archive Probation <span id="probArchiveCount" style="font-size:12px;color:var(--muted);font-weight:400"></span></h3>
+      <span id="probArchiveToggle" style="font-size:12px;color:var(--muted)">▼ แสดง</span>
+    </div>
+    <div id="probArchiveBody" style="display:none">
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>วันครบกำหนด</th><th>ผล</th><th>จัดการ</th></tr></thead>
+        <tbody id="probArchiveTbody"></tbody>
+      </table></div>
+    </div>
   </div>
 </div>
 
@@ -845,7 +881,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         <div class="entry-field"><label>ร้าน / สาขา</label><input id="ee_branch" type="text" placeholder="เช่น สาขาสยาม"></div>
         <div class="entry-field"><label>วันที่เริ่มงาน *</label><input id="ee_startdate" type="date"></div>
         <div class="entry-field"><label>สถานะ</label>
-          <select id="ee_status" onchange="toggleResignFields()"><option>ทำงานอยู่</option><option>ลาออก</option><option>พักงาน</option></select>
+          <select id="ee_status" onchange="toggleResignFields()"><option>ทดลองงาน</option><option>ทำงานอยู่</option><option>ลาออก</option><option>พักงาน</option></select>
         </div>
         <div class="entry-field"><label data-resign-label style="color:var(--muted)">วันที่ออก</label><input id="ee_enddate" type="date" disabled style="opacity:.4;cursor:not-allowed"></div>
         <div class="entry-field"><label data-resign-label style="color:var(--muted)">เหตุผลการออก</label>
@@ -876,7 +912,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input type="text" id="ee_search" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;outline:none;width:200px">
         <select id="ee_status_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
-          <option value="">สถานะทั้งหมด</option><option>ทำงานอยู่</option><option>ลาออก</option><option>พักงาน</option>
+          <option value="">สถานะทั้งหมด</option><option>ทดลองงาน</option><option>ทำงานอยู่</option><option>ลาออก</option><option>พักงาน</option>
         </select>
         <select id="ee_dept_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
           <option value="">แผนกทั้งหมด</option>
@@ -990,6 +1026,39 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   </div>
 </div>
 
+<!-- Section: จัดการทีม HR -->
+<div class="section" id="sec-manage-users">
+  <div class="sec-title">จัดการทีม HR <span></span></div>
+  <div class="user-table-card">
+    <div class="table-card-header">
+      <h3>รายชื่อผู้ใช้งาน</h3>
+      <button class="btn btn-primary" style="font-size:12px;padding:7px 14px" onclick="openAddUserModal()">+ เพิ่มผู้ใช้</button>
+    </div>
+    <div class="table-wrap">
+      <table id="userTable">
+        <thead>
+          <tr>
+            <th>ชื่อ</th>
+            <th>อีเมล</th>
+            <th>บทบาท</th>
+            <th>เพิ่มเมื่อ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">กำลังโหลด…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-top:16px;font-size:13px;color:var(--muted);line-height:1.8">
+    <strong style="color:var(--text);font-size:13px">หมายเหตุ</strong><br>
+    • <strong>Admin</strong> — เข้าถึงได้ทุกส่วน รวมถึงหน้านี้<br>
+    • <strong>Staff</strong> — เข้าถึงข้อมูลและกรอกข้อมูลได้ทุกส่วน แต่ไม่เห็นหน้าจัดการทีม HR<br>
+    • รหัสผ่านแรกที่ตั้งจะถูกส่งให้ผู้ใช้ โดย Admin แจ้งด้วยตนเอง — ผู้ใช้สามารถ reset ผ่าน Firebase ได้ในภายหลัง
+  </div>
+</div>
+
 <!-- Modal: เพิ่มเข้าฐานข้อมูลพนักงาน -->
 <div class="overlay" id="addEmpModal">
   <div class="modal" style="max-width:520px">
@@ -1008,10 +1077,46 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <div><label>แผนก</label>
         <select id="aem_dept"><option>Operations</option><option>HR</option><option>Marketing</option><option>IT</option><option>Finance</option><option>อื่น ๆ</option></select>
       </div>
+      <div><label>ระยะทดลองงาน (วัน)</label>
+        <select id="aem_probdays"><option value="60">60 วัน</option><option value="90" selected>90 วัน (ค่าเริ่มต้น)</option><option value="120">120 วัน</option><option value="180">180 วัน</option></select>
+      </div>
     </div>
     <div class="modal-actions" style="margin-top:16px">
       <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('addEmpModal')">ข้ามขั้นตอนนี้</button>
       <button class="btn btn-primary" onclick="confirmAddEmp()" style="background:var(--teal);border-color:var(--teal)">✅ เพิ่มเข้าฐานข้อมูล</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: เพิ่ม/แก้ไข User -->
+<div class="overlay" id="addUserModal">
+  <div class="modal" style="max-width:440px">
+    <h2 id="addUserModalTitle">เพิ่มผู้ใช้งานใหม่</h2>
+    <div class="form-grid">
+      <div class="full">
+        <label>ชื่อ-นามสกุล</label>
+        <input id="u_name" type="text" placeholder="เช่น สมชาย ใจดี">
+      </div>
+      <div class="full">
+        <label>ชื่อผู้ใช้ <span style="font-weight:400;color:var(--muted)">(ใช้สำหรับ Login เช่น somchai)</span></label>
+        <input id="u_email" type="text" placeholder="เช่น somchai หรือ hr_ploy" autocomplete="off">
+      </div>
+      <div class="full" id="u_pass_wrap">
+        <label>รหัสผ่านเริ่มต้น <span style="font-weight:400;color:var(--muted)">(อย่างน้อย 6 ตัวอักษร)</span></label>
+        <input id="u_pass" type="text" placeholder="ตั้งรหัสผ่านให้ผู้ใช้" autocomplete="off">
+      </div>
+      <div class="full">
+        <label>บทบาท</label>
+        <select id="u_role">
+          <option value="staff">Staff</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div id="u_err" style="color:var(--red);font-size:12px;margin-top:10px;min-height:16px"></div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('addUserModal')">ยกเลิก</button>
+      <button class="btn btn-primary" id="saveUserBtn" onclick="saveUser()">บันทึก</button>
     </div>
   </div>
 </div>
@@ -1098,7 +1203,7 @@ const daysSince=d=>{if(!d)return 0;return Math.floor((new Date()-new Date(d))/(1
 const mkChart=(id,cfg)=>{const c=document.getElementById(id);if(!c)return;if(chartInstances[id])chartInstances[id].destroy();chartInstances[id]=new Chart(c,cfg);return chartInstances[id];};
 
 // ===================== NAV =====================
-const titles={exec:'📊 Executive Summary',workforce:'👥 สถานะกำลังคน',probation:'🔄 Probation Tracking',recruit:'🎯 สถานะการสรรหา',applicant:'📋 ข้อมูลผู้สมัคร',efficiency:'⚡ ประสิทธิภาพการสรรหา',interview:'🗓️ นัดสัมภาษณ์',pending:'📅 รายงานรอเริ่มงาน',monthly:'📈 สรุปรายเดือน'};
+const titles={exec:'📊 Executive Summary',workforce:'👥 สถานะกำลังคน',probation:'🔄 Probation Tracking',recruit:'🎯 สถานะการสรรหา',applicant:'📋 ข้อมูลผู้สมัคร',efficiency:'⚡ ประสิทธิภาพการสรรหา',interview:'🗓️ นัดสัมภาษณ์',pending:'📅 รายงานรอเริ่มงาน',monthly:'📈 สรุปรายเดือน','manage-users':'👤 จัดการทีม HR'};
 function showSection(id,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -1364,10 +1469,11 @@ function renderRecruit(){
   document.getElementById('posTbody').innerHTML=posData.map((p,i)=>{
     const lack=p.need-p.hired; const days=daysSince(p.opendate);
     const ageColor=days>30?'var(--red)':days>15?'#f97316':days>7?'var(--yellow)':'var(--green)';
+    const filledBadge=lack<=0?'<span class="badge badge-green" style="font-size:10px;margin-left:6px">รับครบแล้ว</span>':'';
     return `<tr>
-      <td>${i+1}</td><td><strong>${p.pos}</strong></td><td>${p.branch}</td>
+      <td>${i+1}</td><td><strong>${p.pos}</strong>${filledBadge}</td><td>${p.branch}</td>
       <td>${p.need}</td><td style="color:var(--green);font-weight:700">${p.hired}</td>
-      <td style="color:${lack>0?'var(--red)':'var(--green)'};font-weight:700">${lack}</td>
+      <td style="color:${lack>0?'var(--red)':'var(--green)'};font-weight:700">${lack<=0?'✓':lack}</td>
       <td><span class="badge ${urgClass[p.urgency]||'badge-gray'}">${p.urgency.split('(')[0].trim()}</span></td>
       <td><span class="badge ${reasonClass[p.reason]||'badge-gray'}">${p.reason.includes('New')?'New':'Replace'}</span></td>
       <td style="color:${ageColor};font-weight:700">${days} วัน</td>
@@ -1592,12 +1698,13 @@ function renderHtmlBars(elId, labels, counts, color){
 function renderProbation(){
   const filter=document.getElementById('prob_result_filter')?.value||'';
   const today=new Date();
-  const rows=empData.filter(e=>e.probationDays&&e.status!=='ลาออก'&&(!filter||e.probationResult===filter));
-  const onProb=rows.filter(e=>e.probationResult==='ทดลองงาน').length;
-  const passed=rows.filter(e=>e.probationResult==='ผ่าน').length;
-  const failed=rows.filter(e=>e.probationResult==='ไม่ผ่าน').length;
-  const dueSoon=rows.filter(e=>{
-    if(e.probationResult!=='ทดลองงาน'||!e.startdate||!e.probationDays)return false;
+  // Main table: non-archived only
+  const rows=empData.filter(e=>e.probationDays&&e.status!=='ลาออก'&&!e.archivedProbation&&(!filter||e.probationResult===filter));
+  const onProb=empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.probationResult==='ทดลองงาน').length;
+  const passed=empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.probationResult==='ผ่าน').length;
+  const failed=empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.probationResult==='ไม่ผ่าน').length;
+  const dueSoon=empData.filter(e=>{
+    if(e.archivedProbation||e.probationResult!=='ทดลองงาน'||!e.startdate||!e.probationDays)return false;
     const due=new Date(e.startdate);due.setDate(due.getDate()+e.probationDays);
     const diff=Math.floor((due-today)/(1000*60*60*24));
     return diff>=0&&diff<=14;
@@ -1613,14 +1720,67 @@ function renderProbation(){
     const due=new Date(e.startdate);due.setDate(due.getDate()+(e.probationDays||90));
     const daysLeft=Math.floor((due-today)/(1000*60*60*24));
     const daysStr=e.probationResult==='ทดลองงาน'?(daysLeft>0?`<span style="color:${daysLeft<=14?'var(--red)':'var(--teal)'};font-weight:600">${daysLeft} วัน</span>`:'<span style="color:var(--red);font-weight:600">ครบแล้ว</span>'):'–';
+    const canArchive=e.probationResult==='ผ่าน'||e.probationResult==='ไม่ผ่าน';
     return `<tr>
       <td>${i+1}</td><td><strong>${e.name}</strong></td><td>${e.pos}</td><td>${e.branch||'–'}</td>
       <td>${fmtDate(e.startdate)}</td><td>${e.probationDays||90} วัน</td>
       <td>${fmtDate(due.toISOString().split('T')[0])}</td><td>${daysStr}</td>
       <td><span class="badge ${probColor[e.probationResult]||'badge-gray'}">${e.probationResult||'ทดลองงาน'}</span></td>
-      <td><button class="tbl-edit-btn" onclick="editEmpEntry(${e.id})">แก้ไข</button></td>
+      <td>${canArchive?`<button class="tbl-del-btn" style="background:#E0F2F2;color:var(--teal-d)" onclick="archiveProbation(${e.id})">Archive</button>`:''}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">ไม่มีข้อมูล</td></tr>';
+  // Render archive panel
+  renderProbArchive();
+}
+
+function archiveProbation(id){
+  const e=empData.find(x=>x.id===id);
+  if(!e)return;
+  e.archivedProbation=true;
+  saveToStorage();
+  renderProbation();
+}
+
+function unarchiveProbation(id){
+  const e=empData.find(x=>x.id===id);
+  if(!e)return;
+  e.archivedProbation=false;
+  saveToStorage();
+  renderProbation();
+}
+
+function archiveAllFinished(){
+  const count=empData.filter(e=>e.probationDays&&!e.archivedProbation&&(e.probationResult==='ผ่าน'||e.probationResult==='ไม่ผ่าน')).length;
+  if(!count){alert('ไม่มีรายการที่จบแล้วในขณะนี้');return;}
+  if(!confirm(`Archive พนักงานที่จบ probation แล้ว ${count} คน ใช่ไหม?`))return;
+  empData.forEach(e=>{if(e.probationDays&&!e.archivedProbation&&(e.probationResult==='ผ่าน'||e.probationResult==='ไม่ผ่าน'))e.archivedProbation=true;});
+  saveToStorage();
+  renderProbation();
+}
+
+let _probArchiveOpen=false;
+function toggleProbArchive(){
+  _probArchiveOpen=!_probArchiveOpen;
+  document.getElementById('probArchiveBody').style.display=_probArchiveOpen?'block':'none';
+  document.getElementById('probArchiveToggle').textContent=_probArchiveOpen?'▲ ซ่อน':'▼ แสดง';
+  if(_probArchiveOpen)renderProbArchive();
+}
+
+function renderProbArchive(){
+  const archived=empData.filter(e=>e.archivedProbation);
+  const countEl=document.getElementById('probArchiveCount');
+  if(countEl)countEl.textContent=archived.length?`(${archived.length} คน)`:'';
+  if(!_probArchiveOpen)return;
+  const probColor={ทดลองงาน:'badge-yellow',ผ่าน:'badge-green',ไม่ผ่าน:'badge-red'};
+  document.getElementById('probArchiveTbody').innerHTML=archived.map((e,i)=>{
+    const due=new Date(e.startdate);due.setDate(due.getDate()+(e.probationDays||90));
+    return `<tr style="opacity:.75">
+      <td>${i+1}</td><td><strong>${e.name}</strong></td><td>${e.pos}</td><td>${e.branch||'–'}</td>
+      <td>${fmtDate(e.startdate)}</td><td>${fmtDate(due.toISOString().split('T')[0])}</td>
+      <td><span class="badge ${probColor[e.probationResult]||'badge-gray'}">${e.probationResult||'–'}</span></td>
+      <td><button class="tbl-edit-btn" style="background:#FEF5E4;color:var(--yellow)" onclick="unarchiveProbation(${e.id})">Restore</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">ไม่มีข้อมูลใน Archive</td></tr>';
 }
 
 // ===================== INTERVIEW SCHEDULE =====================
@@ -1718,13 +1878,27 @@ function saveEmpEntry(){
     enddate:document.getElementById('ee_enddate').value,
     reason:document.getElementById('ee_reason').value,
     probationDays:parseInt(document.getElementById('ee_probdays').value)||null,
-    probationResult:document.getElementById('ee_probresult').value||'ทดลองงาน'
+    probationResult:document.getElementById('ee_probresult').value||'ทดลองงาน',
+    archivedProbation:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.archivedProbation||false):false
   };
+  const prevEmp=editingEmpId?empData.find(e=>e.id===editingEmpId):null;
+  const prevStatus=prevEmp?.status||'';
   if(editingEmpId){
     const i=empData.findIndex(e=>e.id===editingEmpId);
     if(i>=0)empData[i]=obj;
   }else{
     empData.push(obj);
+  }
+  // auto-sync resignData เมื่อสถานะเปลี่ยนเป็น ลาออก
+  if(obj.status==='ลาออก'&&prevStatus!=='ลาออก'){
+    const alreadyResign=resignData.find(r=>r.name===obj.name&&r.branch===obj.branch);
+    if(!alreadyResign){
+      resignData.push({id:++nextRid,name:obj.name,pos:obj.pos,dept:obj.dept||'Operations',branch:obj.branch||'',date:obj.enddate||'',reason:obj.reason||''});
+    }
+  }
+  // ถ้าเปลี่ยนกลับจาก ลาออก ให้ลบออกจาก resignData
+  if(prevStatus==='ลาออก'&&obj.status!=='ลาออก'){
+    resignData=resignData.filter(r=>!(r.name===obj.name&&r.branch===obj.branch));
   }
   saveToStorage();cancelEmpEdit();renderEmpTable();renderEmpKpi();flashSave('empSaveInd');
 }
@@ -2078,14 +2252,27 @@ function saveAppEntry(){
     const i=appData.findIndex(a=>a.id===editingAppId);
     if(i>=0){
       const prev=appData[i];
-      // carry over auditLog, then push if status changed
       obj.auditLog=prev.auditLog||[];
       if(prev.status!==obj.status) pushAuditLog(obj, prev.status, obj.status);
+      // อัพเดท posData.hired เมื่อสถานะเปลี่ยน
+      const pid=obj.poslinkId;
+      if(pid){
+        const p=posData.find(x=>x.id===pid);
+        if(p){
+          if(prev.status!=='เริ่มงานแล้ว'&&obj.status==='เริ่มงานแล้ว') p.hired=Math.min((p.hired||0)+1,p.need);
+          else if(prev.status==='เริ่มงานแล้ว'&&obj.status!=='เริ่มงานแล้ว') p.hired=Math.max((p.hired||0)-1,0);
+        }
+      }
       appData[i]=obj;
     }
   }else{
     obj.auditLog=[];
     pushAuditLog(obj, null, obj.status);
+    // กรณีเพิ่มใหม่แล้วสถานะเป็น เริ่มงานแล้ว ทันที
+    if(obj.status==='เริ่มงานแล้ว'&&obj.poslinkId){
+      const p=posData.find(x=>x.id===obj.poslinkId);
+      if(p) p.hired=Math.min((p.hired||0)+1,p.need);
+    }
     appData.push(obj);
   }
   saveToStorage();
@@ -2112,12 +2299,15 @@ function confirmAddEmp(){
   empData.push({
     id:++nextEid,
     empId:document.getElementById('aem_id').value.trim(),
+    probationDays:parseInt(document.getElementById('aem_probdays').value)||90,
+    probationResult:'ทดลองงาน',
+    archivedProbation:false,
     name:a.name,
     pos:a.pos,
     dept:document.getElementById('aem_dept').value,
     branch:a.branch||'',
     startdate:a.startdate||'',
-    status:'ทำงานอยู่'
+    status:'ทดลองงาน'
   });
   saveToStorage();
   closeModal('addEmpModal');
@@ -2251,45 +2441,159 @@ function renderAppTable(){
   if(countEl)countEl.textContent=archived.length?`(${archived.length} รายการ)`:'(ว่าง)';
 }
 
-// ===================== AUTH (single password) =====================
-const PW_KEY='skygroup_hr_pw';
-function getPassword(){ return localStorage.getItem(PW_KEY)||'sky2024'; }
+// ===================== AUTH (Firebase Authentication) =====================
+let _currentUser = null;
+let _currentUserRole = null;
+let _currentUserName = null;
+
+const USERNAME_DOMAIN='@skygroup.hr';
+function usernameToEmail(u){ return u.toLowerCase().replace(/\s+/g,'')+(u.includes('@')?'':USERNAME_DOMAIN); }
 
 function doLogin(){
-  const p=document.getElementById('l_pass').value;
+  const username=document.getElementById('l_email').value.trim();
+  const pass=document.getElementById('l_pass').value;
   const err=document.getElementById('l_err');
-  if(!p){err.textContent='กรุณาใส่รหัสผ่าน';return;}
-  if(p!==getPassword()){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
-  err.textContent='';
-  sessionStorage.setItem('skygroup_session','1');
-  applySession();
+  const btn=document.getElementById('loginBtn');
+  if(!username){err.textContent='กรุณาใส่ชื่อผู้ใช้';return;}
+  if(!pass){err.textContent='กรุณาใส่รหัสผ่าน';return;}
+  err.textContent='กำลังเข้าสู่ระบบ…';
+  btn.disabled=true;btn.textContent='กำลังเข้าสู่ระบบ…';
+  firebase.auth().signInWithEmailAndPassword(usernameToEmail(username),pass)
+    .catch(e=>{
+      const msg=e.code==='auth/user-not-found'||e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'
+        ?'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+        :e.code==='auth/too-many-requests'?'เข้าสู่ระบบหลายครั้งเกินไป กรุณารอสักครู่'
+        :'เกิดข้อผิดพลาด: '+e.code;
+      err.textContent=msg;
+      btn.disabled=false;btn.textContent='เข้าสู่ระบบ';
+    });
 }
 
 function doLogout(){
-  sessionStorage.removeItem('skygroup_session');
-  document.getElementById('l_pass').value='';
-  document.getElementById('l_err').textContent='';
-  document.getElementById('loginOverlay').style.display='flex';
+  firebase.auth().signOut();
 }
 
-function applySession(){
+function applySession(user, userData){
+  _currentUser=user;
+  _currentUserRole=userData&&userData.role?userData.role:'staff';
+  _currentUserName=userData&&userData.displayName?userData.displayName:user.email;
   document.getElementById('loginOverlay').style.display='none';
+  const btn=document.getElementById('loginBtn');
+  if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ';}
+  // Topbar: just show name badge (logout moved to sidebar)
   const tu=document.getElementById('topbarUser');
   if(tu)tu.innerHTML=`
-    <button onclick="changePassword()" style="border:1px solid var(--border);background:var(--bg);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--muted)">🔒 เปลี่ยนรหัสผ่าน</button>
-    <button onclick="doLogout()" style="border:1px solid var(--border);background:var(--bg);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--muted)">ออกจากระบบ</button>`;
+    <span style="font-size:12px;color:var(--muted)">${_currentUserName}</span>
+    <span class="role-badge ${_currentUserRole==='admin'?'role-admin':'role-user'}">${_currentUserRole==='admin'?'Admin':'Staff'}</span>`;
+  // Sidebar user info
+  const sui=document.getElementById('sidebarUserInfo');
+  if(sui){
+    document.getElementById('sidebarUserName').textContent=_currentUserName;
+    document.getElementById('sidebarUserRole').innerHTML=`<span class="role-badge ${_currentUserRole==='admin'?'role-admin':'role-user'}" style="font-size:10px">${_currentUserRole==='admin'?'Admin':'Staff'}</span>`;
+    sui.style.display='';
+  }
+  // Admin-only nav
+  const adminUserNav=document.getElementById('adminUserNav');
+  if(adminUserNav) adminUserNav.style.display=_currentUserRole==='admin'?'':'none';
 }
 
-function changePassword(){
-  const cur=prompt('รหัสผ่านปัจจุบัน:');
-  if(cur===null)return;
-  if(cur!==getPassword()){alert('รหัสผ่านปัจจุบันไม่ถูกต้อง');return;}
-  const n1=prompt('รหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร):');
-  if(!n1||n1.length<4){alert('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร');return;}
-  const n2=prompt('ยืนยันรหัสผ่านใหม่:');
-  if(n1!==n2){alert('รหัสผ่านไม่ตรงกัน');return;}
-  localStorage.setItem(PW_KEY,n1);
-  alert('เปลี่ยนรหัสผ่านสำเร็จ ✅');
+// ===================== USER MANAGEMENT =====================
+const USERS_DOC = ()=>db.collection('hr').doc('users');
+
+function openAddUserModal(){
+  document.getElementById('addUserModalTitle').textContent='เพิ่มผู้ใช้งานใหม่';
+  document.getElementById('u_name').value='';
+  document.getElementById('u_email').value='';
+  document.getElementById('u_pass').value='';
+  document.getElementById('u_role').value='staff';
+  document.getElementById('u_err').textContent='';
+  document.getElementById('u_pass_wrap').style.display='';
+  document.getElementById('saveUserBtn').textContent='สร้างบัญชี';
+  document.getElementById('addUserModal').classList.add('open');
+}
+
+function saveUser(){
+  const name=document.getElementById('u_name').value.trim();
+  const username=document.getElementById('u_email').value.trim().toLowerCase().replace(/\s+/g,'');
+  const pass=document.getElementById('u_pass').value;
+  const role=document.getElementById('u_role').value;
+  const err=document.getElementById('u_err');
+  if(!name){err.textContent='กรุณาใส่ชื่อ-นามสกุล';return;}
+  if(!username){err.textContent='กรุณาใส่ชื่อผู้ใช้';return;}
+  if(!/^[a-z0-9_]+$/.test(username)){err.textContent='ชื่อผู้ใช้ใช้ได้เฉพาะ a-z, 0-9 และ _ เท่านั้น';return;}
+  if(!pass||pass.length<6){err.textContent='รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';return;}
+  const email=usernameToEmail(username);
+  err.textContent='กำลังสร้างบัญชี…';
+  document.getElementById('saveUserBtn').disabled=true;
+
+  // Use secondary app so admin session is preserved
+  let secondaryApp;
+  try {
+    secondaryApp=firebase.app('secondary');
+  } catch(e){
+    secondaryApp=firebase.initializeApp(firebase.app().options,'secondary');
+  }
+  secondaryApp.auth().createUserWithEmailAndPassword(email,pass)
+    .then(cred=>{
+      const uid=cred.user.uid;
+      return cred.user.updateProfile({displayName:name})
+        .then(()=>USERS_DOC().set({[uid]:{uid,username,email,displayName:name,role,createdAt:new Date().toISOString()}},{merge:true}))
+        .then(()=>secondaryApp.auth().signOut())
+        .then(()=>{
+          closeModal('addUserModal');
+          document.getElementById('saveUserBtn').disabled=false;
+          renderUserTable();
+          alert(`สร้างบัญชีสำเร็จ ✅\nชื่อผู้ใช้: ${username}\nรหัสผ่าน: ${pass}\n\nโปรดแจ้งข้อมูลนี้ให้ผู้ใช้โดยตรง`);
+        });
+    })
+    .catch(e=>{
+      const msg=e.code==='auth/email-already-in-use'?`ชื่อผู้ใช้ "${username}" มีในระบบแล้ว`
+        :'เกิดข้อผิดพลาด: '+e.code;
+      err.textContent=msg;
+      document.getElementById('saveUserBtn').disabled=false;
+    });
+}
+
+function deleteUser(uid, name){
+  if(!confirm(`ลบ "${name}" ออกจากระบบ?\n(บัญชี Firebase Auth ยังคงอยู่ แต่จะเข้าระบบไม่ได้)`))return;
+  USERS_DOC().get().then(doc=>{
+    if(!doc.exists)return;
+    const data=doc.data();
+    delete data[uid];
+    return USERS_DOC().set(data);
+  }).then(()=>renderUserTable());
+}
+
+function changeUserRole(uid, newRole){
+  USERS_DOC().set({[uid]:{role:newRole}},{merge:true}).then(()=>renderUserTable());
+}
+
+function renderUserTable(){
+  USERS_DOC().get().then(doc=>{
+    const users=doc.exists?doc.data():{};
+    const rows=Object.values(users);
+    const tbody=document.getElementById('userTableBody');
+    if(!tbody)return;
+    if(rows.length===0){
+      tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีผู้ใช้</td></tr>';
+      return;
+    }
+    tbody.innerHTML=rows.sort((a,b)=>a.displayName?.localeCompare(b.displayName,'th')||0).map(u=>`
+      <tr>
+        <td><strong>${u.displayName||'-'}</strong>${u.uid===_currentUser?.uid?'<span style="font-size:10px;color:var(--teal);margin-left:6px">(คุณ)</span>':''}</td>
+        <td style="color:var(--muted);font-family:monospace">${u.username||u.email||'-'}</td>
+        <td>
+          <select onchange="changeUserRole('${u.uid}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12px;outline:none" ${u.uid===_currentUser?.uid?'disabled':''}>
+            <option value="staff" ${u.role==='staff'?'selected':''}>Staff</option>
+            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+          </select>
+        </td>
+        <td style="font-size:12px;color:var(--muted)">${u.createdAt?u.createdAt.split('T')[0]:'-'}</td>
+        <td>
+          ${u.uid!==_currentUser?.uid?`<button class="tbl-del-btn" onclick="deleteUser('${u.uid}','${(u.displayName||'').replace(/'/g,'\\x27')}')">ลบ</button>`:'<span style="font-size:11px;color:var(--muted)">ลบไม่ได้</span>'}
+        </td>
+      </tr>`).join('');
+  });
 }
 
 // ===================== DUPLICATE NAME CHECK =====================
@@ -2319,7 +2623,7 @@ function checkDupName(val){
 function pushAuditLog(app, fromStatus, toStatus){
   if(!app.auditLog)app.auditLog=[];
   const today=new Date().toISOString().split('T')[0];
-  app.auditLog.push({from:fromStatus,to:toStatus,at:today});
+  app.auditLog.push({from:fromStatus,to:toStatus,at:today,by:_currentUserName||''});
 }
 
 function showAuditLog(id){
@@ -2338,7 +2642,7 @@ function showAuditLog(id){
         <div style="position:relative;margin-bottom:${i<log.length-1?'20px':'0'}">
           <div style="position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:${sc[entry.to]||'#999'};border:2px solid #fff;box-shadow:0 0 0 2px ${sc[entry.to]||'#999'}"></div>
           ${i<log.length-1?`<div style="position:absolute;left:-16px;top:14px;width:2px;height:calc(100% + 10px);background:var(--border)"></div>`:''}
-          <div style="font-size:12px;color:var(--muted)">${fmtDate(entry.at)}</div>
+          <div style="font-size:12px;color:var(--muted)">${fmtDate(entry.at)}${entry.by?` · <span style="color:var(--teal-d)">${entry.by}</span>`:''}</div>
           <div style="margin-top:3px;font-size:13px">
             ${entry.from?`<span style="color:${sc[entry.from]||'#999'};font-weight:600">${entry.from}</span> <span style="color:var(--muted)">→</span> `:''}
             <span style="color:${sc[entry.to]||'#999'};font-weight:700">${entry.to}</span>
@@ -2590,6 +2894,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const HR_DOC = db.collection('hr').doc('data');
+const auth = firebase.auth();
 
 let _firestoreReady = false;
 
@@ -2630,52 +2935,78 @@ renderSection=function(id){
   if(id==='entry-emp'){cancelEmpEdit();renderEmpTable();renderEmpKpi();}
   else if(id==='entry-pos'){cancelPosEdit();renderPosTable();}
   else if(id==='entry-app'){cancelAppEdit();populatePosLinkDropdown();renderAppTable();renderAppStatusBadges();}
+  else if(id==='manage-users'){renderUserTable();}
   else _origRenderSection(id);
 };
 
 // ===================== INIT =====================
 document.getElementById('topbarDate').textContent = todayStr();
 
-// Show loading state
-document.getElementById('loginOverlay').style.display='none';
-document.getElementById('sectionTitle').textContent='กำลังโหลดข้อมูล…';
-
 // Track current section for real-time re-render
 let _currentSection='exec';
 const _showSectionOrig=showSection;
 showSection=function(id,el){_currentSection=id;_showSectionOrig(id,el);};
 
-// Load from Firestore then set up real-time listener
-HR_DOC.get().then(doc=>{
-  if(doc.exists) applyData(doc.data());
-  renderExec();
-  renderAlerts();
-  document.getElementById('sectionTitle').textContent=titles['exec']||'';
-  _firestoreReady=true;
-
-  // Real-time listener: re-render whenever another user saves
-  HR_DOC.onSnapshot(snap=>{
-    if(!snap.exists||!_firestoreReady)return;
-    applyData(snap.data());
+// Load Firestore data (shown after auth)
+let _firestoreLoaded=false;
+function loadFirestoreData(){
+  if(_firestoreLoaded)return;
+  document.getElementById('sectionTitle').textContent='กำลังโหลดข้อมูล…';
+  HR_DOC.get().then(doc=>{
+    if(doc.exists) applyData(doc.data());
+    renderExec();
     renderAlerts();
-    // re-render current section if it's a data section
-    const dataSecs=['exec','workforce','probation','recruit','applicant','efficiency','interview','pending','monthly','entry-app','entry-pos','entry-emp'];
-    if(dataSecs.includes(_currentSection)) renderSection(_currentSection);
+    document.getElementById('sectionTitle').textContent=titles['exec']||'';
+    _firestoreReady=true;
+    _firestoreLoaded=true;
+    // Real-time listener: re-render whenever another user saves
+    HR_DOC.onSnapshot(snap=>{
+      if(!snap.exists||!_firestoreReady)return;
+      applyData(snap.data());
+      renderAlerts();
+      const dataSecs=['exec','workforce','probation','recruit','applicant','efficiency','interview','pending','monthly','entry-app','entry-pos','entry-emp'];
+      if(dataSecs.includes(_currentSection)) renderSection(_currentSection);
+    });
+  }).catch(e=>{
+    console.error('Firestore load error:',e);
+    document.getElementById('sectionTitle').textContent='⚠️ โหลดข้อมูลไม่สำเร็จ — ตรวจสอบ Firestore Rules';
   });
+}
 
-  // Auth check
-  if(sessionStorage.getItem('skygroup_session')==='1'){
-    applySession();
+// Firebase Auth state listener — single source of truth for login/logout
+auth.onAuthStateChanged(user=>{
+  if(user){
+    const usersRef=db.collection('hr').doc('users');
+    usersRef.get().then(doc=>{
+      const users=doc.exists?doc.data():{};
+      let userData=users[user.uid]||null;
+      // Auto-bootstrap: ถ้าไม่มีข้อมูล user เลย (ครั้งแรก) ให้คนที่ login อยู่เป็น admin
+      if(!userData){
+        const isFirstUser=Object.keys(users).length===0;
+        const username=user.email?user.email.replace(USERNAME_DOMAIN,''):user.uid;
+        userData={uid:user.uid,username,email:user.email||'',displayName:isFirstUser?'Admin':username,role:isFirstUser?'admin':'staff',createdAt:new Date().toISOString()};
+        usersRef.set({[user.uid]:userData},{merge:true});
+      }
+      applySession(user,userData);
+      loadFirestoreData();
+    }).catch(()=>{
+      applySession(user,null);
+      loadFirestoreData();
+    });
   } else {
-    document.getElementById('loginOverlay').style.display='flex';
-  }
-}).catch(e=>{
-  console.error('Firestore load error:',e);
-  document.getElementById('sectionTitle').textContent='⚠️ โหลดข้อมูลไม่สำเร็จ — ตรวจสอบ Firestore Rules';
-  // Fallback: show login anyway
-  if(sessionStorage.getItem('skygroup_session')==='1'){
-    applySession();
-  } else {
+    // Signed out
+    _currentUser=null;_currentUserRole=null;_currentUserName=null;
+    _firestoreLoaded=false;_firestoreReady=false;
+    const emailEl=document.getElementById('l_email');
+    if(emailEl) emailEl.value='';
+    document.getElementById('l_pass').value='';
+    document.getElementById('l_err').textContent='';
+    const btn=document.getElementById('loginBtn');
+    if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ';}
+    const sui=document.getElementById('sidebarUserInfo');
+    if(sui) sui.style.display='none';
+    const adminUserNav=document.getElementById('adminUserNav');
+    if(adminUserNav) adminUserNav.style.display='none';
     document.getElementById('loginOverlay').style.display='flex';
   }
 });
