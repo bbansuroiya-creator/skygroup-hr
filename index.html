@@ -2442,6 +2442,35 @@ let _currentUserRole = null;
 let _currentUserName = null;
 
 const USERNAME_DOMAIN='@skygroup.hr';
+
+// ===================== INACTIVITY AUTO-LOGOUT (30 min) =====================
+const INACTIVITY_MS = 30 * 60 * 1000; // 30 minutes
+const LAST_ACTIVE_KEY = 'skygroup_last_active';
+
+function touchActivity(){
+  localStorage.setItem(LAST_ACTIVE_KEY, Date.now().toString());
+}
+
+function checkInactivity(){
+  if(!firebase.auth().currentUser) return;
+  const last = parseInt(localStorage.getItem(LAST_ACTIVE_KEY)||'0');
+  if(last && Date.now() - last > INACTIVITY_MS){
+    firebase.auth().signOut();
+  }
+}
+
+// Track user interactions
+['mousemove','keydown','click','scroll','touchstart'].forEach(e=>{
+  document.addEventListener(e, touchActivity, {passive:true});
+});
+
+// Check every minute while tab is open
+setInterval(checkInactivity, 60*1000);
+
+// Check immediately when tab becomes visible (handles reopening browser/tab)
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible') checkInactivity();
+});
 function usernameToEmail(u){ return u.toLowerCase().replace(/\s+/g,'')+(u.includes('@')?'':USERNAME_DOMAIN); }
 
 function doLogin(){
@@ -2465,11 +2494,13 @@ function doLogin(){
 }
 
 function doLogout(){
+  localStorage.removeItem(LAST_ACTIVE_KEY);
   firebase.auth().signOut();
 }
 
 function applySession(user, userData){
   _currentUser=user;
+  touchActivity(); // reset inactivity timer on login
   _currentUserRole=userData&&userData.role?userData.role:'staff';
   _currentUserName=userData&&userData.displayName?userData.displayName:user.email;
   document.getElementById('loginOverlay').style.display='none';
