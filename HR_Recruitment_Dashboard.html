@@ -1,0 +1,2684 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Sky Group – HR Recruitment Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root {
+  /* The Sky Group Brand Colors */
+  --bg:#EFF4F6;--card:#fff;
+  --primary:#6B90A8;--primary-d:#4D7A96;--primary-light:#E8F0F5;
+  --teal:#3D9494;--teal-d:#2E7A7A;--teal-light:#E0F2F2;
+  --green:#3D9494;--yellow:#C5913A;--red:#C0544A;
+  --blue:#6B90A8;--purple:#7A8FA0;--cyan:#3D9494;
+  --text:#2C3D4A;--muted:#7A90A0;--border:#D4E0E8;
+  --radius:14px;--shadow:0 2px 16px rgba(107,144,168,.10);
+  --sidebar:#2A4555;--sidebar-active:#3D9494;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;display:flex;min-height:100vh}
+
+/* LOGIN */
+.login-overlay{position:fixed;inset:0;background:var(--sidebar);z-index:9999;display:flex;align-items:center;justify-content:center}
+.login-card{background:#fff;border-radius:20px;padding:40px 36px;width:360px;box-shadow:0 24px 64px rgba(0,0,0,.35)}
+.login-card h2{font-size:18px;font-weight:700;color:var(--text);margin:20px 0 4px;text-align:center}
+.login-card p{font-size:12px;color:var(--muted);text-align:center;margin-bottom:24px}
+.login-field{margin-bottom:14px}
+.login-field label{font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:5px}
+.login-field input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;transition:border .15s}
+.login-field input:focus{border-color:var(--teal)}
+.login-btn{width:100%;padding:11px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .15s}
+.login-btn:hover{background:var(--teal-d)}
+.login-err{color:var(--red);font-size:12px;text-align:center;margin-top:8px;min-height:18px}
+/* VIEWER MODE */
+/* USER BADGE */
+.role-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
+.role-admin{background:#E0F2F2;color:var(--teal-d)}
+.role-user{background:#f0f4f7;color:var(--muted)}
+
+/* SIDEBAR */
+.sidebar{width:230px;background:var(--sidebar);color:#fff;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:12px 10px 10px;border-bottom:1px solid rgba(255,255,255,.1);position:relative;overflow:visible}
+.sidebar-logo-svg{display:flex;justify-content:center;align-items:center}
+.sidebar-logo-svg svg{width:100%;max-width:200px;height:auto;filter:drop-shadow(0 3px 10px rgba(0,0,0,.3));overflow:visible}
+.nav-group{padding:14px 10px 0}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);padding:6px 10px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,.65);font-size:13px;font-weight:500;transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:var(--teal);color:#fff;box-shadow:0 4px 12px rgba(61,148,148,.3)}
+.nav-item .icon{font-size:15px;width:20px;text-align:center}
+
+/* MAIN */
+.main-wrap{flex:1;display:flex;flex-direction:column;overflow-x:hidden}
+
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(107,144,168,.08);gap:16px}
+.topbar-title{font-size:15px;font-weight:700;color:var(--primary-d);letter-spacing:.2px;white-space:nowrap;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.filter-group{display:flex;gap:8px;align-items:center}
+.filter-select{border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none;background:var(--bg);color:var(--text);cursor:pointer;appearance:auto}
+.filter-select:focus{border-color:var(--teal)}
+.topbar-date{font-size:12px;color:var(--muted);white-space:nowrap;padding-left:10px;border-left:1px solid var(--border)}
+
+/* CONTENT */
+.content{padding:24px 28px;flex:1;min-width:0}
+.section{display:none}
+.section.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.cards{display:grid;gap:14px}
+.cards-4{grid-template-columns:repeat(4,1fr)}
+.cards-3{grid-template-columns:repeat(3,1fr)}
+.cards-6{grid-template-columns:repeat(6,1fr)}
+.cards-group-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+.cards-group-label:first-child{margin-top:0}
+.kpi-card{background:var(--card);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;min-height:88px}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
+.kpi-card.green::before{background:var(--teal)}
+.kpi-card.red::before{background:var(--red)}
+.kpi-card.yellow::before{background:var(--yellow)}
+.kpi-card.blue::before{background:var(--primary)}
+.kpi-card.purple::before{background:#7A8FA0}
+.kpi-card.cyan::before{background:var(--teal)}
+.kpi-card.primary::before{background:var(--primary)}
+.kpi-card .kpi-value.green{color:var(--teal)}
+.kpi-card .kpi-value.blue{color:var(--primary)}
+.kpi-card .kpi-value.purple{color:#5A7A8E}
+.kpi-card .kpi-icon{font-size:18px;margin-bottom:4px}
+.kpi-card .kpi-label{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.3px;text-transform:uppercase;line-height:1.3}
+.kpi-card .kpi-value{font-size:26px;font-weight:700;color:var(--text);line-height:1.1}
+.kpi-card .kpi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+/* Compact value for 6-col cards */
+.cards-6 .kpi-card .kpi-value{font-size:22px}
+.cards-6 .kpi-card .kpi-label{font-size:10px}
+.cards-6 .kpi-card{padding:14px 14px}
+
+/* CHARTS ROW */
+.row{display:grid;gap:16px;margin-top:16px}
+.row-2{grid-template-columns:1fr 1fr}
+.row-3{grid-template-columns:1fr 1fr 1fr}
+.row-32{grid-template-columns:1.4fr 1fr}
+.row-23{grid-template-columns:1fr 1.4fr}
+.chart-card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);border:1px solid rgba(212,224,232,.6)}
+.chart-card h3{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:6px}
+.chart-card canvas{max-height:220px}
+.chart-card.tall canvas{max-height:300px}
+
+/* SECTION TITLE */
+.sec-title{font-size:17px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:10px;color:var(--primary-d);padding-bottom:12px;border-bottom:2px solid var(--teal-light)}
+.sec-title span{font-size:19px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* TABLE CARD */
+.table-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-top:16px;border:1px solid rgba(212,224,232,.6)}
+.table-card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-card-header h3{font-size:14px;font-weight:700;color:var(--primary-d)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:linear-gradient(135deg,#EFF4F6,#E8F0F4);font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:linear-gradient(135deg,#F0F6F8,#E8F2F2)}
+
+/* BADGE */
+.badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;letter-spacing:.2px}
+.badge-urgent2{background:#FCECEA;color:#A03030}
+.badge-urgent1{background:#FEF5E4;color:#8A5A10}
+.badge-normal{background:#E0F2F0;color:#1E6A5E}
+.badge-new{background:#E8F0F5;color:#2A5A78}
+.badge-replace{background:#EFF3F6;color:#3A5A6E}
+.badge-green{background:#E0F2F0;color:#1E6A5E}
+.badge-red{background:#FCECEA;color:#A03030}
+.badge-yellow{background:#FEF5E4;color:#8A5A10}
+.badge-blue{background:#E8F0F5;color:#2A5A78}
+.badge-gray{background:#EFF3F6;color:#5A7A8E}
+
+/* FUNNEL */
+.funnel{display:flex;flex-direction:column;gap:6px;padding:4px 0}
+.funnel-row{display:flex;align-items:center;gap:10px}
+.funnel-label{width:110px;font-size:12px;color:var(--muted);font-weight:500;text-align:right;flex-shrink:0}
+.funnel-bar-wrap{flex:1;background:var(--bg);border-radius:6px;height:28px;overflow:hidden}
+.funnel-bar{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;font-weight:700;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.funnel-count{width:40px;text-align:right;font-size:13px;font-weight:700;color:var(--text)}
+
+/* AGING PILLS */
+.aging-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px}
+.aging-pill{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+.aging-pill.a0{border-color:var(--teal);background:linear-gradient(135deg,#fff,#E0F2F0)}
+.aging-pill.a1{border-color:var(--yellow);background:linear-gradient(135deg,#fff,#FEF5E4)}
+.aging-pill.a2{border-color:#E07030;background:linear-gradient(135deg,#fff,#FEF0E4)}
+.aging-pill.a3{border-color:var(--red);background:linear-gradient(135deg,#fff,#FCECEA)}
+.aging-pill .ap-num{font-size:28px;font-weight:700}
+.aging-pill .ap-label{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.3px}
+.aging-pill.a0 .ap-num{color:var(--teal)}
+.aging-pill.a1 .ap-num{color:var(--yellow)}
+.aging-pill.a2 .ap-num{color:#E07030}
+.aging-pill.a3 .ap-num{color:var(--red)}
+
+/* EXEC SUMMARY LIST */
+.exec-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.exec-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.exec-row:last-child{border-bottom:none}
+.exec-row-label{font-size:13px;color:var(--muted)}
+.exec-row-val{font-size:14px;font-weight:700;color:var(--text)}
+
+/* BTN */
+.btn{padding:8px 18px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;letter-spacing:.2px}
+.btn-primary{background:var(--teal);color:#fff;box-shadow:0 3px 10px rgba(61,148,148,.25)}
+.btn-primary:hover{background:var(--teal-d);transform:translateY(-1px)}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+.btn-edit{background:#E0F2F2;color:var(--teal-d)}
+.btn-del{background:#FCECEA;color:var(--red)}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(42,69,85,.5);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:18px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 50px rgba(42,69,85,.2);animation:fadeIn .2s;border-top:4px solid var(--teal)}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:18px;color:var(--primary-d)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:1/-1}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(61,148,148,.12)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+/* PROGRESS BAR */
+.progress-wrap{background:var(--bg);border-radius:6px;height:8px;overflow:hidden;margin-top:4px}
+.progress-bar{height:100%;border-radius:6px;transition:width .5s}
+
+/* ENTRY FORM */
+.save-flash{animation:flashGreen .6s ease}
+@keyframes flashGreen{0%{background:var(--card)}50%{background:#e0f2f0}100%{background:var(--card)}}
+.entry-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:2px solid var(--teal-light);margin-bottom:20px}
+.entry-card-header{padding:14px 22px;background:linear-gradient(135deg,var(--teal-light),#dff2f2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:14px;font-weight:700;color:var(--teal-d);user-select:none;border-bottom:1px solid var(--teal-light)}
+.entry-card-header:hover{background:linear-gradient(135deg,#cde9e9,#d5efef)}
+.entry-card-toggle{font-size:11px;transition:transform .2s;color:var(--teal)}
+.entry-card-body{padding:22px}
+.entry-card-body.collapsed{display:none}
+.entry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.entry-grid .full{grid-column:1/-1}
+.entry-field{display:flex;flex-direction:column;gap:5px}
+.entry-field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.entry-field input,.entry-field select,.entry-field textarea{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;outline:none;background:#fff;font-family:inherit;transition:border-color .15s;width:100%}
+.entry-field input:focus,.entry-field select:focus,.entry-field textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(61,148,148,.1)}
+.entry-actions{display:flex;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);align-items:center}
+.save-indicator{font-size:12px;color:var(--teal);font-weight:600;opacity:0;transition:opacity .4s;margin-left:8px}
+.save-indicator.show{opacity:1}
+.entry-status-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.entry-badge{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
+.entry-badge.active,.entry-badge:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-light)}
+.tbl-edit-btn{background:var(--primary-light);color:var(--primary-d);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-right:4px}
+.tbl-del-btn{background:#fde8e8;color:var(--red);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer}
+.tbl-edit-btn:hover{background:var(--primary);color:#fff}
+.tbl-del-btn:hover{background:var(--red);color:#fff}
+
+/* HTML BAR CHART */
+.html-bar-chart{display:flex;flex-direction:column;gap:8px;padding:4px 0}
+.hbar-row{display:flex;align-items:center;gap:12px}
+.hbar-label{width:200px;min-width:200px;font-size:13px;color:var(--text);text-align:right;flex-shrink:0;line-height:1.3}
+.hbar-track{flex:1;background:var(--bg);border-radius:6px;height:26px;overflow:hidden;position:relative}
+.hbar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;color:#fff;font-size:12px;font-weight:700;min-width:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.hbar-count{width:30px;text-align:left;font-size:13px;font-weight:700;color:var(--text);flex-shrink:0}
+
+@media(max-width:1200px){.cards-6{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.sidebar{display:none}.cards-4,.cards-3{grid-template-columns:repeat(2,1fr)}.row-2,.row-3,.row-32,.row-23{grid-template-columns:1fr}.content{padding:16px}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card">
+    <div style="text-align:center">
+      <svg viewBox="-10 -32 220 175" xmlns="http://www.w3.org/2000/svg" style="width:160px;height:auto;margin:0 auto;display:block">
+        <circle cx="60" cy="2" r="28" fill="none" stroke="rgba(180,195,205,0.35)" stroke-width="1.5"/>
+        <circle cx="178" cy="22" r="30" fill="#3D9494" opacity="0.4"/>
+        <circle cx="162" cy="50" r="38" fill="none" stroke="rgba(160,180,190,0.3)" stroke-width="1.5"/>
+        <circle cx="14" cy="108" r="16" fill="none" stroke="#3D9494" stroke-width="1" opacity="0.35"/>
+        <circle cx="14" cy="108" r="22" fill="none" stroke="#3D9494" stroke-width="1" opacity="0.25"/>
+        <circle cx="88" cy="60" r="46" fill="none" stroke="rgba(160,185,200,0.55)" stroke-width="2"/>
+        <circle cx="88" cy="60" r="38" fill="#7B9BB8"/>
+        <circle cx="128" cy="80" r="28" fill="#3D9494" opacity="0.82"/>
+        <circle cx="52" cy="68" r="7" fill="#3D9494" opacity="0.9"/>
+        <text x="88" y="57" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="700" fill="white" letter-spacing="1.5">THE SKY GROUP</text>
+        <text x="88" y="70" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="5.2" fill="white" letter-spacing="3" opacity="0.92">DRIVEN BY PASSION</text>
+      </svg>
+    </div>
+    <h2>HR Recruitment Dashboard</h2>
+    <p>กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน</p>
+    <div class="login-field">
+      <label>รหัสผ่าน</label>
+      <input id="l_pass" type="password" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-err" id="l_err"></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-svg">
+      <svg viewBox="-10 -32 220 175" xmlns="http://www.w3.org/2000/svg">
+        <!-- Top decorative gray arc -->
+        <circle cx="60" cy="2" r="28" fill="none" stroke="rgba(180,195,205,0.35)" stroke-width="1.5"/>
+        <!-- Top-right teal partial circle -->
+        <circle cx="178" cy="22" r="30" fill="#3D9494" opacity="0.4"/>
+        <!-- Top-right gray ring -->
+        <circle cx="162" cy="50" r="38" fill="none" stroke="rgba(160,180,190,0.3)" stroke-width="1.5"/>
+        <!-- Bottom-left teal decorative lines (concentric arcs) -->
+        <circle cx="14" cy="108" r="16" fill="none" stroke="#3D9494" stroke-width="1" opacity="0.35"/>
+        <circle cx="14" cy="108" r="22" fill="none" stroke="#3D9494" stroke-width="1" opacity="0.25"/>
+        <circle cx="14" cy="108" r="28" fill="none" stroke="#3D9494" stroke-width="1" opacity="0.18"/>
+        <!-- Outer gray ring around main circle -->
+        <circle cx="88" cy="60" r="46" fill="none" stroke="rgba(160,185,200,0.55)" stroke-width="2"/>
+        <!-- Main steel-blue circle -->
+        <circle cx="88" cy="60" r="38" fill="#7B9BB8"/>
+        <!-- Teal circle (right, overlapping) -->
+        <circle cx="128" cy="80" r="28" fill="#3D9494" opacity="0.82"/>
+        <!-- Small teal circle (left, overlapping) -->
+        <circle cx="52" cy="68" r="7" fill="#3D9494" opacity="0.9"/>
+        <!-- Text: THE SKY GROUP -->
+        <text x="88" y="57" text-anchor="middle"
+              font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
+              font-size="12" font-weight="700" fill="white" letter-spacing="1.5"
+              style="text-shadow:none">THE SKY GROUP</text>
+        <!-- Text: DRIVEN BY PASSION -->
+        <text x="88" y="70" text-anchor="middle"
+              font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
+              font-size="5.2" fill="white" letter-spacing="3" opacity="0.92">DRIVEN BY PASSION</text>
+      </svg>
+    </div>
+    <div style="font-size:9.5px;color:rgba(255,255,255,.38);letter-spacing:1.2px;text-transform:uppercase;text-align:center;padding:0 8px 2px">HR Recruitment Dashboard</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">ภาพรวม</div>
+    <div class="nav-item active" onclick="showSection('exec',this)"><span class="icon">📊</span>Executive Summary</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">รายละเอียด</div>
+    <div class="nav-item" onclick="showSection('workforce',this)"><span class="icon">👥</span>สถานะกำลังคน</div>
+    <div class="nav-item" onclick="showSection('probation',this)"><span class="icon">🔄</span>Probation</div>
+    <div class="nav-item" onclick="showSection('recruit',this)"><span class="icon">🎯</span>สถานะการสรรหา</div>
+    <div class="nav-item" onclick="showSection('applicant',this)"><span class="icon">📋</span>ข้อมูลผู้สมัคร</div>
+    <div class="nav-item" onclick="showSection('efficiency',this)"><span class="icon">⚡</span>ประสิทธิภาพสรรหา</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">รายงาน</div>
+    <div class="nav-item" onclick="showSection('interview',this)"><span class="icon">🗓️</span>นัดสัมภาษณ์</div>
+    <div class="nav-item" onclick="showSection('pending',this)"><span class="icon">📅</span>รอเริ่มงาน</div>
+    <div class="nav-item" onclick="showSection('monthly',this)"><span class="icon">📈</span>สรุปรายเดือน</div>
+  </div>
+  <div class="nav-group" id="adminDataNav">
+    <div class="nav-label">จัดการข้อมูล</div>
+    <div class="nav-item" onclick="showSection('entry-emp',this)"><span class="icon">🏢</span>ฐานข้อมูลพนักงาน</div>
+    <div class="nav-item" onclick="showSection('entry-pos',this)"><span class="icon">✏️</span>ตำแหน่งว่าง</div>
+    <div class="nav-item" onclick="showSection('entry-app',this)"><span class="icon">📝</span>ผู้สมัคร</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+<div class="topbar">
+  <div class="topbar-title" id="sectionTitle">📊 Executive Summary</div>
+  <div class="topbar-right">
+    <div class="filter-group">
+      <select id="filterMonth" class="filter-select" onchange="applyFilters()">
+        <option value="all">ทุกเดือน</option>
+        <option value="1">ม.ค.</option><option value="2">ก.พ.</option><option value="3">มี.ค.</option>
+        <option value="4">เม.ย.</option><option value="5">พ.ค.</option><option value="6" selected>มิ.ย.</option>
+        <option value="7">ก.ค.</option><option value="8">ส.ค.</option><option value="9">ก.ย.</option>
+        <option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+      </select>
+      <select id="filterYear" class="filter-select" onchange="applyFilters()">
+        <option value="2026" selected>2026</option><option value="2025">2025</option>
+      </select>
+    </div>
+    <div id="topbarDate" class="topbar-date"></div>
+    <div id="topbarUser" style="display:flex;align-items:center;gap:8px;padding-left:10px;border-left:1px solid var(--border)"></div>
+    <!-- Alert Bell -->
+    <div style="position:relative">
+      <button id="alertBellBtn" onclick="toggleAlertPanel()" style="border:none;background:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='none'">
+        <span style="font-size:20px">🔔</span>
+        <span id="alertBadge" style="display:none;position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border-radius:99px;font-size:10px;font-weight:700;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px"></span>
+      </button>
+      <div id="alertPanel" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:340px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(44,61,74,.15);z-index:200;overflow:hidden">
+        <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;color:var(--text)">🔔 การแจ้งเตือน</div>
+        <div id="alertList" style="max-height:360px;overflow-y:auto;padding:8px 0"></div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+<div class="content">
+
+<!-- ===== EXECUTIVE SUMMARY ===== -->
+<div class="section active" id="sec-exec">
+  <div class="sec-title"><span>📊</span>Executive Summary – ภาพรวมทั้งหมด</div>
+
+  <!-- Row 1: กำลังคน -->
+  <div class="cards-group-label">👥 กำลังคน</div>
+  <div class="cards cards-4" id="exec-workforce-cards"></div>
+
+  <!-- Row 2: สถานะสรรหา -->
+  <div class="cards-group-label">🎯 สถานะการสรรหา</div>
+  <div class="cards cards-4" id="exec-recruit-cards"></div>
+
+  <!-- Row 3: ผู้สมัคร -->
+  <div class="cards-group-label">📋 ข้อมูลผู้สมัคร</div>
+  <div class="cards cards-6" id="exec-applicant-cards"></div>
+
+  <!-- Charts row -->
+  <div class="row row-2" style="margin-top:20px">
+    <div class="chart-card">
+      <h3>🔻 Recruitment Funnel</h3>
+      <div class="funnel" id="funnelViz"></div>
+    </div>
+    <div class="chart-card">
+      <h3>📌 Highlights</h3>
+      <div id="exec-highlights"></div>
+    </div>
+  </div>
+
+  <!-- Pending list -->
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header"><h3>📅 รายชื่อผู้สมัครรอเริ่มงาน</h3></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>ร้าน/สาขา</th><th>วันเริ่มงาน</th><th>Recruiter</th></tr></thead>
+        <tbody id="exec-pending-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WORKFORCE ===== -->
+<div class="section" id="sec-workforce">
+  <div class="sec-title"><span>👥</span>สถานะกำลังคน</div>
+  <div class="cards cards-4" id="wf-cards"></div>
+  <div class="row row-2">
+    <div class="chart-card tall">
+      <h3>📈 พนักงานเข้าใหม่ vs ลาออก รายเดือน</h3>
+      <canvas id="wfTrendChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>🏢 แผนกที่ลาออกมากที่สุด</h3>
+      <div id="wfDeptChart" class="html-bar-chart"></div>
+    </div>
+  </div>
+  <div class="row row-2">
+    <div class="chart-card">
+      <h3>💼 ตำแหน่งที่ลาออกมากที่สุด</h3>
+      <div id="wfPosChart" class="html-bar-chart"></div>
+    </div>
+    <div class="chart-card">
+      <h3>💬 เหตุผลการลาออก</h3>
+      <canvas id="wfReasonChart"></canvas>
+    </div>
+  </div>
+  <div class="row row-2">
+    <div class="chart-card">
+      <h3>🏪 Headcount Target vs Actual รายสาขา</h3>
+      <div id="wfBranchTarget" class="html-bar-chart"></div>
+    </div>
+    <div class="chart-card">
+      <h3>📉 Turnover Rate รายสาขา (%)</h3>
+      <div id="wfBranchTurnover" class="html-bar-chart"></div>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>รายการพนักงานลาออก</h3>
+      <span style="font-size:12px;color:var(--muted)">อัปเดตสถานะพนักงานใน <strong>ฐานข้อมูลพนักงาน</strong> เพื่อเพิ่มรายการ</span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>แผนก</th><th>ร้าน/สาขา</th><th>วันที่ลาออก</th><th>เหตุผล</th></tr></thead>
+      <tbody id="resignTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== PROBATION ===== -->
+<div class="section" id="sec-probation">
+  <div class="sec-title"><span>🔄</span>Probation Tracking</div>
+  <div class="cards cards-4" id="prob-cards"></div>
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header">
+      <h3>📋 พนักงานในช่วงทดลองงาน</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="prob_result_filter" onchange="renderProbation()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">สถานะทั้งหมด</option><option>ทดลองงาน</option><option>ผ่าน</option><option>ไม่ผ่าน</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>ระยะทดลองงาน</th><th>วันที่ครบกำหนด</th><th>เหลืออีก</th><th>ผล</th><th>จัดการ</th></tr></thead>
+      <tbody id="probTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== RECRUITMENT STATUS ===== -->
+<div class="section" id="sec-recruit">
+  <div class="sec-title"><span>🎯</span>สถานะการสรรหา</div>
+  <div class="cards cards-4" id="rec-cards"></div>
+
+  <div style="font-size:13px;font-weight:700;margin:20px 0 10px">Recruitment Aging</div>
+  <div class="aging-grid" id="agingGrid"></div>
+
+  <div class="row row-2">
+    <div class="chart-card">
+      <h3>⚡ ระดับความเร่งด่วน</h3>
+      <canvas id="urgencyChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>📂 เหตุผลในการเปิดรับ</h3>
+      <canvas id="openReasonChart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>รายชื่อตำแหน่งที่กำลังสรรหา</h3>
+      <span style="font-size:12px;color:var(--muted)">เพิ่มข้อมูลผ่าน <b style="color:var(--teal-d)">ตำแหน่งว่าง</b> ในเมนูจัดการข้อมูล</span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ตำแหน่ง</th><th>ร้าน/สาขา</th><th>ต้องการ</th><th>ได้แล้ว</th><th>ขาด</th><th>ความเร่งด่วน</th><th>เหตุผล</th><th>เปิดรับ(วัน)</th><th>Recruiter</th><th>จัดการ</th></tr></thead>
+      <tbody id="posTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== APPLICANT ===== -->
+<div class="section" id="sec-applicant">
+  <div class="sec-title"><span>📋</span>ข้อมูลผู้สมัคร</div>
+  <div class="cards cards-6" id="app-cards"></div>
+
+  <div class="chart-card" style="margin-top:16px">
+    <h3>🔻 Recruitment Funnel</h3>
+    <div class="funnel" id="funnelViz2"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:16px">
+    <h3>❌ เหตุผลที่ไม่ผ่านสัมภาษณ์</h3>
+    <div id="rejectReasonChart" class="html-bar-chart"></div>
+  </div>
+  <div class="chart-card" style="margin-top:16px">
+    <h3>🚪 เหตุผลที่ไม่มาเริ่มงาน</h3>
+    <div id="noshowReasonChart" class="html-bar-chart"></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>รายชื่อผู้สมัคร</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="appSearch" placeholder="🔍 ค้นหา..." oninput="renderAppTable()" style="width:180px">
+        <select id="appStatus" onchange="renderAppTable()" style="width:160px">
+          <option value="">สถานะทั้งหมด</option>
+          <option>สมัคร</option><option>ผ่านคัดกรอง</option><option>สัมภาษณ์</option>
+          <option>ผ่านสัมภาษณ์</option><option>รอเริ่มงาน</option><option>เริ่มงานแล้ว</option>
+          <option>ไม่ผ่านสัมภาษณ์</option><option>ไม่มาเริ่มงาน</option>
+        </select>
+        <span style="font-size:12px;color:var(--muted)">เพิ่มข้อมูลผ่าน <b style="color:var(--teal-d)">ผู้สมัคร</b> ในเมนูจัดการข้อมูล</span>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>ช่องทาง</th><th>วันที่สมัคร</th><th>สถานะ</th><th>เหตุผล</th><th>Recruiter</th><th>จัดการ</th></tr></thead>
+      <tbody id="appTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== EFFICIENCY ===== -->
+<div class="section" id="sec-efficiency">
+  <div class="sec-title"><span>⚡</span>ประสิทธิภาพการสรรหา</div>
+  <div class="cards cards-4" id="eff-cards"></div>
+  <div class="row row-2">
+    <div class="chart-card tall">
+      <h3>📣 ช่องทางการสมัคร (จำนวนผู้สมัคร)</h3>
+      <canvas id="channelChart"></canvas>
+    </div>
+    <div class="chart-card tall">
+      <h3>✅ ช่องทางที่ได้คนเริ่มงานมากที่สุด</h3>
+      <canvas id="channelHiredChart"></canvas>
+    </div>
+  </div>
+  <div class="row row-2">
+    <div class="chart-card">
+      <h3>🏆 Recruiter – จำนวนผู้สมัครที่เริ่มงาน</h3>
+      <canvas id="recruiterChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>⏱️ ระยะเวลาสรรหาเฉลี่ย (Time to Fill) แยกตำแหน่ง</h3>
+      <canvas id="ttfChart"></canvas>
+    </div>
+  </div>
+  <div class="row row-2">
+    <div class="chart-card">
+      <h3>🏪 ผู้สมัครแยกตามสาขา</h3>
+      <canvas id="branchChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>🔍 ตำแหน่งที่สรรหายากที่สุด (Avg. Days)</h3>
+      <div id="hardestChart" class="html-bar-chart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INTERVIEW ===== -->
+<div class="section" id="sec-interview">
+  <div class="sec-title"><span>🗓️</span>นัดสัมภาษณ์</div>
+  <div class="cards cards-4" id="intv-cards"></div>
+  <div class="row row-2" style="margin-top:16px">
+    <div class="table-card" style="flex:1">
+      <div class="table-card-header"><h3>📅 วันนี้</h3></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>Recruiter</th><th>หมายเหตุ</th></tr></thead>
+        <tbody id="intvTodayTbody"></tbody>
+      </table></div>
+    </div>
+    <div class="table-card" style="flex:1">
+      <div class="table-card-header" style="justify-content:space-between">
+        <h3 id="intvWeekTitle">📆 สัปดาห์นี้ (ที่เหลือ)</h3>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="changeIntvWeek(-1)" style="border:1px solid var(--border);background:var(--bg);border-radius:7px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text)">‹</button>
+          <button id="intvWeekResetBtn" onclick="changeIntvWeek(0,true)" style="border:1px solid var(--border);background:var(--bg);border-radius:7px;padding:4px 9px;cursor:pointer;font-size:11px;color:var(--muted)">สัปดาห์นี้</button>
+          <button onclick="changeIntvWeek(1)" style="border:1px solid var(--border);background:var(--bg);border-radius:7px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text)">›</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันที่สัมภาษณ์</th><th>Recruiter</th></tr></thead>
+        <tbody id="intvWeekTbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header">
+      <h3>📋 ผู้สมัครสถานะ "สัมภาษณ์" ทั้งหมด</h3>
+      <input type="text" id="intv_search" placeholder="🔍 ค้นหา..." oninput="renderInterview()" style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;outline:none;width:200px">
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันที่สัมภาษณ์</th><th>ช่องทาง</th><th>Recruiter</th><th>หมายเหตุ</th><th>จัดการ</th></tr></thead>
+      <tbody id="intvAllTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== PENDING ===== -->
+<div class="section" id="sec-pending">
+  <div class="sec-title"><span>📅</span>รายงานรอเริ่มงาน</div>
+  <div class="cards cards-4" id="pend-cards"></div>
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>รายชื่อผู้สมัครรอเริ่มงาน</h3>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="pendSearch" placeholder="🔍 ค้นหา..." oninput="renderPendTable()" style="width:200px">
+        <select id="pendBranch" onchange="renderPendTable()" style="width:160px"><option value="">สาขาทั้งหมด</option></select>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>ร้าน/สาขา</th><th>วันเริ่มงาน</th><th>Recruiter</th><th>ช่องทาง</th><th>หมายเหตุ</th></tr></thead>
+      <tbody id="pendTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== MONTHLY ===== -->
+<div class="section" id="sec-monthly">
+  <div class="sec-title"><span>📈</span>รายงานสรุปรายเดือน</div>
+  <div class="chart-card" style="margin-bottom:16px">
+    <h3>📊 ภาพรวมรายเดือน</h3>
+    <canvas id="monthlySummaryChart" style="max-height:280px"></canvas>
+  </div>
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>ตารางสรุปรายเดือน</h3>
+      <button onclick="exportMonthlyCSV()" style="border:1px solid var(--teal);background:var(--teal-light);color:var(--teal-d);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">⬇ Export CSV</button>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>เดือน</th><th>เข้าใหม่</th><th>ลาออก</th><th>Turnover%</th><th>เปิดรับ</th><th>ปิดตำแหน่ง</th><th>รอเริ่มงาน</th><th>เริ่มงานแล้ว</th><th>ไม่ผ่านสัมภาษณ์</th><th>ไม่มาเริ่มงาน</th></tr></thead>
+      <tbody id="monthlyTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+
+<!-- ===== ENTRY: ตำแหน่งว่าง ===== -->
+<div class="section" id="sec-entry-pos">
+  <div class="sec-title"><span>✏️</span>จัดการตำแหน่งว่าง</div>
+
+  <div class="entry-card">
+    <div class="entry-card-header" onclick="toggleEntryCard('posBody','posToggle')">
+      <span id="posFormTitle">➕ เพิ่มตำแหน่งว่างใหม่</span>
+      <span class="entry-card-toggle" id="posToggle">▲</span>
+    </div>
+    <div class="entry-card-body" id="posBody">
+      <div class="entry-grid">
+        <div class="entry-field full"><label>ตำแหน่ง *</label><input id="ep_pos" type="text" placeholder="เช่น Barista, Cashier, Shift Leader"></div>
+        <div class="entry-field"><label>ร้าน / สาขา</label><input id="ep_branch" type="text" placeholder="เช่น สาขาสยาม"></div>
+        <div class="entry-field"><label>จำนวนที่ต้องการ</label><input id="ep_need" type="number" min="1" value="1"></div>
+        <div class="entry-field"><label>จำนวนที่ได้แล้ว</label><input id="ep_hired" type="number" min="0" value="0"></div>
+        <div class="entry-field"><label>ระดับความเร่งด่วน</label>
+          <select id="ep_urgency"><option>ด่วนมาก (7 วัน)</option><option>ด่วน (15 วัน)</option><option selected>ปกติ (30 วัน)</option></select>
+        </div>
+        <div class="entry-field"><label>เหตุผลการเปิดรับ</label>
+          <select id="ep_reason"><option>รับใหม่ (New Position)</option><option>รับทดแทน (Replacement)</option></select>
+        </div>
+        <div class="entry-field"><label>วันที่เปิดรับ</label><input id="ep_opendate" type="date"></div>
+        <div class="entry-field"><label>Recruiter ผู้รับผิดชอบ</label><input id="ep_rec" type="text" placeholder="ชื่อ Recruiter"></div>
+      </div>
+      <div class="entry-actions">
+        <button class="btn btn-primary" onclick="savePosEntry()">💾 บันทึกตำแหน่ง</button>
+        <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="cancelPosEdit()">ยกเลิก</button>
+        <span class="save-indicator" id="posSaveInd">✅ บันทึกแล้ว</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>📋 รายการตำแหน่งว่างทั้งหมด</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="ep_search" placeholder="🔍 ค้นหาตำแหน่ง..." oninput="renderPosTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;outline:none;width:200px">
+        <select id="ep_urg_filter" onchange="renderPosTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">ความเร่งด่วนทั้งหมด</option>
+          <option>ด่วนมาก (7 วัน)</option><option>ด่วน (15 วัน)</option><option>ปกติ (30 วัน)</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ตำแหน่ง</th><th>ร้าน/สาขา</th><th>ต้องการ</th><th>ได้แล้ว</th><th>ขาด</th><th>ความเร่งด่วน</th><th>เหตุผล</th><th>วันเปิดรับ</th><th>Recruiter</th><th>จัดการ</th></tr></thead>
+      <tbody id="posTableBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== USER MANAGEMENT ===== -->
+
+<!-- ===== ENTRY: ผู้สมัคร ===== -->
+<div class="section" id="sec-entry-app">
+  <div class="sec-title"><span>📝</span>จัดการข้อมูลผู้สมัคร</div>
+
+  <div class="entry-card">
+    <div class="entry-card-header" onclick="toggleEntryCard('appBody','appToggle')">
+      <span id="appFormTitle">➕ เพิ่มผู้สมัครใหม่</span>
+      <span class="entry-card-toggle" id="appToggle">▲</span>
+    </div>
+    <div class="entry-card-body" id="appBody">
+      <div class="entry-grid">
+        <div class="entry-field full" style="grid-column:1/-1">
+          <label>🔗 เชื่อมกับตำแหน่งว่าง <span style="font-weight:400;color:var(--muted);font-size:11px">(เพื่อคำนวณ Time to Fill อัตโนมัติ)</span></label>
+          <select id="ea_poslink" onchange="applyPosLink()" style="width:100%">
+            <option value="">– ไม่ระบุ / ไม่มีตำแหน่งว่าง –</option>
+          </select>
+        </div>
+        <div class="entry-field">
+          <label>ชื่อ-นามสกุล *</label>
+          <input id="ea_name" type="text" placeholder="ชื่อผู้สมัคร" oninput="checkDupName(this.value)">
+          <div id="dupNameWarn" style="display:none;margin-top:5px;background:#FFF3CD;border:1px solid #C5913A;border-radius:8px;padding:7px 10px;font-size:12px;color:#7A5A1A"></div>
+        </div>
+        <div class="entry-field"><label>ตำแหน่งที่สมัคร *</label><input id="ea_pos" type="text" placeholder="เช่น Barista"></div>
+        <div class="entry-field"><label>ร้าน / สาขา</label><input id="ea_branch" type="text" placeholder="เช่น สาขาสยาม"></div>
+        <div class="entry-field"><label>ช่องทางการสมัคร</label>
+          <select id="ea_channel"><option>JobThai</option><option>Facebook</option><option>TikTok</option><option>Line</option><option>Walk-in</option><option>Employee Referral</option><option>อื่น ๆ</option></select>
+        </div>
+        <div class="entry-field"><label>วันที่สมัคร</label><input id="ea_date" type="date"></div>
+        <div class="entry-field"><label>สถานะ</label>
+          <select id="ea_status"><option>สมัคร</option><option>ผ่านคัดกรอง</option><option>สัมภาษณ์</option><option>ผ่านสัมภาษณ์</option><option>รอเริ่มงาน</option><option>เริ่มงานแล้ว</option><option>ไม่ผ่านสัมภาษณ์</option><option>ไม่มาเริ่มงาน</option></select>
+        </div>
+        <div class="entry-field"><label>วันนัดสัมภาษณ์</label><input id="ea_interviewdate" type="date"></div>
+        <div class="entry-field"><label>วันเริ่มงาน (ถ้ามี)</label><input id="ea_startdate" type="date"></div>
+        <div class="entry-field"><label>Recruiter</label><input id="ea_rec" type="text" placeholder="ชื่อ Recruiter"></div>
+        <div class="entry-field"><label>เหตุผล (กรณีไม่ผ่าน/ไม่มา)</label>
+          <select id="ea_reason">
+            <option value="">– ไม่ระบุ –</option>
+            <optgroup label="ไม่ผ่านสัมภาษณ์"><option>ประสบการณ์ไม่ตรง</option><option>เงินเดือนไม่ตรง</option><option>ทักษะไม่ผ่าน</option><option>บุคลิกภาพ</option><option>ผจก.ไม่อนุมัติ</option></optgroup>
+            <optgroup label="ไม่มาเริ่มงาน"><option>ได้งานที่อื่น</option><option>เปลี่ยนใจ</option><option>เงินเดือนไม่ตรงความคาดหวัง</option><option>เดินทางไม่สะดวก</option><option>ติดต่อไม่ได้</option><option>ไม่แจ้งเหตุผล</option></optgroup>
+            <option>อื่น ๆ</option>
+          </select>
+        </div>
+        <div class="entry-field"><label>หมายเหตุ</label><input id="ea_note" type="text" placeholder="บันทึกเพิ่มเติม"></div>
+      </div>
+      <div class="entry-actions">
+        <button class="btn btn-primary" onclick="saveAppEntry()">💾 บันทึกผู้สมัคร</button>
+        <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="cancelAppEdit()">ยกเลิก</button>
+        <span class="save-indicator" id="appSaveInd">✅ บันทึกแล้ว</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Zone -->
+  <div class="entry-card" style="margin-bottom:16px">
+    <div class="entry-card-header" style="cursor:default">
+      <span>📥 นำเข้าผู้สมัครจาก Excel / CSV</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label class="btn btn-primary" style="cursor:pointer;font-size:12px;padding:6px 14px;margin:0">
+          📂 เลือกไฟล์
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="importAppFile(this)" style="display:none">
+        </label>
+        <button onclick="downloadAppTemplate()" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">📄 ดาวน์โหลด Template</button>
+        <span id="appImportMsg" style="font-size:12px;color:var(--teal);font-weight:600"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status summary badges -->
+  <div id="appStatusBadges" class="entry-status-badges"></div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>📋 รายชื่อผู้สมัคร (กำลังดำเนินการ)</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="ea_search" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="renderAppTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;outline:none;width:200px">
+        <select id="ea_status_filter" onchange="renderAppTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">สถานะทั้งหมด</option>
+          <option>สมัคร</option><option>ผ่านคัดกรอง</option><option>สัมภาษณ์</option><option>ผ่านสัมภาษณ์</option><option>รอเริ่มงาน</option>
+        </select>
+        <button onclick="exportAppCSV()" style="border:1px solid var(--teal);background:var(--teal-light);color:var(--teal-d);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">⬇ Export CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>ช่องทาง</th><th>วันที่สมัคร</th><th>สถานะ</th><th>วันเริ่มงาน</th><th>Time to Fill</th><th>Recruiter</th><th>เหตุผล</th><th>จัดการ</th></tr></thead>
+      <tbody id="appTableBody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- ARCHIVE SECTION -->
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header" onclick="toggleArchivePanel()" style="cursor:pointer;user-select:none">
+      <h3>📦 Archive — รายการที่จบแล้ว &nbsp;<span id="archiveCount" style="font-size:12px;font-weight:500;color:var(--muted)"></span></h3>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="text" id="archive_search" placeholder="🔍 ค้นหา..." oninput="renderAppTable()" onclick="event.stopPropagation()" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;outline:none;width:160px">
+        <span id="archiveToggleIcon" style="font-size:18px;color:var(--muted);transform:rotate(-90deg);display:inline-block;transition:transform .2s">▾</span>
+      </div>
+    </div>
+    <div id="archivePanel" style="display:none">
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>ช่องทาง</th><th>วันที่สมัคร</th><th>สถานะ</th><th>วันเริ่มงาน</th><th>Time to Fill</th><th>Recruiter</th><th>เหตุผล</th><th>จัดการ</th></tr></thead>
+        <tbody id="archiveTableBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ENTRY: ฐานข้อมูลพนักงาน ===== -->
+<div class="section" id="sec-entry-emp">
+  <div class="sec-title"><span>🏢</span>ฐานข้อมูลพนักงาน</div>
+
+  <!-- IMPORT ZONE -->
+  <div class="entry-card" style="margin-bottom:16px">
+    <div class="entry-card-header" style="cursor:default">
+      <span>📥 นำเข้าข้อมูลจาก Excel</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label class="btn btn-primary" style="cursor:pointer;font-size:12px;padding:6px 14px;margin:0">
+          📂 เลือกไฟล์ Excel
+          <input type="file" id="empExcelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importEmpExcel(this)">
+        </label>
+        <button class="btn" style="background:var(--bg);color:var(--muted);font-size:12px" onclick="downloadEmpTemplate()">⬇️ ดาวน์โหลด Template</button>
+      </div>
+    </div>
+    <div style="padding:10px 22px;font-size:12px;color:var(--muted);background:var(--bg)">
+      คอลัมน์ที่รองรับ: <strong>รหัสพนักงาน, ชื่อ-นามสกุล, ตำแหน่ง, แผนก, สาขา, วันที่เริ่มงาน (YYYY-MM-DD), สถานะ (ทำงานอยู่/ลาออก)</strong>
+    </div>
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="entry-card">
+    <div class="entry-card-header" onclick="toggleEntryCard('empBody','empToggle')">
+      <span id="empFormTitle">➕ เพิ่มพนักงานใหม่</span>
+      <span class="entry-card-toggle" id="empToggle">▲</span>
+    </div>
+    <div class="entry-card-body" id="empBody">
+      <div class="entry-grid">
+        <div class="entry-field"><label>รหัสพนักงาน</label><input id="ee_id" type="text" placeholder="เช่น SKY015"></div>
+        <div class="entry-field"><label>ชื่อ-นามสกุล *</label><input id="ee_name" type="text" placeholder="ชื่อพนักงาน"></div>
+        <div class="entry-field"><label>ตำแหน่ง *</label><input id="ee_pos" type="text" placeholder="เช่น Barista, Cashier"></div>
+        <div class="entry-field"><label>แผนก</label>
+          <select id="ee_dept"><option>Operations</option><option>HR</option><option>Marketing</option><option>IT</option><option>Finance</option><option>อื่น ๆ</option></select>
+        </div>
+        <div class="entry-field"><label>ร้าน / สาขา</label><input id="ee_branch" type="text" placeholder="เช่น สาขาสยาม"></div>
+        <div class="entry-field"><label>วันที่เริ่มงาน *</label><input id="ee_startdate" type="date"></div>
+        <div class="entry-field"><label>สถานะ</label>
+          <select id="ee_status" onchange="toggleResignFields()"><option>ทำงานอยู่</option><option>ลาออก</option><option>พักงาน</option></select>
+        </div>
+        <div class="entry-field"><label data-resign-label style="color:var(--muted)">วันที่ออก</label><input id="ee_enddate" type="date" disabled style="opacity:.4;cursor:not-allowed"></div>
+        <div class="entry-field"><label data-resign-label style="color:var(--muted)">เหตุผลการออก</label>
+          <select id="ee_reason" disabled style="opacity:.4;cursor:not-allowed"><option value="">– ไม่ระบุ –</option><option>ค่าตอบแทน</option><option>ความก้าวหน้า</option><option>สภาพแวดล้อม</option><option>สุขภาพ</option><option>ย้ายที่อยู่</option><option>ได้งานใหม่</option><option>อื่น ๆ</option></select>
+        </div>
+        <div class="entry-field"><label>ระยะทดลองงาน</label>
+          <select id="ee_probdays"><option value="">– ไม่ระบุ –</option><option value="60">60 วัน</option><option value="90">90 วัน</option><option value="120">120 วัน</option></select>
+        </div>
+        <div class="entry-field"><label>ผลทดลองงาน</label>
+          <select id="ee_probresult"><option value="ทดลองงาน">ทดลองงาน</option><option value="ผ่าน">ผ่าน</option><option value="ไม่ผ่าน">ไม่ผ่าน</option></select>
+        </div>
+      </div>
+      <div class="entry-actions">
+        <button class="btn btn-primary" onclick="saveEmpEntry()">💾 บันทึกพนักงาน</button>
+        <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="cancelEmpEdit()">ยกเลิก</button>
+        <span class="save-indicator" id="empSaveInd">✅ บันทึกแล้ว</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY KPI -->
+  <div id="empKpiCards" class="cards cards-4" style="margin-bottom:16px"></div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>👥 รายชื่อพนักงานทั้งหมด</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="ee_search" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;outline:none;width:200px">
+        <select id="ee_status_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">สถานะทั้งหมด</option><option>ทำงานอยู่</option><option>ลาออก</option><option>พักงาน</option>
+        </select>
+        <select id="ee_dept_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">แผนกทั้งหมด</option>
+          <option>Operations</option><option>HR</option><option>Marketing</option><option>IT</option><option>Finance</option>
+        </select>
+        <button onclick="exportEmpCSV()" style="border:1px solid var(--teal);background:var(--teal-light);color:var(--teal-d);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">⬇ Export CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>แผนก</th><th>ร้าน/สาขา</th><th>วันเริ่มงาน</th><th>อายุงาน</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+      <tbody id="empTableBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+
+</div><!-- /content -->
+</div><!-- /main-wrap -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Resign Modal -->
+<div class="overlay" id="resignModal">
+  <div class="modal">
+    <h2>บันทึกพนักงานลาออก</h2>
+    <div class="form-grid">
+      <div><label>ชื่อ-นามสกุล *</label><input id="rs_name" type="text"></div>
+      <div><label>ตำแหน่ง *</label><input id="rs_pos" type="text"></div>
+      <div><label>แผนก</label><input id="rs_dept" type="text"></div>
+      <div><label>ร้าน/สาขา</label><input id="rs_branch" type="text"></div>
+      <div><label>วันที่ลาออก</label><input id="rs_date" type="date"></div>
+      <div><label>เหตุผล</label>
+        <select id="rs_reason">
+          <option>ค่าตอบแทน</option><option>ความก้าวหน้า</option><option>สภาพแวดล้อม</option>
+          <option>สุขภาพ</option><option>ย้ายที่อยู่</option><option>ได้งานใหม่</option><option>อื่น ๆ</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('resignModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveResign()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Position Modal -->
+<div class="overlay" id="posModal">
+  <div class="modal">
+    <h2>เพิ่มตำแหน่งที่เปิดรับ</h2>
+    <div class="form-grid">
+      <div><label>ตำแหน่ง *</label><input id="p_pos" type="text"></div>
+      <div><label>ร้าน/สาขา</label><input id="p_branch" type="text"></div>
+      <div><label>จำนวนที่ต้องการ</label><input id="p_need" type="number" value="1" min="1"></div>
+      <div><label>ระดับความเร่งด่วน</label>
+        <select id="p_urgency"><option>ด่วนมาก (7 วัน)</option><option>ด่วน (15 วัน)</option><option>ปกติ (30 วัน)</option></select>
+      </div>
+      <div><label>เหตุผลการเปิดรับ</label>
+        <select id="p_reason"><option>รับใหม่ (New Position)</option><option>รับทดแทน (Replacement)</option></select>
+      </div>
+      <div><label>Recruiter</label><input id="p_rec" type="text"></div>
+      <div><label>วันที่เปิดรับ</label><input id="p_opendate" type="date"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('posModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="savePos()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Applicant Modal -->
+<div class="overlay" id="appModal">
+  <div class="modal">
+    <h2>เพิ่มผู้สมัคร</h2>
+    <div class="form-grid">
+      <div><label>ชื่อ-นามสกุล *</label><input id="a_name" type="text"></div>
+      <div><label>ตำแหน่งที่สมัคร *</label><input id="a_pos" type="text"></div>
+      <div><label>ร้าน/สาขา</label><input id="a_branch" type="text"></div>
+      <div><label>ช่องทางการสมัคร</label>
+        <select id="a_channel"><option>JobThai</option><option>Facebook</option><option>TikTok</option><option>Line</option><option>Walk-in</option><option>Employee Referral</option><option>อื่น ๆ</option></select>
+      </div>
+      <div><label>วันที่สมัคร</label><input id="a_date" type="date"></div>
+      <div><label>สถานะ</label>
+        <select id="a_status"><option>สมัคร</option><option>ผ่านคัดกรอง</option><option>สัมภาษณ์</option><option>ผ่านสัมภาษณ์</option><option>รอเริ่มงาน</option><option>เริ่มงานแล้ว</option><option>ไม่ผ่านสัมภาษณ์</option><option>ไม่มาเริ่มงาน</option></select>
+      </div>
+      <div><label>วันเริ่มงาน (ถ้ามี)</label><input id="a_startdate" type="date"></div>
+      <div><label>Recruiter</label><input id="a_rec" type="text"></div>
+      <div class="full"><label>เหตุผล (กรณีไม่ผ่าน/ไม่มา)</label><input id="a_reason" type="text"></div>
+      <div class="full"><label>หมายเหตุ</label><input id="a_note" type="text"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('appModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveApp()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Audit Log -->
+<div class="overlay" id="auditModal">
+  <div class="modal" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">📋</span>
+        <div>
+          <div style="font-weight:700;font-size:15px" id="auditModalName"></div>
+          <div style="font-size:12px;color:var(--muted)" id="auditModalSub"></div>
+        </div>
+      </div>
+      <button onclick="closeModal('auditModal')" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div id="auditTimeline" style="max-height:360px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Modal: เพิ่มเข้าฐานข้อมูลพนักงาน -->
+<div class="overlay" id="addEmpModal">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span style="font-size:28px">🎉</span>
+      <div>
+        <h2 style="margin:0;font-size:16px;color:var(--teal-d)">เพิ่มเข้าฐานข้อมูลพนักงาน</h2>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">กรอกข้อมูลเพิ่มเติมเพื่อบันทึกเป็นพนักงานใหม่</div>
+      </div>
+    </div>
+    <div style="background:var(--teal-light);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--teal-d)">
+      <strong id="aem_preview"></strong>
+    </div>
+    <div class="form-grid">
+      <div><label>รหัสพนักงาน</label><input id="aem_id" type="text" placeholder="เช่น SKY015"></div>
+      <div><label>แผนก</label>
+        <select id="aem_dept"><option>Operations</option><option>HR</option><option>Marketing</option><option>IT</option><option>Finance</option><option>อื่น ๆ</option></select>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('addEmpModal')">ข้ามขั้นตอนนี้</button>
+      <button class="btn btn-primary" onclick="confirmAddEmp()" style="background:var(--teal);border-color:var(--teal)">✅ เพิ่มเข้าฐานข้อมูล</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== SAMPLE DATA =====================
+const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+let resignData = [
+  {id:1,name:'สมชาย ใจดี',pos:'Barista',dept:'Operations',branch:'สาขาสยาม',date:'2026-05-10',reason:'ค่าตอบแทน'},
+  {id:2,name:'วรรณา สุขใจ',pos:'Cashier',dept:'Operations',branch:'สาขาอโศก',date:'2026-05-18',reason:'ได้งานใหม่'},
+  {id:3,name:'ธนา มั่นคง',pos:'Shift Leader',dept:'Operations',branch:'สาขาลาดพร้าว',date:'2026-06-03',reason:'ความก้าวหน้า'},
+  {id:4,name:'ปิยะ รักงาน',pos:'Barista',dept:'Operations',branch:'สาขาสยาม',date:'2026-06-08',reason:'ย้ายที่อยู่'},
+  {id:5,name:'นิดา ยิ้มแย้ม',pos:'Supervisor',dept:'Operations',branch:'สาขาพระราม9',date:'2026-04-22',reason:'ค่าตอบแทน'},
+];
+
+let posData = [
+  {id:1,pos:'Barista',branch:'สาขาสยาม',need:3,hired:1,urgency:'ด่วนมาก (7 วัน)',reason:'รับทดแทน (Replacement)',opendate:'2026-05-28',rec:'คุณนิดา'},
+  {id:2,pos:'Cashier',branch:'สาขาอโศก',need:2,hired:2,urgency:'ปกติ (30 วัน)',reason:'รับใหม่ (New Position)',opendate:'2026-06-01',rec:'คุณแนน'},
+  {id:3,pos:'Shift Leader',branch:'สาขาลาดพร้าว',need:1,hired:0,urgency:'ด่วน (15 วัน)',reason:'รับทดแทน (Replacement)',opendate:'2026-06-03',rec:'คุณสมชาย'},
+  {id:4,pos:'Supervisor',branch:'สาขาพระราม9',need:1,hired:0,urgency:'ด่วนมาก (7 วัน)',reason:'รับทดแทน (Replacement)',opendate:'2026-06-06',rec:'คุณนิดา'},
+  {id:5,pos:'Barista',branch:'สาขาอ่อนนุช',need:2,hired:1,urgency:'ด่วน (15 วัน)',reason:'รับใหม่ (New Position)',opendate:'2026-05-20',rec:'คุณแนน'},
+  {id:6,pos:'Store Manager',branch:'สาขาบางนา',need:1,hired:0,urgency:'ปกติ (30 วัน)',reason:'รับใหม่ (New Position)',opendate:'2026-06-05',rec:'คุณสมชาย'},
+];
+
+let appData = [
+  {id:1,name:'มณี อ่อนโยน',pos:'Barista',branch:'สาขาสยาม',channel:'JobThai',date:'2026-06-01',status:'รอเริ่มงาน',startdate:'2026-06-16',rec:'คุณนิดา',reason:'',note:''},
+  {id:2,name:'ประสิทธิ์ ดีงาม',pos:'Cashier',branch:'สาขาอโศก',channel:'Facebook',date:'2026-05-28',status:'เริ่มงานแล้ว',startdate:'2026-06-09',rec:'คุณแนน',reason:'',note:'',poslinkId:2,archived:true},
+  {id:3,name:'สุภาพ รักษา',pos:'Shift Leader',branch:'สาขาลาดพร้าว',channel:'Employee Referral',date:'2026-06-02',status:'สัมภาษณ์',interviewdate:'2026-06-13',startdate:'',rec:'คุณสมชาย',reason:'',note:'นัด 13 มิ.ย.'},
+  {id:4,name:'วิภา สวยงาม',pos:'Barista',branch:'สาขาสยาม',channel:'Walk-in',date:'2026-05-30',status:'ไม่ผ่านสัมภาษณ์',startdate:'',rec:'คุณนิดา',reason:'ทักษะไม่ผ่าน',note:'',archived:true},
+  {id:5,name:'ทศพล เก่งกาจ',pos:'Supervisor',branch:'สาขาพระราม9',channel:'JobThai',date:'2026-06-05',status:'ผ่านสัมภาษณ์',startdate:'',rec:'คุณนิดา',reason:'',note:''},
+  {id:6,name:'กัญญา ใฝ่ดี',pos:'Barista',branch:'สาขาอ่อนนุช',channel:'TikTok',date:'2026-05-25',status:'ไม่มาเริ่มงาน',startdate:'2026-06-05',rec:'คุณแนน',reason:'ได้งานที่อื่น',note:'',archived:true},
+  {id:7,name:'อรุณ รุ่งเรือง',pos:'Cashier',branch:'สาขาอโศก',channel:'Line',date:'2026-06-03',status:'ผ่านคัดกรอง',startdate:'',rec:'คุณแนน',reason:'',note:''},
+  {id:8,name:'ดาราณี สดใส',pos:'Store Manager',branch:'สาขาบางนา',channel:'JobThai',date:'2026-06-04',status:'สมัคร',startdate:'',rec:'คุณสมชาย',reason:'',note:''},
+  {id:9,name:'ชนะชัย กล้าหาญ',pos:'Barista',branch:'สาขาสยาม',channel:'Facebook',date:'2026-05-20',status:'เริ่มงานแล้ว',startdate:'2026-06-02',rec:'คุณนิดา',reason:'',note:'',poslinkId:1,archived:true},
+  {id:10,name:'พิมพ์ใจ งามพร้อม',pos:'Shift Leader',branch:'สาขาลาดพร้าว',channel:'Employee Referral',date:'2026-06-06',status:'รอเริ่มงาน',startdate:'2026-06-20',rec:'คุณสมชาย',reason:'',note:''},
+  {id:11,name:'วีระ มุ่งมั่น',pos:'Barista',branch:'สาขาอ่อนนุช',channel:'JobThai',date:'2026-05-15',status:'ไม่ผ่านสัมภาษณ์',startdate:'',rec:'คุณแนน',reason:'เงินเดือนไม่ตรง',note:''},
+  {id:12,name:'ศิริพร พอใจ',pos:'Supervisor',branch:'สาขาพระราม9',channel:'Walk-in',date:'2026-06-07',status:'สมัคร',startdate:'',rec:'คุณนิดา',reason:'',note:''},
+];
+
+const monthlyReport = [
+  {m:'ม.ค.',new:12,resign:5,open:8,closed:6,pending:4,started:8,failed:10,noshow:2},
+  {m:'ก.พ.',new:10,resign:4,open:7,closed:5,pending:3,started:7,failed:8,noshow:1},
+  {m:'มี.ค.',new:14,resign:6,open:10,closed:8,pending:5,started:9,failed:12,noshow:3},
+  {m:'เม.ย.',new:11,resign:7,open:9,closed:6,pending:4,started:8,failed:9,noshow:2},
+  {m:'พ.ค.',new:13,resign:5,open:11,closed:9,pending:6,started:10,failed:11,noshow:3},
+  {m:'มิ.ย.',new:8,resign:4,open:6,closed:4,pending:4,started:5,failed:7,noshow:1},
+];
+
+
+let empData = [
+  {id:1,empId:'SKY001',name:'นิดา ยิ้มแย้ม',pos:'Supervisor',dept:'Operations',branch:'สาขาพระราม9',startdate:'2023-01-10',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:2,empId:'SKY002',name:'แนน สดใส',pos:'Recruiter',dept:'HR',branch:'สำนักงานใหญ่',startdate:'2023-03-01',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:3,empId:'SKY003',name:'สมชาย ใจดี',pos:'Recruiter',dept:'HR',branch:'สำนักงานใหญ่',startdate:'2023-06-15',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:4,empId:'SKY004',name:'ชนะชัย กล้าหาญ',pos:'Barista',dept:'Operations',branch:'สาขาสยาม',startdate:'2026-06-02',status:'ทำงานอยู่',probationDays:90,probationResult:'ทดลองงาน'},
+  {id:5,empId:'SKY005',name:'ประสิทธิ์ ดีงาม',pos:'Cashier',dept:'Operations',branch:'สาขาอโศก',startdate:'2026-06-09',status:'ทำงานอยู่',probationDays:90,probationResult:'ทดลองงาน'},
+  {id:6,empId:'SKY006',name:'ทศพล เก่งกาจ',pos:'Supervisor',dept:'Operations',branch:'สาขาพระราม9',startdate:'2024-08-01',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:7,empId:'SKY007',name:'อรุณ รุ่งเรือง',pos:'Cashier',dept:'Operations',branch:'สาขาอโศก',startdate:'2025-02-15',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:8,empId:'SKY008',name:'ศิริพร พอใจ',pos:'Barista',dept:'Operations',branch:'สาขาอ่อนนุช',startdate:'2025-05-20',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:9,empId:'SKY009',name:'วิชัย มั่นคง',pos:'Shift Leader',dept:'Operations',branch:'สาขาลาดพร้าว',startdate:'2024-11-01',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:10,empId:'SKY010',name:'จิตรา สุขสันต์',pos:'Barista',dept:'Operations',branch:'สาขาสยาม',startdate:'2025-09-10',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:11,empId:'SKY011',name:'ธีรพล ขยันดี',pos:'Store Manager',dept:'Operations',branch:'สาขาบางนา',startdate:'2023-10-01',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:12,empId:'SKY012',name:'พรทิพย์ งามสง่า',pos:'Barista',dept:'Operations',branch:'สาขาสยาม',startdate:'2025-07-15',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน'},
+  {id:13,empId:'SKY013',name:'สมชาย ใจดี',pos:'Barista',dept:'Operations',branch:'สาขาสยาม',startdate:'2025-06-01',status:'ลาออก',probationDays:90,probationResult:'ผ่าน'},
+  {id:14,empId:'SKY014',name:'วรรณา สุขใจ',pos:'Cashier',dept:'Operations',branch:'สาขาอโศก',startdate:'2024-12-01',status:'ลาออก',probationDays:90,probationResult:'ผ่าน'},
+];
+let branchTargets=[
+  {branch:'สาขาสยาม',target:4},
+  {branch:'สาขาอโศก',target:3},
+  {branch:'สาขาพระราม9',target:3},
+  {branch:'สาขาลาดพร้าว',target:2},
+  {branch:'สาขาบางนา',target:2},
+  {branch:'สาขาอ่อนนุช',target:2},
+  {branch:'สำนักงานใหญ่',target:3},
+];
+let nextEid=15;
+let nextRid=6,nextPid=7,nextAid=13;
+let chartInstances={};
+
+// ===================== UTILS =====================
+const todayStr=()=>new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',weekday:'long'});
+const fmtDate=d=>d?new Date(d).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'–';
+const daysSince=d=>{if(!d)return 0;return Math.floor((new Date()-new Date(d))/(1000*60*60*24));};
+const mkChart=(id,cfg)=>{const c=document.getElementById(id);if(!c)return;if(chartInstances[id])chartInstances[id].destroy();chartInstances[id]=new Chart(c,cfg);return chartInstances[id];};
+
+// ===================== NAV =====================
+const titles={exec:'📊 Executive Summary',workforce:'👥 สถานะกำลังคน',probation:'🔄 Probation Tracking',recruit:'🎯 สถานะการสรรหา',applicant:'📋 ข้อมูลผู้สมัคร',efficiency:'⚡ ประสิทธิภาพการสรรหา',interview:'🗓️ นัดสัมภาษณ์',pending:'📅 รายงานรอเริ่มงาน',monthly:'📈 สรุปรายเดือน'};
+function showSection(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('sectionTitle').textContent=titles[id]||id;
+  renderSection(id);
+}
+function renderSection(id){
+  if(id==='exec')renderExec();
+  else if(id==='workforce')renderWorkforce();
+  else if(id==='probation')renderProbation();
+  else if(id==='recruit')renderRecruit();
+  else if(id==='applicant')renderApplicant();
+  else if(id==='efficiency')renderEfficiency();
+  else if(id==='interview')renderInterview();
+  else if(id==='pending')renderPending();
+  else if(id==='monthly')renderMonthly();
+}
+
+// ===================== EXEC =====================
+function renderExec(){
+  const selMonth=parseInt(document.getElementById('filterMonth')?.value||'all');
+  const selYear=parseInt(document.getElementById('filterYear')?.value||2026);
+  const totalStaff=empData.length?empData.filter(e=>e.status==='ทำงานอยู่').length:120;
+  const newHires=empData.length?empData.filter(e=>{
+    if(!e.startdate)return false;
+    const d=new Date(e.startdate);
+    return d.getFullYear()===selYear&&(isNaN(selMonth)||d.getMonth()+1===selMonth);
+  }).length:monthlyReport[5].new;
+  const resigned=resignData.filter(r=>{
+    if(!r.date)return true;
+    const d=new Date(r.date);
+    return d.getFullYear()===selYear&&(isNaN(selMonth)||d.getMonth()+1===selMonth);
+  }).length||resignData.length;
+  const turnover=totalStaff>0?Math.round(resigned/totalStaff*100*10)/10:0;
+  const totalPos=posData.length;
+  const totalNeed=posData.reduce((s,p)=>s+p.need,0);
+  const totalHired=posData.reduce((s,p)=>s+p.hired,0);
+  const totalLack=totalNeed-totalHired;
+
+  document.getElementById('exec-workforce-cards').innerHTML=`
+    <div class="kpi-card green"><div class="kpi-icon">🟢</div><div class="kpi-label">พนักงานเข้าใหม่ (เดือนนี้)</div><div class="kpi-value green">${newHires}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">🔴</div><div class="kpi-label">พนักงานลาออก (เดือนนี้)</div><div class="kpi-value red">${resigned}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card yellow"><div class="kpi-icon">📉</div><div class="kpi-label">Turnover Rate</div><div class="kpi-value yellow">${turnover}%</div><div class="kpi-sub">ของพนักงานทั้งหมด</div></div>
+    <div class="kpi-card primary"><div class="kpi-icon">⏱️</div><div class="kpi-label">Time to Fill เฉลี่ย</div><div class="kpi-value">18 วัน</div><div class="kpi-sub">วันเฉลี่ยต่อตำแหน่ง</div></div>
+  `;
+  document.getElementById('exec-recruit-cards').innerHTML=`
+    <div class="kpi-card blue"><div class="kpi-icon">📂</div><div class="kpi-label">ตำแหน่งที่เปิดรับ</div><div class="kpi-value blue">${totalPos}</div><div class="kpi-sub">ตำแหน่ง</div></div>
+    <div class="kpi-card purple"><div class="kpi-icon">🎯</div><div class="kpi-label">ต้องการทั้งหมด</div><div class="kpi-value purple">${totalNeed}</div><div class="kpi-sub">อัตรา</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">✅</div><div class="kpi-label">ได้คนแล้ว</div><div class="kpi-value green">${totalHired}</div><div class="kpi-sub">อัตรา</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">❗</div><div class="kpi-label">ยังขาดอีก</div><div class="kpi-value red">${totalLack}</div><div class="kpi-sub">อัตรา</div></div>
+  `;
+  const total=appData.length,passed=appData.filter(a=>['ผ่านสัมภาษณ์','รอเริ่มงาน','เริ่มงานแล้ว'].includes(a.status)).length;
+  const failed=appData.filter(a=>a.status==='ไม่ผ่านสัมภาษณ์').length;
+  const pending2=appData.filter(a=>a.status==='รอเริ่มงาน').length;
+  const started=appData.filter(a=>a.status==='เริ่มงานแล้ว').length;
+  const noshow=appData.filter(a=>a.status==='ไม่มาเริ่มงาน').length;
+  const inprog=appData.filter(a=>['สมัคร','ผ่านคัดกรอง','สัมภาษณ์'].includes(a.status)).length;
+  document.getElementById('exec-applicant-cards').innerHTML=`
+    <div class="kpi-card primary"><div class="kpi-label">ผู้สมัครทั้งหมด</div><div class="kpi-value">${total}</div></div>
+    <div class="kpi-card cyan"><div class="kpi-label">กำลังดำเนินการ</div><div class="kpi-value" style="color:var(--cyan)">${inprog}</div></div>
+    <div class="kpi-card green"><div class="kpi-label">ผ่านสัมภาษณ์</div><div class="kpi-value green">${passed}</div></div>
+    <div class="kpi-card red"><div class="kpi-label">ไม่ผ่านสัมภาษณ์</div><div class="kpi-value red">${failed}</div></div>
+    <div class="kpi-card yellow"><div class="kpi-label">รอเริ่มงาน</div><div class="kpi-value yellow">${pending2}</div></div>
+    <div class="kpi-card green"><div class="kpi-label">เริ่มงานแล้ว</div><div class="kpi-value green">${started}</div></div>
+  `;
+
+  // Funnel
+  renderFunnel('funnelViz');
+
+  // Highlights
+  const depts=['Operations','HR','Marketing','IT','Finance'];
+  const deptResign=depts.map(d=>({dept:d,count:resignData.filter(r=>r.dept===d).length})).sort((a,b)=>b.count-a.count);
+  const recs=['คุณนิดา','คุณแนน','คุณสมชาย'];
+  const recPerf=recs.map(r=>({rec:r,count:appData.filter(a=>a.rec===r&&a.status==='เริ่มงานแล้ว').length})).sort((a,b)=>b.count-a.count);
+  const channels=['JobThai','Facebook','TikTok','Line','Walk-in','Employee Referral','อื่น ๆ'];
+  const chanPerf=channels.map(c=>({ch:c,count:appData.filter(a=>a.channel===c&&a.status==='เริ่มงานแล้ว').length})).sort((a,b)=>b.count-a.count);
+  const noShowRec=appData.filter(a=>a.status==='ไม่มาเริ่มงาน').length;
+
+  document.getElementById('exec-highlights').innerHTML=`
+    <div class="exec-list">
+      <div class="exec-row"><span class="exec-row-label">🏢 แผนกที่ลาออกมากสุด</span><span class="exec-row-val">${deptResign[0]?.dept||'–'} (${deptResign[0]?.count||0} คน)</span></div>
+      <div class="exec-row"><span class="exec-row-label">💼 ตำแหน่งที่ลาออกมากสุด</span><span class="exec-row-val">Barista (2 คน)</span></div>
+      <div class="exec-row"><span class="exec-row-label">🏆 Recruiter ที่ดีที่สุด</span><span class="exec-row-val">${recPerf[0]?.rec||'–'} (${recPerf[0]?.count||0} คน)</span></div>
+      <div class="exec-row"><span class="exec-row-label">📣 ช่องทางที่ได้คนมากสุด</span><span class="exec-row-val">${chanPerf[0]?.ch||'–'} (${chanPerf[0]?.count||0} คน)</span></div>
+      <div class="exec-row"><span class="exec-row-label">⏱️ Time to Fill เฉลี่ย</span><span class="exec-row-val">18 วัน</span></div>
+      <div class="exec-row"><span class="exec-row-label">🚪 ไม่มาเริ่มงาน (No Show)</span><span class="exec-row-val" style="color:var(--red)">${noShowRec} คน</span></div>
+      <div class="exec-row"><span class="exec-row-label">⏳ ตำแหน่งค้างสรรหานานสุด</span><span class="exec-row-val">Shift Leader – ${daysSince('2026-06-03')} วัน</span></div>
+    </div>
+  `;
+
+  // Pending list
+  const pend=appData.filter(a=>a.status==='รอเริ่มงาน');
+  document.getElementById('exec-pending-tbody').innerHTML=pend.map((a,i)=>`
+    <tr><td>${i+1}</td><td><strong>${a.name}</strong></td><td>${a.pos}</td><td>${a.branch}</td><td><strong style="color:var(--green)">${fmtDate(a.startdate)}</strong></td><td>${a.rec}</td></tr>
+  `).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">ไม่มีรายการ</td></tr>';
+}
+
+// ===================== FUNNEL =====================
+function renderFunnel(elId){
+  const stages=['สมัคร','ผ่านคัดกรอง','สัมภาษณ์','ผ่านสัมภาษณ์','รอเริ่มงาน','เริ่มงานแล้ว'];
+  const colors=['#6B90A8','#5A8AA4','#4D7D9A','#3D9494','#2E7A7A','#1E6060'];
+  const counts=stages.map(s=>appData.filter(a=>a.status===s).length);
+  const max=Math.max(...counts,1);
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML=stages.map((s,i)=>`
+    <div class="funnel-row">
+      <div class="funnel-label">${s}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${Math.max(counts[i]/max*100,5)}%;background:${colors[i]}">${counts[i]>0?counts[i]:''}</div>
+      </div>
+      <div class="funnel-count">${counts[i]}</div>
+    </div>
+  `).join('');
+}
+
+// ===================== WORKFORCE =====================
+function renderWorkforce(){
+  const selMonth=parseInt(document.getElementById('filterMonth')?.value||'all');
+  const selYear=parseInt(document.getElementById('filterYear')?.value||2026);
+  const totalStaff=empData.length?empData.filter(e=>e.status==='ทำงานอยู่').length:120;
+  const newH=empData.length?empData.filter(e=>{
+    if(!e.startdate)return false;
+    const d=new Date(e.startdate);
+    return d.getFullYear()===selYear&&(isNaN(selMonth)||d.getMonth()+1===selMonth);
+  }).length:8;
+  const res=resignData.filter(r=>{
+    if(!r.date)return true;
+    const d=new Date(r.date);
+    return d.getFullYear()===selYear&&(isNaN(selMonth)||d.getMonth()+1===selMonth);
+  }).length;
+  const turnover=totalStaff>0?Math.round(res/totalStaff*100*10)/10:0;
+  document.getElementById('wf-cards').innerHTML=`
+    <div class="kpi-card green"><div class="kpi-icon">🟢</div><div class="kpi-label">เข้าใหม่ (เดือนนี้)</div><div class="kpi-value green">${newH}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">🔴</div><div class="kpi-label">ลาออก (เดือนนี้)</div><div class="kpi-value red">${res}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card yellow"><div class="kpi-icon">📉</div><div class="kpi-label">Turnover Rate</div><div class="kpi-value yellow">${turnover}%</div><div class="kpi-sub">เดือนนี้</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">👥</div><div class="kpi-label">พนักงานปัจจุบัน</div><div class="kpi-value blue">${totalStaff}</div><div class="kpi-sub">คน</div></div>
+  `;
+
+  mkChart('wfTrendChart',{type:'bar',data:{labels:months,datasets:[
+    {label:'เข้าใหม่',data:[12,10,14,11,13,8,0,0,0,0,0,0],backgroundColor:'#3D9494',borderRadius:4},
+    {label:'ลาออก',data:[5,4,6,7,5,4,0,0,0,0,0,0],backgroundColor:'#C0544A',borderRadius:4}
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+
+  const allResignedForCharts=[...empData.filter(e=>e.status==='ลาออก'),...resignData.filter(r=>!empData.find(e=>e.name===r.name&&e.status==='ลาออก'))];
+  const depts=['Operations','HR','Marketing','IT','Finance'];
+  const dCounts=depts.map(d=>allResignedForCharts.filter(r=>r.dept===d).length);
+  renderHtmlBars('wfDeptChart', depts, dCounts, '#C0544A');
+
+  const positions=['Barista','Cashier','Shift Leader','Supervisor','Store Manager'];
+  const pCounts=positions.map(p=>allResignedForCharts.filter(r=>r.pos===p).length);
+  renderHtmlBars('wfPosChart', positions, pCounts, '#C5913A');
+
+  const reasons=['ค่าตอบแทน','ความก้าวหน้า','สภาพแวดล้อม','สุขภาพ','ย้ายที่อยู่','ได้งานใหม่','อื่น ๆ'];
+  const rCounts=reasons.map(r=>resignData.filter(x=>x.reason===r).length);
+  mkChart('wfReasonChart',{type:'doughnut',data:{labels:reasons,datasets:[{data:rCounts,backgroundColor:['#C0544A','#C5913A','#E07030','#7A8FA0','#3D9494','#6B90A8','#A8B8C4'],hoverOffset:8}]},
+    options:{responsive:true,plugins:{legend:{position:'right'}},cutout:'55%'}});
+
+  // Branch Target vs Actual
+  const activeEmp=empData.filter(e=>e.status==='ทำงานอยู่');
+  const allBranches=[...new Set([...branchTargets.map(b=>b.branch),...activeEmp.map(e=>e.branch).filter(Boolean)])];
+  const targetVals=allBranches.map(b=>(branchTargets.find(t=>t.branch===b)||{target:0}).target);
+  const actualVals=allBranches.map(b=>activeEmp.filter(e=>e.branch===b).length);
+  const wfBranchTargetEl=document.getElementById('wfBranchTarget');
+  if(wfBranchTargetEl){
+    const maxT=Math.max(...targetVals,...actualVals,1);
+    wfBranchTargetEl.innerHTML=allBranches.map((b,i)=>`
+      <div class="hbar-row">
+        <div class="hbar-label" style="width:120px;min-width:120px">${b}</div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:50px;font-size:11px;color:var(--muted)">เป้าหมาย</div>
+            <div style="flex:1;background:var(--border);border-radius:4px;height:10px;overflow:hidden">
+              <div style="width:${targetVals[i]/maxT*100}%;background:var(--primary);height:100%;border-radius:4px"></div>
+            </div>
+            <div style="width:24px;font-size:11px;font-weight:600;color:var(--primary)">${targetVals[i]}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:50px;font-size:11px;color:var(--muted)">มีจริง</div>
+            <div style="flex:1;background:var(--border);border-radius:4px;height:10px;overflow:hidden">
+              <div style="width:${actualVals[i]/maxT*100}%;background:${actualVals[i]>=targetVals[i]?'var(--teal)':'var(--red)'};height:100%;border-radius:4px"></div>
+            </div>
+            <div style="width:24px;font-size:11px;font-weight:600;color:${actualVals[i]>=targetVals[i]?'var(--teal)':'var(--red)'}">${actualVals[i]}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Turnover by branch
+  const allEmpByBranch=allBranches.map(b=>({
+    branch:b,
+    total:empData.filter(e=>e.branch===b).length,
+    resigned:empData.filter(e=>e.branch===b&&e.status==='ลาออก').length
+  }));
+  const turnoverPct=allEmpByBranch.map(b=>b.total>0?Math.round(b.resigned/b.total*100):0);
+  renderHtmlBars('wfBranchTurnover',allBranches,turnoverPct,'#C0544A');
+
+  // Build resign list from empData (status=ลาออก) merged with legacy resignData
+  const empResigned=empData.filter(e=>e.status==='ลาออก').map(e=>({
+    name:e.name,pos:e.pos,dept:e.dept||'–',branch:e.branch||'–',
+    date:e.enddate||'',reason:e.reason||'–'
+  }));
+  const combinedResign=[...empResigned];
+  // Add legacy resignData entries not already in empData
+  resignData.forEach(r=>{
+    if(!empResigned.find(e=>e.name===r.name))combinedResign.push(r);
+  });
+  const selMonthR=parseInt(document.getElementById('filterMonth')?.value||'all');
+  const selYearR=parseInt(document.getElementById('filterYear')?.value||2026);
+  const filteredResign=combinedResign.filter(r=>{
+    if(!r.date)return true;
+    const d=new Date(r.date);
+    return d.getFullYear()===selYearR&&(isNaN(selMonthR)||d.getMonth()+1===selMonthR);
+  });
+  document.getElementById('resignTbody').innerHTML=filteredResign.length?filteredResign.map((r,i)=>`
+    <tr><td>${i+1}</td><td><strong>${r.name}</strong></td><td>${r.pos}</td><td>${r.dept}</td><td>${r.branch}</td><td>${fmtDate(r.date)}</td><td><span class="badge badge-red">${r.reason||'–'}</span></td></tr>
+  `).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">ไม่มีรายการลาออกในช่วงเวลาที่เลือก</td></tr>';
+}
+
+// ===================== RECRUIT STATUS =====================
+function renderRecruit(){
+  const totalPos=posData.length;
+  const totalNeed=posData.reduce((s,p)=>s+p.need,0);
+  const totalHired=posData.reduce((s,p)=>s+p.hired,0);
+  const totalLack=totalNeed-totalHired;
+  document.getElementById('rec-cards').innerHTML=`
+    <div class="kpi-card blue"><div class="kpi-label">ตำแหน่งที่เปิดรับ</div><div class="kpi-value blue">${totalPos}</div><div class="kpi-sub">ตำแหน่ง</div></div>
+    <div class="kpi-card purple"><div class="kpi-label">อัตราที่ต้องการ</div><div class="kpi-value purple">${totalNeed}</div><div class="kpi-sub">อัตรา</div></div>
+    <div class="kpi-card green"><div class="kpi-label">ได้คนแล้ว</div><div class="kpi-value green">${totalHired}</div><div class="kpi-sub">อัตรา (${Math.round(totalHired/totalNeed*100)}%)</div></div>
+    <div class="kpi-card red"><div class="kpi-label">ยังขาดอีก</div><div class="kpi-value red">${totalLack}</div><div class="kpi-sub">อัตรา</div></div>
+  `;
+
+  // Aging
+  const aged=posData.map(p=>({...p,days:daysSince(p.opendate)}));
+  const a0=aged.filter(p=>p.days<=7).length;
+  const a1=aged.filter(p=>p.days>7&&p.days<=15).length;
+  const a2=aged.filter(p=>p.days>15&&p.days<=30).length;
+  const a3=aged.filter(p=>p.days>30).length;
+  document.getElementById('agingGrid').innerHTML=`
+    <div class="aging-pill a0"><div class="ap-num">${a0}</div><div class="ap-label">0–7 วัน</div></div>
+    <div class="aging-pill a1"><div class="ap-num">${a1}</div><div class="ap-label">8–15 วัน</div></div>
+    <div class="aging-pill a2"><div class="ap-num">${a2}</div><div class="ap-label">16–30 วัน</div></div>
+    <div class="aging-pill a3"><div class="ap-num">${a3}</div><div class="ap-label">เกิน 30 วัน</div></div>
+  `;
+
+  const urgCounts=[
+    posData.filter(p=>p.urgency.includes('ด่วนมาก')).length,
+    posData.filter(p=>p.urgency.includes('ด่วน (15')).length,
+    posData.filter(p=>p.urgency.includes('ปกติ')).length
+  ];
+  mkChart('urgencyChart',{type:'pie',data:{labels:['ด่วนมาก','ด่วน','ปกติ'],datasets:[{data:urgCounts,backgroundColor:['#C0544A','#C5913A','#3D9494'],hoverOffset:8}]},
+    options:{responsive:true,plugins:{legend:{position:'right'}}}});
+
+  const newCnt=posData.filter(p=>p.reason.includes('New')).length;
+  const repCnt=posData.filter(p=>p.reason.includes('Replacement')).length;
+  mkChart('openReasonChart',{type:'doughnut',data:{labels:['รับใหม่','รับทดแทน'],datasets:[{data:[newCnt,repCnt],backgroundColor:['#6B90A8','#3D9494'],hoverOffset:8}]},
+    options:{responsive:true,plugins:{legend:{position:'right'}},cutout:'60%'}});
+
+  const urgClass={'ด่วนมาก (7 วัน)':'badge-urgent2','ด่วน (15 วัน)':'badge-urgent1','ปกติ (30 วัน)':'badge-normal'};
+  const reasonClass={'รับใหม่ (New Position)':'badge-new','รับทดแทน (Replacement)':'badge-replace'};
+  document.getElementById('posTbody').innerHTML=posData.map((p,i)=>{
+    const lack=p.need-p.hired; const days=daysSince(p.opendate);
+    const ageColor=days>30?'var(--red)':days>15?'#f97316':days>7?'var(--yellow)':'var(--green)';
+    return `<tr>
+      <td>${i+1}</td><td><strong>${p.pos}</strong></td><td>${p.branch}</td>
+      <td>${p.need}</td><td style="color:var(--green);font-weight:700">${p.hired}</td>
+      <td style="color:${lack>0?'var(--red)':'var(--green)'};font-weight:700">${lack}</td>
+      <td><span class="badge ${urgClass[p.urgency]||'badge-gray'}">${p.urgency.split('(')[0].trim()}</span></td>
+      <td><span class="badge ${reasonClass[p.reason]||'badge-gray'}">${p.reason.includes('New')?'New':'Replace'}</span></td>
+      <td style="color:${ageColor};font-weight:700">${days} วัน</td>
+      <td>${p.rec}</td>
+      <td><button class="btn-sm btn-del" onclick="deletePos(${p.id})">ลบ</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ===================== APPLICANT =====================
+function renderApplicant(){
+  const total=appData.length;
+  const passed=appData.filter(a=>['ผ่านสัมภาษณ์','รอเริ่มงาน','เริ่มงานแล้ว'].includes(a.status)).length;
+  const failed=appData.filter(a=>a.status==='ไม่ผ่านสัมภาษณ์').length;
+  const pending2=appData.filter(a=>a.status==='รอเริ่มงาน').length;
+  const started=appData.filter(a=>a.status==='เริ่มงานแล้ว').length;
+  const noshow=appData.filter(a=>a.status==='ไม่มาเริ่มงาน').length;
+  document.getElementById('app-cards').innerHTML=`
+    <div class="kpi-card primary"><div class="kpi-label">ผู้สมัครทั้งหมด</div><div class="kpi-value">${total}</div></div>
+    <div class="kpi-card green"><div class="kpi-label">ผ่านสัมภาษณ์</div><div class="kpi-value green">${passed}</div></div>
+    <div class="kpi-card red"><div class="kpi-label">ไม่ผ่านสัมภาษณ์</div><div class="kpi-value red">${failed}</div></div>
+    <div class="kpi-card yellow"><div class="kpi-label">รอเริ่มงาน</div><div class="kpi-value yellow">${pending2}</div></div>
+    <div class="kpi-card green"><div class="kpi-label">เริ่มงานแล้ว</div><div class="kpi-value green">${started}</div></div>
+    <div class="kpi-card red"><div class="kpi-label">ไม่มาเริ่มงาน</div><div class="kpi-value red">${noshow}</div></div>
+  `;
+  renderFunnel('funnelViz2');
+
+  const rejectReasons=['ประสบการณ์ไม่ตรง','เงินเดือนไม่ตรง','ทักษะไม่ผ่าน','บุคลิกภาพ','ผจก.ไม่อนุมัติ','อื่น ๆ'];
+  const rCounts=rejectReasons.map(r=>appData.filter(a=>a.reason===r).length);
+  renderHtmlBars('rejectReasonChart', rejectReasons, rCounts, '#C0544A');
+
+  const noshowReasons=['ได้งานที่อื่น','เปลี่ยนใจ','เงินเดือนไม่ตรง','เดินทางไม่สะดวก','ติดต่อไม่ได้','ไม่แจ้งเหตุผล','อื่น ๆ'];
+  const nCounts=noshowReasons.map(r=>appData.filter(a=>a.reason===r).length);
+  renderHtmlBars('noshowReasonChart', noshowReasons, nCounts, '#C5913A');
+
+  renderAppTable();
+}
+
+function renderAppTable(){
+  const q=(document.getElementById('appSearch')?.value||'').toLowerCase();
+  const st=document.getElementById('appStatus')?.value||'';
+  const filtered=appData.filter(a=>{
+    const m=a.name.toLowerCase().includes(q)||a.pos.toLowerCase().includes(q);
+    return m&&(!st||a.status===st);
+  });
+  const statusColor={
+    'สมัคร':'badge-gray','ผ่านคัดกรอง':'badge-blue','สัมภาษณ์':'badge-yellow',
+    'ผ่านสัมภาษณ์':'badge-green','รอเริ่มงาน':'badge-blue','เริ่มงานแล้ว':'badge-green',
+    'ไม่ผ่านสัมภาษณ์':'badge-red','ไม่มาเริ่มงาน':'badge-red'
+  };
+  document.getElementById('appTbody').innerHTML=filtered.map((a,i)=>`
+    <tr>
+      <td>${i+1}</td><td><strong>${a.name}</strong></td><td>${a.pos}</td><td>${a.branch}</td>
+      <td>${a.channel}</td><td>${fmtDate(a.date)}</td>
+      <td><span class="badge ${statusColor[a.status]||'badge-gray'}">${a.status}</span></td>
+      <td style="color:var(--muted)">${a.reason||'–'}</td><td>${a.rec}</td>
+      <td><button class="btn-sm btn-del" onclick="deleteApp(${a.id})">ลบ</button></td>
+    </tr>
+  `).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">ไม่พบข้อมูล</td></tr>';
+}
+
+// ===================== EFFICIENCY =====================
+function renderEfficiency(){
+  const started=appData.filter(a=>a.status==='เริ่มงานแล้ว');
+  const ttfValues=started.map(a=>calcTTF(a)).filter(v=>v!=null&&v>=0);
+  const avgTTF=ttfValues.length?Math.round(ttfValues.reduce((s,v)=>s+v,0)/ttfValues.length):null;
+  document.getElementById('eff-cards').innerHTML=`
+    <div class="kpi-card primary"><div class="kpi-label">Time to Fill เฉลี่ย</div><div class="kpi-value">${avgTTF!=null?avgTTF+' วัน':'–'}</div><div class="kpi-sub">${ttfValues.length} ตำแหน่งที่มีข้อมูล</div></div>
+    <div class="kpi-card green"><div class="kpi-label">เริ่มงานแล้วทั้งหมด</div><div class="kpi-value green">${started.length}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card yellow"><div class="kpi-label">Offer Acceptance Rate</div><div class="kpi-value yellow">${Math.round(started.length/(appData.filter(a=>['ผ่านสัมภาษณ์','รอเริ่มงาน','เริ่มงานแล้ว','ไม่มาเริ่มงาน'].includes(a.status)).length||1)*100)}%</div><div class="kpi-sub">อัตราตอบรับ</div></div>
+    <div class="kpi-card red"><div class="kpi-label">No Show Rate</div><div class="kpi-value red">${appData.filter(a=>a.status==='ไม่มาเริ่มงาน').length}</div><div class="kpi-sub">คน</div></div>
+  `;
+
+  const channels=['JobThai','Facebook','TikTok','Line','Walk-in','Employee Referral','อื่น ๆ'];
+  const chColors=['#6B90A8','#3D9494','#C5913A','#4D7D9A','#C0544A','#7A8FA0','#A8B8C4'];
+  const chCounts=channels.map(c=>appData.filter(a=>a.channel===c).length);
+  mkChart('channelChart',{type:'bar',data:{labels:channels,datasets:[{data:chCounts,backgroundColor:chColors,borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  const chHired=channels.map(c=>appData.filter(a=>a.channel===c&&a.status==='เริ่มงานแล้ว').length);
+  mkChart('channelHiredChart',{type:'bar',data:{labels:channels,datasets:[{data:chHired,backgroundColor:'#3D9494',borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  const recs=['คุณนิดา','คุณแนน','คุณสมชาย'];
+  const recStarted=recs.map(r=>appData.filter(a=>a.rec===r&&a.status==='เริ่มงานแล้ว').length);
+  mkChart('recruiterChart',{type:'bar',data:{labels:recs,datasets:[{label:'เริ่มงานแล้ว',data:recStarted,backgroundColor:'#6B90A8',borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  // TTF chart — real data grouped by position
+  const ttfByPos={};
+  appData.filter(a=>a.status==='เริ่มงานแล้ว').forEach(a=>{
+    const v=calcTTF(a);if(v==null||v<0)return;
+    if(!ttfByPos[a.pos])ttfByPos[a.pos]=[];
+    ttfByPos[a.pos].push(v);
+  });
+  const ttfPositions=Object.keys(ttfByPos);
+  const ttfAvgs=ttfPositions.map(p=>Math.round(ttfByPos[p].reduce((s,v)=>s+v,0)/ttfByPos[p].length));
+  if(ttfPositions.length>0){
+    mkChart('ttfChart',{type:'bar',data:{labels:ttfPositions,datasets:[{data:ttfAvgs,backgroundColor:ttfAvgs.map(v=>v>25?'#C0544A':v>15?'#C5913A':'#3D9494'),borderRadius:6}]},
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'วัน (เฉลี่ย)'}}}}});
+  }else{
+    const c=document.getElementById('ttfChart');if(c){const ctx=c.getContext('2d');ctx.font='14px Segoe UI';ctx.fillStyle='#7A90A0';ctx.textAlign='center';ctx.fillText('ยังไม่มีข้อมูล Time to Fill',c.width/2,c.height/2);}
+  }
+
+  const branches=[...new Set(appData.map(a=>a.branch))];
+  const bCounts=branches.map(b=>appData.filter(a=>a.branch===b).length);
+  mkChart('branchChart',{type:'doughnut',data:{labels:branches,datasets:[{data:bCounts,backgroundColor:['#6B90A8','#3D9494','#4D7D9A','#C5913A','#7A8FA0','#A8B8C4'],hoverOffset:8}]},
+    options:{responsive:true,plugins:{legend:{position:'right'}},cutout:'55%'}});
+
+  const hardestData=[35,22,28,12,8];
+  const hardestLabels=['Barista','Cashier','Shift Leader','Supervisor','Store Manager'];
+  renderHtmlBars('hardestChart', hardestLabels, hardestData, '#7A8FA0');
+}
+
+// ===================== PENDING =====================
+function renderPending(){
+  const pend=appData.filter(a=>a.status==='รอเริ่มงาน');
+  const branches=[...new Set(pend.map(a=>a.branch))];
+  const sel=document.getElementById('pendBranch');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">สาขาทั้งหมด</option>'+branches.map(b=>`<option ${b===cur?'selected':''}>${b}</option>`).join('');
+
+  document.getElementById('pend-cards').innerHTML=`
+    <div class="kpi-card yellow"><div class="kpi-label">รอเริ่มงานทั้งหมด</div><div class="kpi-value yellow">${pend.length}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card green"><div class="kpi-label">เริ่มงานสัปดาห์นี้</div><div class="kpi-value green">${pend.filter(a=>{const d=new Date(a.startdate);const now=new Date();return d>=now&&d<new Date(now.getTime()+7*86400000);}).length}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card blue"><div class="kpi-label">จำนวนสาขา</div><div class="kpi-value blue">${branches.length}</div><div class="kpi-sub">สาขา</div></div>
+    <div class="kpi-card purple"><div class="kpi-label">Recruiter ดูแล</div><div class="kpi-value purple">${[...new Set(pend.map(a=>a.rec))].length}</div><div class="kpi-sub">คน</div></div>
+  `;
+  renderPendTable();
+}
+
+function renderPendTable(){
+  const q=(document.getElementById('pendSearch')?.value||'').toLowerCase();
+  const br=document.getElementById('pendBranch')?.value||'';
+  const pend=appData.filter(a=>a.status==='รอเริ่มงาน').filter(a=>{
+    const m=a.name.toLowerCase().includes(q)||a.pos.toLowerCase().includes(q);
+    return m&&(!br||a.branch===br);
+  });
+  document.getElementById('pendTbody').innerHTML=pend.map((a,i)=>`
+    <tr><td>${i+1}</td><td><strong>${a.name}</strong></td><td>${a.pos}</td><td>${a.branch}</td>
+    <td><strong style="color:var(--green)">${fmtDate(a.startdate)}</strong></td>
+    <td>${a.rec}</td><td>${a.channel}</td><td style="color:var(--muted)">${a.note||'–'}</td></tr>
+  `).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px">ไม่พบข้อมูล</td></tr>';
+}
+
+// ===================== MONTHLY =====================
+function renderMonthly(){
+  const labels=monthlyReport.map(r=>r.m);
+  mkChart('monthlySummaryChart',{type:'bar',data:{labels,datasets:[
+    {label:'เข้าใหม่',data:monthlyReport.map(r=>r.new),backgroundColor:'#3D9494',borderRadius:4},
+    {label:'ลาออก',data:monthlyReport.map(r=>r.resign),backgroundColor:'#C0544A',borderRadius:4},
+    {label:'เริ่มงานแล้ว',data:monthlyReport.map(r=>r.started),backgroundColor:'#6B90A8',borderRadius:4},
+    {label:'ไม่ผ่าน/ไม่มา',data:monthlyReport.map(r=>r.failed+r.noshow),backgroundColor:'#C5913A',borderRadius:4},
+  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+
+  document.getElementById('monthlyTbody').innerHTML=monthlyReport.map(r=>{
+    const turnover=Math.round(r.resign/120*100*10)/10;
+    return `<tr>
+      <td><strong>${r.m}</strong></td>
+      <td style="color:var(--green);font-weight:700">${r.new}</td>
+      <td style="color:var(--red);font-weight:700">${r.resign}</td>
+      <td>${turnover}%</td>
+      <td>${r.open}</td><td>${r.closed}</td><td>${r.pending}</td>
+      <td style="color:var(--green);font-weight:700">${r.started}</td>
+      <td>${r.failed}</td>
+      <td style="color:var(--red)">${r.noshow}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===================== CRUD =====================
+function saveResign(){
+  const name=document.getElementById('rs_name').value.trim();
+  const pos=document.getElementById('rs_pos').value.trim();
+  if(!name||!pos){alert('กรุณากรอกชื่อและตำแหน่ง');return;}
+  resignData.push({id:++nextRid,name,pos,dept:document.getElementById('rs_dept').value,branch:document.getElementById('rs_branch').value,date:document.getElementById('rs_date').value,reason:document.getElementById('rs_reason').value});
+  closeModal('resignModal');renderWorkforce();
+}
+function savePos(){
+  const pos=document.getElementById('p_pos').value.trim();
+  if(!pos){alert('กรุณากรอกตำแหน่ง');return;}
+  posData.push({id:++nextPid,pos,branch:document.getElementById('p_branch').value,need:Number(document.getElementById('p_need').value)||1,hired:0,urgency:document.getElementById('p_urgency').value,reason:document.getElementById('p_reason').value,opendate:document.getElementById('p_opendate').value,rec:document.getElementById('p_rec').value});
+  closeModal('posModal');renderRecruit();
+}
+function saveApp(){
+  const name=document.getElementById('a_name').value.trim();
+  const pos=document.getElementById('a_pos').value.trim();
+  if(!name||!pos){alert('กรุณากรอกชื่อและตำแหน่ง');return;}
+  appData.push({id:++nextAid,name,pos,branch:document.getElementById('a_branch').value,channel:document.getElementById('a_channel').value,date:document.getElementById('a_date').value,status:document.getElementById('a_status').value,startdate:document.getElementById('a_startdate').value,rec:document.getElementById('a_rec').value,reason:document.getElementById('a_reason').value,note:document.getElementById('a_note').value});
+  closeModal('appModal');renderApplicant();
+}
+function deletePos(id){if(confirm('ลบตำแหน่งนี้?')){posData=posData.filter(p=>p.id!==id);renderRecruit();}}
+function deleteApp(id){if(confirm('ลบผู้สมัครนี้?')){appData=appData.filter(a=>a.id!==id);renderApplicant();}}
+
+
+// ===================== MODAL =====================
+function openModal(id){document.getElementById(id).classList.add('open');const inp=document.querySelector(`#${id} input[type=date]`);if(inp&&!inp.value)inp.value=new Date().toISOString().split('T')[0];}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+function applyFilters(){renderSection(document.querySelector('.nav-item.active')?.textContent.trim()==='📊 Executive Summary'?'exec':document.querySelector('.section.active')?.id.replace('sec-',''));}
+
+// ===================== HTML BAR CHART =====================
+function renderHtmlBars(elId, labels, counts, color){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  const max=Math.max(...counts,1);
+  el.innerHTML=labels.map((label,i)=>{
+    const pct=counts[i]/max*100;
+    return `<div class="hbar-row">
+      <div class="hbar-label">${label}</div>
+      <div class="hbar-track">
+        <div class="hbar-fill" style="width:${Math.max(pct,counts[i]>0?4:0)}%;background:${color}">${counts[i]>0?counts[i]:''}</div>
+      </div>
+      <div class="hbar-count">${counts[i]}</div>
+    </div>`;
+  }).join('');
+}
+
+
+// ===================== PROBATION =====================
+function renderProbation(){
+  const filter=document.getElementById('prob_result_filter')?.value||'';
+  const today=new Date();
+  const rows=empData.filter(e=>e.probationDays&&e.status!=='ลาออก'&&(!filter||e.probationResult===filter));
+  const onProb=rows.filter(e=>e.probationResult==='ทดลองงาน').length;
+  const passed=rows.filter(e=>e.probationResult==='ผ่าน').length;
+  const failed=rows.filter(e=>e.probationResult==='ไม่ผ่าน').length;
+  const dueSoon=rows.filter(e=>{
+    if(e.probationResult!=='ทดลองงาน'||!e.startdate||!e.probationDays)return false;
+    const due=new Date(e.startdate);due.setDate(due.getDate()+e.probationDays);
+    const diff=Math.floor((due-today)/(1000*60*60*24));
+    return diff>=0&&diff<=14;
+  }).length;
+  document.getElementById('prob-cards').innerHTML=`
+    <div class="kpi-card yellow"><div class="kpi-label">กำลังทดลองงาน</div><div class="kpi-value yellow">${onProb}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card red"><div class="kpi-label">ครบกำหนดใน 14 วัน</div><div class="kpi-value red">${dueSoon}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card green"><div class="kpi-label">ผ่านทดลองงาน</div><div class="kpi-value green">${passed}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card red"><div class="kpi-label">ไม่ผ่านทดลองงาน</div><div class="kpi-value red">${failed}</div><div class="kpi-sub">คน</div></div>
+  `;
+  const probColor={ทดลองงาน:'badge-yellow',ผ่าน:'badge-green',ไม่ผ่าน:'badge-red'};
+  document.getElementById('probTbody').innerHTML=rows.map((e,i)=>{
+    const due=new Date(e.startdate);due.setDate(due.getDate()+(e.probationDays||90));
+    const daysLeft=Math.floor((due-today)/(1000*60*60*24));
+    const daysStr=e.probationResult==='ทดลองงาน'?(daysLeft>0?`<span style="color:${daysLeft<=14?'var(--red)':'var(--teal)'};font-weight:600">${daysLeft} วัน</span>`:'<span style="color:var(--red);font-weight:600">ครบแล้ว</span>'):'–';
+    return `<tr>
+      <td>${i+1}</td><td><strong>${e.name}</strong></td><td>${e.pos}</td><td>${e.branch||'–'}</td>
+      <td>${fmtDate(e.startdate)}</td><td>${e.probationDays||90} วัน</td>
+      <td>${fmtDate(due.toISOString().split('T')[0])}</td><td>${daysStr}</td>
+      <td><span class="badge ${probColor[e.probationResult]||'badge-gray'}">${e.probationResult||'ทดลองงาน'}</span></td>
+      <td><button class="tbl-edit-btn" onclick="editEmpEntry(${e.id})">แก้ไข</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">ไม่มีข้อมูล</td></tr>';
+}
+
+// ===================== INTERVIEW SCHEDULE =====================
+let intvWeekOffset=0;
+
+function changeIntvWeek(delta,reset){
+  intvWeekOffset=reset?0:intvWeekOffset+delta;
+  renderInterview();
+}
+
+function getWeekRange(offset){
+  // offset=0: Mon–Sun of current week
+  const now=new Date();now.setHours(0,0,0,0);
+  const dow=now.getDay()||7; // 1=Mon...7=Sun
+  const mon=new Date(now);mon.setDate(now.getDate()-dow+1+offset*7);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  return {mon,sun};
+}
+
+function fmtWeekLabel(mon,sun){
+  const d=n=>String(n).padStart(2,'0');
+  const m=n=>['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][n];
+  return `${d(mon.getDate())} ${m(mon.getMonth())} – ${d(sun.getDate())} ${m(sun.getMonth())}`;
+}
+
+function renderInterview(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const {mon:weekMon,sun:weekSun}=getWeekRange(intvWeekOffset);
+  const q=(document.getElementById('intv_search')?.value||'').toLowerCase();
+  const interviewing=appData.filter(a=>a.status==='สัมภาษณ์');
+  const todayList=interviewing.filter(a=>{
+    if(!a.interviewdate)return false;
+    const d=new Date(a.interviewdate);d.setHours(0,0,0,0);return d.getTime()===today.getTime();
+  });
+  const weekList=interviewing.filter(a=>{
+    if(!a.interviewdate)return false;
+    const d=new Date(a.interviewdate);d.setHours(0,0,0,0);return d>=weekMon&&d<=weekSun;
+  });
+  const allFiltered=interviewing.filter(a=>!q||(a.name.toLowerCase().includes(q)||a.pos.toLowerCase().includes(q)));
+
+  // Update week panel title
+  const isCurrentWeek=intvWeekOffset===0;
+  const titleEl=document.getElementById('intvWeekTitle');
+  if(titleEl)titleEl.textContent=`📆 ${isCurrentWeek?'สัปดาห์นี้':intvWeekOffset>0?'สัปดาห์หน้า (+'+intvWeekOffset+')':'ย้อนหลัง ('+intvWeekOffset+')'} · ${fmtWeekLabel(weekMon,weekSun)}`;
+  const resetBtn=document.getElementById('intvWeekResetBtn');
+  if(resetBtn)resetBtn.style.display=isCurrentWeek?'none':'';
+
+  document.getElementById('intv-cards').innerHTML=`
+    <div class="kpi-card primary"><div class="kpi-label">รอสัมภาษณ์ทั้งหมด</div><div class="kpi-value">${interviewing.length}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card yellow"><div class="kpi-label">วันนี้</div><div class="kpi-value yellow">${todayList.length}</div><div class="kpi-sub">นัด</div></div>
+    <div class="kpi-card teal"><div class="kpi-label">สัปดาห์นี้</div><div class="kpi-value">${interviewing.filter(a=>{if(!a.interviewdate)return false;const{mon,sun}=getWeekRange(0);const d=new Date(a.interviewdate);d.setHours(0,0,0,0);return d>=mon&&d<=sun;}).length}</div><div class="kpi-sub">นัด</div></div>
+    <div class="kpi-card muted"><div class="kpi-label">ยังไม่ได้นัด</div><div class="kpi-value">${interviewing.filter(a=>!a.interviewdate).length}</div><div class="kpi-sub">คน</div></div>
+  `;
+  document.getElementById('intvTodayTbody').innerHTML=todayList.map((a,i)=>`
+    <tr><td>${i+1}</td><td><strong>${a.name}</strong></td><td>${a.pos}</td><td>${a.branch||'–'}</td><td>${a.rec||'–'}</td><td style="color:var(--muted)">${a.note||'–'}</td></tr>
+  `).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">ไม่มีนัดวันนี้</td></tr>';
+  document.getElementById('intvWeekTbody').innerHTML=weekList.map((a,i)=>`
+    <tr><td>${i+1}</td><td><strong>${a.name}</strong></td><td>${a.pos}</td><td>${a.branch||'–'}</td><td>${fmtDate(a.interviewdate)}</td><td>${a.rec||'–'}</td></tr>
+  `).join('')||`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">ไม่มีนัดในสัปดาห์นี้</td></tr>`;
+  document.getElementById('intvAllTbody').innerHTML=allFiltered.map((a,i)=>`
+    <tr>
+      <td>${i+1}</td><td><strong>${a.name}</strong></td><td>${a.pos}</td><td>${a.branch||'–'}</td>
+      <td>${a.interviewdate?fmtDate(a.interviewdate):'<span style="color:var(--muted)">ยังไม่ได้นัด</span>'}</td>
+      <td>${a.channel||'–'}</td><td>${a.rec||'–'}</td><td style="color:var(--muted)">${a.note||'–'}</td>
+      <td><button class="tbl-edit-btn" onclick="editAppEntry(${a.id})">แก้ไข</button></td>
+    </tr>
+  `).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px">ไม่พบข้อมูล</td></tr>';
+}
+
+// ===================== ENTRY: ฐานข้อมูลพนักงาน =====================
+let editingEmpId=null;
+
+function calcTenure(startdate){
+  if(!startdate)return '–';
+  const ms=new Date()-new Date(startdate);
+  const months=Math.floor(ms/(1000*60*60*24*30.44));
+  if(months<1)return 'น้อยกว่า 1 เดือน';
+  if(months<12)return months+' เดือน';
+  const yrs=Math.floor(months/12),rem=months%12;
+  return yrs+' ปี'+(rem?(' '+rem+' เดือน'):'');
+}
+
+function saveEmpEntry(){
+  const name=document.getElementById('ee_name').value.trim();
+  const pos=document.getElementById('ee_pos').value.trim();
+  if(!name||!pos){alert('กรุณากรอกชื่อและตำแหน่ง');return;}
+  const obj={
+    id:editingEmpId||++nextEid,
+    empId:document.getElementById('ee_id').value.trim(),
+    name,pos,
+    dept:document.getElementById('ee_dept').value,
+    branch:document.getElementById('ee_branch').value.trim(),
+    startdate:document.getElementById('ee_startdate').value,
+    status:document.getElementById('ee_status').value,
+    enddate:document.getElementById('ee_enddate').value,
+    reason:document.getElementById('ee_reason').value,
+    probationDays:parseInt(document.getElementById('ee_probdays').value)||null,
+    probationResult:document.getElementById('ee_probresult').value||'ทดลองงาน'
+  };
+  if(editingEmpId){
+    const i=empData.findIndex(e=>e.id===editingEmpId);
+    if(i>=0)empData[i]=obj;
+  }else{
+    empData.push(obj);
+  }
+  saveToStorage();cancelEmpEdit();renderEmpTable();renderEmpKpi();flashSave('empSaveInd');
+}
+
+function editEmpEntry(id){
+  const e=empData.find(x=>x.id===id);if(!e)return;
+  editingEmpId=id;
+  document.getElementById('ee_id').value=e.empId||'';
+  document.getElementById('ee_name').value=e.name;
+  document.getElementById('ee_pos').value=e.pos;
+  document.getElementById('ee_dept').value=e.dept||'Operations';
+  document.getElementById('ee_branch').value=e.branch||'';
+  document.getElementById('ee_startdate').value=e.startdate||'';
+  document.getElementById('ee_status').value=e.status||'ทำงานอยู่';
+  document.getElementById('ee_enddate').value=e.enddate||'';
+  document.getElementById('ee_reason').value=e.reason||'';
+  document.getElementById('ee_probdays').value=e.probationDays||'';
+  document.getElementById('ee_probresult').value=e.probationResult||'ทดลองงาน';
+  document.getElementById('empFormTitle').textContent='✏️ แก้ไขข้อมูล: '+e.name;
+  toggleResignFields();
+  const body=document.getElementById('empBody');
+  body.classList.remove('collapsed');
+  document.getElementById('empToggle').style.transform='';
+  body.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function deleteEmpEntry(id){
+  if(!confirm('ลบข้อมูลพนักงานคนนี้?'))return;
+  empData=empData.filter(e=>e.id!==id);
+  saveToStorage();renderEmpTable();renderEmpKpi();
+}
+
+function toggleResignFields(){
+  const isResign=document.getElementById('ee_status')?.value==='ลาออก';
+  ['ee_enddate','ee_reason'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.disabled=!isResign;
+    el.style.opacity=isResign?'1':'0.4';
+    el.style.cursor=isResign?'':'not-allowed';
+    if(!isResign)el.value='';
+  });
+  // label color hint
+  document.querySelectorAll('[data-resign-label]').forEach(lb=>{
+    lb.style.color=isResign?'var(--text)':'var(--muted)';
+  });
+}
+
+function cancelEmpEdit(){
+  editingEmpId=null;
+  ['ee_id','ee_name','ee_pos','ee_branch','ee_startdate','ee_enddate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const r=document.getElementById('ee_reason');if(r)r.value='';
+  const d=document.getElementById('ee_dept');if(d)d.value='Operations';
+  const s=document.getElementById('ee_status');if(s)s.value='ทำงานอยู่';
+  const pb=document.getElementById('ee_probdays');if(pb)pb.value='90';
+  const pr=document.getElementById('ee_probresult');if(pr)pr.value='ทดลองงาน';
+  document.getElementById('empFormTitle').textContent='➕ เพิ่มพนักงานใหม่';
+  toggleResignFields();
+}
+
+function renderEmpKpi(){
+  const el=document.getElementById('empKpiCards');if(!el)return;
+  const active=empData.filter(e=>e.status==='ทำงานอยู่').length;
+  const resigned=empData.filter(e=>e.status==='ลาออก').length;
+  const onleave=empData.filter(e=>e.status==='พักงาน').length;
+  const total=empData.length;
+  el.innerHTML=`
+    <div class="kpi-card blue"><div class="kpi-icon">👥</div><div class="kpi-label">พนักงานทั้งหมด</div><div class="kpi-value blue">${total}</div><div class="kpi-sub">คน (ทุกสถานะ)</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">🟢</div><div class="kpi-label">ทำงานอยู่</div><div class="kpi-value green">${active}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">🔴</div><div class="kpi-label">ลาออกแล้ว</div><div class="kpi-value red">${resigned}</div><div class="kpi-sub">คน</div></div>
+    <div class="kpi-card yellow"><div class="kpi-icon">⏸️</div><div class="kpi-label">พักงาน</div><div class="kpi-value yellow">${onleave}</div><div class="kpi-sub">คน</div></div>
+  `;
+}
+
+function renderEmpTable(){
+  const q=(document.getElementById('ee_search')?.value||'').toLowerCase();
+  const st=document.getElementById('ee_status_filter')?.value||'';
+  const dept=document.getElementById('ee_dept_filter')?.value||'';
+  let rows=empData.filter(e=>{
+    if(st&&e.status!==st)return false;
+    if(dept&&e.dept!==dept)return false;
+    if(q&&!e.name.toLowerCase().includes(q)&&!e.pos.toLowerCase().includes(q)&&!e.empId?.toLowerCase().includes(q))return false;
+    return true;
+  });
+  const stColors={'ทำงานอยู่':'var(--teal)','ลาออก':'var(--red)','พักงาน':'var(--yellow)'};
+  const stBg={'ทำงานอยู่':'var(--teal-light)','ลาออก':'#fde8e8','พักงาน':'#fef5e0'};
+  document.getElementById('empTableBody').innerHTML=rows.length?rows.map((e,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td style="font-size:12px;color:var(--muted)">${e.empId||'–'}</td>
+      <td><strong>${e.name}</strong></td>
+      <td>${e.pos}</td>
+      <td style="font-size:12px">${e.dept||'–'}</td>
+      <td style="font-size:12px">${e.branch||'–'}</td>
+      <td style="font-size:12px">${fmtDate(e.startdate)}</td>
+      <td style="font-size:12px;color:var(--muted)">${calcTenure(e.startdate)}</td>
+      <td><span style="background:${stBg[e.status]||'#eee'};color:${stColors[e.status]||'#666'};border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700">${e.status}</span></td>
+      <td><button class="tbl-edit-btn" onclick="editEmpEntry(${e.id})">แก้ไข</button><button class="tbl-del-btn" onclick="deleteEmpEntry(${e.id})">ลบ</button></td>
+    </tr>`).join('')
+    :'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีข้อมูลพนักงาน</td></tr>';
+}
+
+// ===================== IMPORT EXCEL =====================
+function importEmpExcel(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){alert('ไม่พบข้อมูลในไฟล์');return;}
+      
+      const colMap={
+        'รหัสพนักงาน':['empId','รหัสพนักงาน','EmpID','Employee ID'],
+        'name':['ชื่อ-นามสกุล','ชื่อ','Name','Full Name'],
+        'pos':['ตำแหน่ง','Position','Role'],
+        'dept':['แผนก','Department','Dept'],
+        'branch':['สาขา','Branch','ร้าน/สาขา','สาขา/ร้าน'],
+        'startdate':['วันที่เริ่มงาน','Start Date','StartDate','วันเริ่มงาน'],
+        'status':['สถานะ','Status'],
+        'enddate':['วันที่ออก','End Date','วันออกงาน']
+      };
+      
+      const getVal=(row,keys)=>{
+        for(const k of keys){if(row[k]!==undefined&&row[k]!=='')return String(row[k]).trim();}
+        return '';
+      };
+      
+      let added=0,updated=0;
+      rows.forEach(row=>{
+        const empId=getVal(row,colMap['รหัสพนักงาน']);
+        const name=getVal(row,colMap['name']);
+        if(!name)return;
+        const existing=empId?empData.find(e=>e.empId===empId):null;
+        const obj={
+          id:existing?existing.id:++nextEid,
+          empId,name,
+          pos:getVal(row,colMap['pos']),
+          dept:getVal(row,colMap['dept'])||'Operations',
+          branch:getVal(row,colMap['branch']),
+          startdate:getVal(row,colMap['startdate']),
+          status:getVal(row,colMap['status'])||'ทำงานอยู่',
+          enddate:getVal(row,colMap['enddate'])
+        };
+        if(existing){const i=empData.indexOf(existing);empData[i]=obj;updated++;}
+        else{empData.push(obj);added++;}
+      });
+      saveToStorage();renderEmpTable();renderEmpKpi();
+      alert(`✅ นำเข้าสำเร็จ\nเพิ่มใหม่: ${added} คน | อัปเดต: ${updated} คน`);
+    }catch(err){alert('❌ อ่านไฟล์ไม่ได้: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+  input.value='';
+}
+
+function downloadEmpTemplate(){
+  const rows=[
+    ['รหัสพนักงาน','ชื่อ-นามสกุล','ตำแหน่ง','แผนก','สาขา','วันที่เริ่มงาน (YYYY-MM-DD)','สถานะ (ทำงานอยู่/ลาออก/พักงาน)','วันที่ออก (YYYY-MM-DD)','เหตุผลการออก','ระยะทดลองงาน (วัน)','ผลทดลองงาน (ทดลองงาน/ผ่าน/ไม่ผ่าน)'],
+    ['SKY001','นิดา ยิ้มแย้ม','Supervisor','Operations','สาขาพระราม9','2023-01-10','ทำงานอยู่','','','90','ผ่าน'],
+    ['SKY002','แนน สดใส','Barista','Operations','สาขาสยาม','2026-06-01','ทำงานอยู่','','','90','ทดลองงาน'],
+    ['SKY003','วรรณา สุขใจ','Cashier','Operations','สาขาอโศก','2024-12-01','ลาออก','2026-05-31','ได้งานใหม่','90','ผ่าน'],
+  ];
+  const csv='﻿'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='employee_template.csv';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},500);
+}
+
+// ===================== ENTRY: TITLES =====================
+Object.assign(titles,{'entry-emp':'🏢 ฐานข้อมูลพนักงาน','entry-pos':'✏️ จัดการตำแหน่งว่าง','entry-app':'📝 จัดการข้อมูลผู้สมัคร'});
+
+// ===================== ENTRY: TOGGLE FORM =====================
+function toggleEntryCard(bodyId,toggleId){
+  const body=document.getElementById(bodyId);
+  const tog=document.getElementById(toggleId);
+  body.classList.toggle('collapsed');
+  tog.style.transform=body.classList.contains('collapsed')?'rotate(180deg)':'';
+}
+
+// ===================== ENTRY: ตำแหน่งว่าง =====================
+let editingPosId=null;
+
+function savePosEntry(){
+  const pos=document.getElementById('ep_pos').value.trim();
+  if(!pos){alert('กรุณากรอกชื่อตำแหน่ง');return;}
+  const obj={
+    id:editingPosId||++nextPid,
+    pos,
+    branch:document.getElementById('ep_branch').value.trim(),
+    need:Number(document.getElementById('ep_need').value)||1,
+    hired:Number(document.getElementById('ep_hired').value)||0,
+    urgency:document.getElementById('ep_urgency').value,
+    reason:document.getElementById('ep_reason').value,
+    opendate:document.getElementById('ep_opendate').value,
+    rec:document.getElementById('ep_rec').value.trim()
+  };
+  if(editingPosId){
+    const i=posData.findIndex(p=>p.id===editingPosId);
+    if(i>=0)posData[i]=obj;
+  }else{
+    posData.push(obj);
+  }
+  saveToStorage();
+  cancelPosEdit();
+  renderPosTable();
+  flashSave('posSaveInd');
+}
+
+function editPosEntry(id){
+  const p=posData.find(x=>x.id===id);if(!p)return;
+  editingPosId=id;
+  document.getElementById('ep_pos').value=p.pos;
+  document.getElementById('ep_branch').value=p.branch||'';
+  document.getElementById('ep_need').value=p.need;
+  document.getElementById('ep_hired').value=p.hired;
+  document.getElementById('ep_urgency').value=p.urgency;
+  document.getElementById('ep_reason').value=p.reason;
+  document.getElementById('ep_opendate').value=p.opendate||'';
+  document.getElementById('ep_rec').value=p.rec||'';
+  document.getElementById('posFormTitle').textContent='✏️ แก้ไขตำแหน่ง: '+p.pos;
+  const body=document.getElementById('posBody');
+  body.classList.remove('collapsed');
+  document.getElementById('posToggle').style.transform='';
+  body.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function deletePosEntry(id){
+  if(!confirm('ลบตำแหน่งนี้?'))return;
+  posData=posData.filter(p=>p.id!==id);
+  saveToStorage();renderPosTable();
+}
+
+function cancelPosEdit(){
+  editingPosId=null;
+  document.getElementById('ep_pos').value='';
+  document.getElementById('ep_branch').value='';
+  document.getElementById('ep_need').value=1;
+  document.getElementById('ep_hired').value=0;
+  document.getElementById('ep_urgency').value='ปกติ (30 วัน)';
+  document.getElementById('ep_reason').value='รับใหม่ (New Position)';
+  document.getElementById('ep_opendate').value='';
+  document.getElementById('ep_rec').value='';
+  document.getElementById('posFormTitle').textContent='➕ เพิ่มตำแหน่งว่างใหม่';
+}
+
+function renderPosTable(){
+  const q=(document.getElementById('ep_search')?.value||'').toLowerCase();
+  const urg=document.getElementById('ep_urg_filter')?.value||'';
+  let rows=posData.filter(p=>{
+    if(urg&&p.urgency!==urg)return false;
+    if(q&&!p.pos.toLowerCase().includes(q)&&!p.branch?.toLowerCase().includes(q))return false;
+    return true;
+  });
+  const urgColors={'ด่วนมาก (7 วัน)':'var(--red)','ด่วน (15 วัน)':'var(--yellow)','ปกติ (30 วัน)':'var(--teal)'};
+  document.getElementById('posTableBody').innerHTML=rows.length?rows.map((p,i)=>`
+    <tr class="${editingPosId===p.id?'save-flash':''}">
+      <td>${i+1}</td>
+      <td><strong>${p.pos}</strong></td>
+      <td>${p.branch||'–'}</td>
+      <td style="text-align:center">${p.need}</td>
+      <td style="text-align:center;color:var(--teal);font-weight:700">${p.hired}</td>
+      <td style="text-align:center;color:${p.need-p.hired>0?'var(--red)':'var(--teal)'};font-weight:700">${p.need-p.hired}</td>
+      <td><span style="color:${urgColors[p.urgency]||'var(--muted)'};font-weight:600;font-size:12px">${p.urgency}</span></td>
+      <td style="font-size:12px">${p.reason}</td>
+      <td style="font-size:12px">${fmtDate(p.opendate)}</td>
+      <td style="font-size:12px">${p.rec||'–'}</td>
+      <td><button class="tbl-edit-btn" onclick="editPosEntry(${p.id})">แก้ไข</button><button class="tbl-del-btn" onclick="deletePosEntry(${p.id})">ลบ</button></td>
+    </tr>`).join('')
+    :'<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีตำแหน่งว่าง</td></tr>';
+}
+
+// ===================== ENTRY: ผู้สมัคร =====================
+let editingAppId=null;
+const ARCHIVE_STATUSES=['เริ่มงานแล้ว','ไม่ผ่านสัมภาษณ์','ไม่มาเริ่มงาน'];
+
+function toggleArchivePanel(){
+  const panel=document.getElementById('archivePanel');
+  const icon=document.getElementById('archiveToggleIcon');
+  if(!panel)return;
+  const open=panel.style.display==='block';
+  panel.style.display=open?'none':'block';
+  if(icon)icon.style.transform=open?'rotate(-90deg)':'rotate(0deg)';
+}
+
+function unarchiveApp(id){
+  const a=appData.find(x=>x.id===id);
+  if(!a)return;
+  a.archived=false;
+  a.status='สมัคร';
+  saveToStorage();renderAppTable();renderAppStatusBadges();
+}
+
+function populatePosLinkDropdown(){
+  const sel=document.getElementById('ea_poslink');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">– ไม่ระบุ / ไม่มีตำแหน่งว่าง –</option>';
+  posData.forEach(p=>{
+    const opt=document.createElement('option');
+    opt.value=p.id;
+    opt.textContent=`${p.pos}${p.branch?' – '+p.branch:''} (เปิดรับ: ${fmtDate(p.opendate)||'–'})`;
+    if(String(p.id)===String(cur))opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function applyPosLink(){
+  const sel=document.getElementById('ea_poslink');
+  if(!sel||!sel.value)return;
+  const p=posData.find(x=>String(x.id)===sel.value);
+  if(!p)return;
+  document.getElementById('ea_pos').value=p.pos||'';
+  document.getElementById('ea_branch').value=p.branch||'';
+}
+
+function calcTTF(app){
+  if(!app.poslinkId)return null;
+  const p=posData.find(x=>String(x.id)===String(app.poslinkId));
+  if(!p||!p.opendate||!app.startdate)return null;
+  const d1=new Date(p.opendate);const d2=new Date(app.startdate);
+  if(isNaN(d1)||isNaN(d2))return null;
+  return Math.round((d2-d1)/(1000*60*60*24));
+}
+
+function saveAppEntry(){
+  const name=document.getElementById('ea_name').value.trim();
+  const pos=document.getElementById('ea_pos').value.trim();
+  if(!name||!pos){alert('กรุณากรอกชื่อและตำแหน่ง');return;}
+  const poslinkId=document.getElementById('ea_poslink')?.value||'';
+  const obj={
+    id:editingAppId||++nextAid,
+    name,pos,
+    branch:document.getElementById('ea_branch').value.trim(),
+    channel:document.getElementById('ea_channel').value,
+    date:document.getElementById('ea_date').value,
+    status:document.getElementById('ea_status').value,
+    interviewdate:document.getElementById('ea_interviewdate').value,
+    startdate:document.getElementById('ea_startdate').value,
+    rec:document.getElementById('ea_rec').value.trim(),
+    reason:document.getElementById('ea_reason').value,
+    note:document.getElementById('ea_note').value.trim(),
+    poslinkId:poslinkId?Number(poslinkId):null,
+    archived:ARCHIVE_STATUSES.includes(document.getElementById('ea_status').value)
+  };
+  if(editingAppId){
+    const i=appData.findIndex(a=>a.id===editingAppId);
+    if(i>=0){
+      const prev=appData[i];
+      // carry over auditLog, then push if status changed
+      obj.auditLog=prev.auditLog||[];
+      if(prev.status!==obj.status) pushAuditLog(obj, prev.status, obj.status);
+      appData[i]=obj;
+    }
+  }else{
+    obj.auditLog=[];
+    pushAuditLog(obj, null, obj.status);
+    appData.push(obj);
+  }
+  saveToStorage();
+  cancelAppEdit();
+  renderAppTable();
+  renderAppStatusBadges();
+  flashSave('appSaveInd');
+  // ถ้าสถานะเป็น "เริ่มงานแล้ว" และยังไม่มีในฐานข้อมูลพนักงาน
+  if(obj.status==='เริ่มงานแล้ว'){
+    const alreadyEmp=empData.find(e=>e.name===obj.name);
+    if(!alreadyEmp){
+      window._pendingNewEmp=obj;
+      document.getElementById('aem_preview').textContent=`${obj.name}  |  ${obj.pos}  |  ${obj.branch||'–'}  |  วันเริ่มงาน: ${obj.startdate||'–'}`;
+      document.getElementById('aem_id').value='';
+      document.getElementById('aem_dept').value='Operations';
+      document.getElementById('addEmpModal').classList.add('open');
+    }
+  }
+}
+
+function confirmAddEmp(){
+  const a=window._pendingNewEmp;
+  if(!a)return;
+  empData.push({
+    id:++nextEid,
+    empId:document.getElementById('aem_id').value.trim(),
+    name:a.name,
+    pos:a.pos,
+    dept:document.getElementById('aem_dept').value,
+    branch:a.branch||'',
+    startdate:a.startdate||'',
+    status:'ทำงานอยู่'
+  });
+  saveToStorage();
+  closeModal('addEmpModal');
+  window._pendingNewEmp=null;
+  // flash notification
+  const n=document.createElement('div');
+  n.textContent='✅ เพิ่ม '+a.name+' เข้าฐานข้อมูลพนักงานแล้ว';
+  n.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--teal);color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.18)';
+  document.body.appendChild(n);
+  setTimeout(()=>n.remove(),3000);
+}
+
+function editAppEntry(id){
+  const a=appData.find(x=>x.id===id);if(!a)return;
+  editingAppId=id;
+  document.getElementById('ea_name').value=a.name;
+  document.getElementById('ea_pos').value=a.pos;
+  document.getElementById('ea_branch').value=a.branch||'';
+  document.getElementById('ea_channel').value=a.channel||'JobThai';
+  document.getElementById('ea_date').value=a.date||'';
+  document.getElementById('ea_status').value=a.status||'สมัคร';
+  document.getElementById('ea_interviewdate').value=a.interviewdate||'';
+  document.getElementById('ea_startdate').value=a.startdate||'';
+  document.getElementById('ea_rec').value=a.rec||'';
+  document.getElementById('ea_reason').value=a.reason||'';
+  document.getElementById('ea_note').value=a.note||'';
+  populatePosLinkDropdown();
+  if(document.getElementById('ea_poslink'))document.getElementById('ea_poslink').value=a.poslinkId?String(a.poslinkId):'';
+  document.getElementById('appFormTitle').textContent='✏️ แก้ไขผู้สมัคร: '+a.name;
+  const body=document.getElementById('appBody');
+  body.classList.remove('collapsed');
+  document.getElementById('appToggle').style.transform='';
+  body.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function deleteAppEntry(id){
+  if(!confirm('ลบผู้สมัครคนนี้?'))return;
+  appData=appData.filter(a=>a.id!==id);
+  saveToStorage();renderAppTable();renderAppStatusBadges();
+}
+
+function cancelAppEdit(){
+  editingAppId=null;
+  ['ea_name','ea_pos','ea_branch','ea_date','ea_interviewdate','ea_startdate','ea_rec','ea_note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ea_channel').value='JobThai';
+  document.getElementById('ea_status').value='สมัคร';
+  document.getElementById('ea_reason').value='';
+  if(document.getElementById('ea_poslink'))document.getElementById('ea_poslink').value='';
+  const dw=document.getElementById('dupNameWarn');if(dw)dw.style.display='none';
+  document.getElementById('appFormTitle').textContent='➕ เพิ่มผู้สมัครใหม่';
+}
+
+const statusColors={
+  'สมัคร':'#7A90A0','ผ่านคัดกรอง':'#6B90A8','สัมภาษณ์':'#C5913A',
+  'ผ่านสัมภาษณ์':'#3D9494','รอเริ่มงาน':'#5A8AA4','เริ่มงานแล้ว':'#2E7A7A',
+  'ไม่ผ่านสัมภาษณ์':'#C0544A','ไม่มาเริ่มงาน':'#A0544A'
+};
+
+function renderAppStatusBadges(){
+  const el=document.getElementById('appStatusBadges');
+  if(!el)return;
+  // Show only active (non-archived) statuses in badges
+  const statuses=['สมัคร','ผ่านคัดกรอง','สัมภาษณ์','ผ่านสัมภาษณ์','รอเริ่มงาน'];
+  const cur=document.getElementById('ea_status_filter')?.value||'';
+  el.innerHTML=statuses.map(s=>{
+    const cnt=appData.filter(a=>a.status===s&&!a.archived).length;
+    return `<span class="entry-badge${cur===s?' active':''}" onclick="filterAppByStatus('${s}')" style="border-color:${statusColors[s]};${cur===s?`background:${statusColors[s]}1a;color:${statusColors[s]}`:''}">
+      ${s}: <strong>${cnt}</strong></span>`;
+  }).join('');
+}
+
+function filterAppByStatus(s){
+  const sel=document.getElementById('ea_status_filter');
+  sel.value=sel.value===s?'':s;
+  renderAppTable();renderAppStatusBadges();
+}
+
+function appRowHtml(a,i,isArchive){
+  const ttf=calcTTF(a);
+  const ttfCell=ARCHIVE_STATUSES.includes(a.status)&&a.status==='เริ่มงานแล้ว'
+    ?(ttf!=null?`<span style="font-weight:700;color:${ttf<=14?'var(--teal)':ttf<=30?'var(--yellow)':'var(--red)'}">${ttf} วัน</span>`:'<span style="color:var(--muted);font-size:11px">ไม่มีข้อมูล</span>')
+    :'<span style="color:var(--muted);font-size:11px">–</span>';
+  const actionBtn=isArchive
+    ?`<button class="tbl-edit-btn" onclick="unarchiveApp(${a.id})" style="background:#f0f4f7;color:var(--muted)">↩ คืนสถานะ</button><button class="tbl-edit-btn" onclick="showAuditLog(${a.id})" style="background:#f0f4f7;color:var(--muted)" title="ประวัติสถานะ">📋</button>`
+    :`<button class="tbl-edit-btn" onclick="editAppEntry(${a.id})">แก้ไข</button><button class="tbl-edit-btn" onclick="showAuditLog(${a.id})" style="background:#f0f4f7;color:var(--muted)" title="ประวัติสถานะ">📋</button><button class="tbl-del-btn" onclick="deleteAppEntry(${a.id})">ลบ</button>`;
+  return `<tr style="${isArchive?'opacity:0.75;':''}">
+    <td>${i+1}</td>
+    <td><strong>${a.name}</strong></td>
+    <td>${a.pos}</td>
+    <td style="font-size:12px">${a.branch||'–'}</td>
+    <td style="font-size:12px">${a.channel||'–'}</td>
+    <td style="font-size:12px">${fmtDate(a.date)}</td>
+    <td><span style="background:${statusColors[a.status]||'#999'}1a;color:${statusColors[a.status]||'#999'};border:1px solid ${statusColors[a.status]||'#999'};border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap">${a.status}</span></td>
+    <td style="font-size:12px;color:${a.startdate?'var(--green)':'var(--muted)'};font-weight:${a.startdate?700:400}">${fmtDate(a.startdate)}</td>
+    <td style="font-size:12px;text-align:center">${ttfCell}</td>
+    <td style="font-size:12px">${a.rec||'–'}</td>
+    <td style="font-size:11px;color:var(--muted)">${a.reason||'–'}</td>
+    <td>${actionBtn}</td>
+  </tr>`;
+}
+
+function renderAppTable(){
+  const q=(document.getElementById('ea_search')?.value||'').toLowerCase();
+  const st=document.getElementById('ea_status_filter')?.value||'';
+  const qa=(document.getElementById('archive_search')?.value||'').toLowerCase();
+
+  // Active: not archived
+  let active=appData.filter(a=>{
+    if(a.archived)return false;
+    if(st&&a.status!==st)return false;
+    if(q&&!a.name.toLowerCase().includes(q)&&!a.pos.toLowerCase().includes(q)&&!a.branch?.toLowerCase().includes(q))return false;
+    return true;
+  });
+  // Archive: archived only
+  let archived=appData.filter(a=>{
+    if(!a.archived)return false;
+    if(qa&&!a.name.toLowerCase().includes(qa)&&!a.pos.toLowerCase().includes(qa)&&!a.branch?.toLowerCase().includes(qa))return false;
+    return true;
+  });
+
+  document.getElementById('appTableBody').innerHTML=active.length
+    ?active.map((a,i)=>appRowHtml(a,i,false)).join('')
+    :'<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:28px">ไม่มีผู้สมัครที่กำลังดำเนินการ</td></tr>';
+
+  const archBody=document.getElementById('archiveTableBody');
+  if(archBody)archBody.innerHTML=archived.length
+    ?archived.map((a,i)=>appRowHtml(a,i,true)).join('')
+    :'<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:20px">ไม่มีรายการใน Archive</td></tr>';
+
+  const countEl=document.getElementById('archiveCount');
+  if(countEl)countEl.textContent=archived.length?`(${archived.length} รายการ)`:'(ว่าง)';
+}
+
+// ===================== AUTH (single password) =====================
+const PW_KEY='skygroup_hr_pw';
+function getPassword(){ return localStorage.getItem(PW_KEY)||'sky2024'; }
+
+function doLogin(){
+  const p=document.getElementById('l_pass').value;
+  const err=document.getElementById('l_err');
+  if(!p){err.textContent='กรุณาใส่รหัสผ่าน';return;}
+  if(p!==getPassword()){err.textContent='รหัสผ่านไม่ถูกต้อง';return;}
+  err.textContent='';
+  sessionStorage.setItem('skygroup_session','1');
+  applySession();
+}
+
+function doLogout(){
+  sessionStorage.removeItem('skygroup_session');
+  document.getElementById('l_pass').value='';
+  document.getElementById('l_err').textContent='';
+  document.getElementById('loginOverlay').style.display='flex';
+}
+
+function applySession(){
+  document.getElementById('loginOverlay').style.display='none';
+  const tu=document.getElementById('topbarUser');
+  if(tu)tu.innerHTML=`
+    <button onclick="changePassword()" style="border:1px solid var(--border);background:var(--bg);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--muted)">🔒 เปลี่ยนรหัสผ่าน</button>
+    <button onclick="doLogout()" style="border:1px solid var(--border);background:var(--bg);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--muted)">ออกจากระบบ</button>`;
+}
+
+function changePassword(){
+  const cur=prompt('รหัสผ่านปัจจุบัน:');
+  if(cur===null)return;
+  if(cur!==getPassword()){alert('รหัสผ่านปัจจุบันไม่ถูกต้อง');return;}
+  const n1=prompt('รหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร):');
+  if(!n1||n1.length<4){alert('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร');return;}
+  const n2=prompt('ยืนยันรหัสผ่านใหม่:');
+  if(n1!==n2){alert('รหัสผ่านไม่ตรงกัน');return;}
+  localStorage.setItem(PW_KEY,n1);
+  alert('เปลี่ยนรหัสผ่านสำเร็จ ✅');
+}
+
+// ===================== DUPLICATE NAME CHECK =====================
+function checkDupName(val){
+  const warn=document.getElementById('dupNameWarn');
+  if(!warn)return;
+  const v=val.trim().toLowerCase();
+  if(v.length<2){warn.style.display='none';return;}
+  // exclude current editing record
+  const matches=appData.filter(a=>
+    a.id!==editingAppId &&
+    a.name.toLowerCase().includes(v)
+  );
+  if(matches.length===0){warn.style.display='none';return;}
+  const statusColors2={'เริ่มงานแล้ว':'#2E7A7A','ไม่ผ่านสัมภาษณ์':'#C0544A','ไม่มาเริ่มงาน':'#A0544A'};
+  warn.style.display='block';
+  warn.innerHTML='⚠️ พบชื่อใกล้เคียงในระบบ:<br>'+matches.slice(0,3).map(a=>{
+    const sc=statusColors2[a.status]||'#6B90A8';
+    return `<span style="display:inline-block;margin-top:4px;margin-right:6px;background:#fff;border:1px solid #ddd;border-radius:6px;padding:3px 8px;font-size:11px">
+      <strong>${a.name}</strong> · ${a.pos} · <span style="color:${sc};font-weight:700">${a.status}</span>
+      ${a.date?'<span style="color:#999"> ('+fmtDate(a.date)+')</span>':''}
+    </span>`;
+  }).join('')+(matches.length>3?`<br><span style="color:#999;font-size:11px">และอีก ${matches.length-3} รายการ</span>`:'');
+}
+
+// ===================== AUDIT LOG =====================
+function pushAuditLog(app, fromStatus, toStatus){
+  if(!app.auditLog)app.auditLog=[];
+  const today=new Date().toISOString().split('T')[0];
+  app.auditLog.push({from:fromStatus,to:toStatus,at:today});
+}
+
+function showAuditLog(id){
+  const a=appData.find(x=>x.id===id);
+  if(!a)return;
+  document.getElementById('auditModalName').textContent=a.name;
+  document.getElementById('auditModalSub').textContent=`${a.pos}${a.branch?' · '+a.branch:''}`;
+  const log=a.auditLog||[];
+  const tl=document.getElementById('auditTimeline');
+  if(log.length===0){
+    tl.innerHTML='<div style="text-align:center;color:var(--muted);padding:24px;font-size:13px">ยังไม่มีประวัติการเปลี่ยนสถานะ<br><span style="font-size:11px">(บันทึกตั้งแต่เพิ่มฟีเจอร์นี้เป็นต้นไป)</span></div>';
+  } else {
+    const sc={'สมัคร':'#7A90A0','ผ่านคัดกรอง':'#6B90A8','สัมภาษณ์':'#C5913A','ผ่านสัมภาษณ์':'#3D9494','รอเริ่มงาน':'#5A8AA4','เริ่มงานแล้ว':'#2E7A7A','ไม่ผ่านสัมภาษณ์':'#C0544A','ไม่มาเริ่มงาน':'#A0544A'};
+    tl.innerHTML=`<div style="position:relative;padding-left:28px">`+
+      [...log].reverse().map((entry,i)=>`
+        <div style="position:relative;margin-bottom:${i<log.length-1?'20px':'0'}">
+          <div style="position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:${sc[entry.to]||'#999'};border:2px solid #fff;box-shadow:0 0 0 2px ${sc[entry.to]||'#999'}"></div>
+          ${i<log.length-1?`<div style="position:absolute;left:-16px;top:14px;width:2px;height:calc(100% + 10px);background:var(--border)"></div>`:''}
+          <div style="font-size:12px;color:var(--muted)">${fmtDate(entry.at)}</div>
+          <div style="margin-top:3px;font-size:13px">
+            ${entry.from?`<span style="color:${sc[entry.from]||'#999'};font-weight:600">${entry.from}</span> <span style="color:var(--muted)">→</span> `:''}
+            <span style="color:${sc[entry.to]||'#999'};font-weight:700">${entry.to}</span>
+          </div>
+        </div>`).join('')+`</div>`;
+  }
+  document.getElementById('auditModal').classList.add('open');
+}
+
+// ===================== EXPORT CSV =====================
+function dlCSV(rows, filename){
+  const csv='﻿'+rows.map(r=>r.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},500);
+}
+
+function exportEmpCSV(){
+  const header=['รหัสพนักงาน','ชื่อ-นามสกุล','ตำแหน่ง','แผนก','ร้าน/สาขา','วันเริ่มงาน','สถานะ','วันที่ออก','เหตุผลการออก','ระยะทดลองงาน (วัน)','ผลทดลองงาน'];
+  const st=document.getElementById('ee_status_filter')?.value||'';
+  const dept=document.getElementById('ee_dept_filter')?.value||'';
+  const q=(document.getElementById('ee_search')?.value||'').toLowerCase();
+  const rows=empData.filter(e=>{
+    if(st&&e.status!==st)return false;
+    if(dept&&e.dept!==dept)return false;
+    if(q&&!e.name.toLowerCase().includes(q)&&!e.pos.toLowerCase().includes(q))return false;
+    return true;
+  }).map(e=>[e.empId||'',e.name,e.pos,e.dept||'',e.branch||'',e.startdate||'',e.status||'',e.enddate||'',e.reason||'',e.probationDays||'',e.probationResult||'']);
+  const today=new Date().toISOString().split('T')[0];
+  dlCSV([header,...rows],`employees_${today}.csv`);
+}
+
+function exportAppCSV(){
+  const header=['ชื่อ-นามสกุล','ตำแหน่ง','สาขา','ช่องทาง','วันที่สมัคร','สถานะ','วันนัดสัมภาษณ์','วันเริ่มงาน','Time to Fill (วัน)','Recruiter','เหตุผล','หมายเหตุ'];
+  const rows=appData.map(a=>[a.name,a.pos,a.branch||'',a.channel||'',a.date||'',a.status,a.interviewdate||'',a.startdate||'',calcTTF(a)??'',a.rec||'',a.reason||'',a.note||'']);
+  const today=new Date().toISOString().split('T')[0];
+  dlCSV([header,...rows],`applicants_${today}.csv`);
+}
+
+function exportMonthlyCSV(){
+  const header=['เดือน','เข้าใหม่','ลาออก','Turnover%','เปิดรับ','ปิดตำแหน่ง','รอเริ่มงาน','เริ่มงานแล้ว','ไม่ผ่านสัมภาษณ์','ไม่มาเริ่มงาน'];
+  const rows=[];
+  for(let m=1;m<=12;m++){
+    const mStr=String(m).padStart(2,'0');
+    const yr=document.getElementById('filterYear')?.value||'2026';
+    const prefix=`${yr}-${mStr}`;
+    const newEmp=empData.filter(e=>e.startdate?.startsWith(prefix)).length;
+    const resigned=resignData.filter(r=>r.date?.startsWith(prefix)).length;
+    const totalEmp=empData.filter(e=>e.status==='ทำงานอยู่').length||1;
+    const turnover=Math.round(resigned/totalEmp*100);
+    const opened=posData.filter(p=>p.opendate?.startsWith(prefix)).length;
+    const closed=appData.filter(a=>a.status==='เริ่มงานแล้ว'&&a.startdate?.startsWith(prefix)).length;
+    const waiting=appData.filter(a=>a.status==='รอเริ่มงาน'&&a.date?.startsWith(prefix)).length;
+    const started=appData.filter(a=>a.status==='เริ่มงานแล้ว'&&a.startdate?.startsWith(prefix)).length;
+    const failed=appData.filter(a=>a.status==='ไม่ผ่านสัมภาษณ์'&&a.date?.startsWith(prefix)).length;
+    const noshow=appData.filter(a=>a.status==='ไม่มาเริ่มงาน'&&a.date?.startsWith(prefix)).length;
+    const label=months[m-1]+' '+yr;
+    rows.push([label,newEmp,resigned,turnover+'%',opened,closed,waiting,started,failed,noshow]);
+  }
+  const today=new Date().toISOString().split('T')[0];
+  dlCSV([header,...rows],`monthly_summary_${today}.csv`);
+}
+
+// ===================== IMPORT ผู้สมัคร =====================
+function downloadAppTemplate(){
+  const header=['ชื่อ-นามสกุล *','ตำแหน่ง *','สาขา','ช่องทาง (JobThai/Facebook/TikTok/Line/Walk-in/Employee Referral/อื่น ๆ)','วันที่สมัคร (YYYY-MM-DD)','สถานะ','วันนัดสัมภาษณ์ (YYYY-MM-DD)','วันเริ่มงาน (YYYY-MM-DD)','Recruiter','เหตุผล','หมายเหตุ'];
+  const sample=['สมใจ มั่นคง','Barista','สาขาสยาม','JobThai','2026-06-10','สมัคร','','','คุณนิดา','',''];
+  dlCSV([header,sample],'applicant_import_template.csv');
+}
+
+function importAppFile(input){
+  const file=input.files[0];if(!file)return;
+  const msg=document.getElementById('appImportMsg');
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv'){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const text=e.target.result.replace(/^﻿/,'');
+      processAppCSV(text,msg);
+    };
+    reader.readAsText(file,'UTF-8');
+  } else if(ext==='xlsx'||ext==='xls'){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const text=XLSX.utils.sheet_to_csv(ws);
+        processAppCSV(text,msg);
+      }catch(err){msg.style.color='var(--red)';msg.textContent='❌ อ่านไฟล์ไม่ได้: '+err.message;}
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    msg.style.color='var(--red)';msg.textContent='❌ รองรับเฉพาะ .csv, .xlsx, .xls';
+  }
+  input.value='';
+}
+
+function processAppCSV(text,msg){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2){msg.style.color='var(--red)';msg.textContent='❌ ไม่พบข้อมูล';return;}
+  const parse=line=>{const r=[];let cur='',inQ=false;for(const c of line){if(c==='"')inQ=!inQ;else if(c===','&&!inQ){r.push(cur.trim());cur='';}else cur+=c;}r.push(cur.trim());return r;};
+  let added=0,updated=0;
+  for(let i=1;i<lines.length;i++){
+    const cols=parse(lines[i]);
+    const name=(cols[0]||'').trim();const pos=(cols[1]||'').trim();
+    if(!name||!pos)continue;
+    const channels=['JobThai','Facebook','TikTok','Line','Walk-in','Employee Referral','อื่น ๆ'];
+    const validStatuses=['สมัคร','ผ่านคัดกรอง','สัมภาษณ์','ผ่านสัมภาษณ์','รอเริ่มงาน','เริ่มงานแล้ว','ไม่ผ่านสัมภาษณ์','ไม่มาเริ่มงาน'];
+    const status=validStatuses.includes(cols[5]?.trim())?cols[5].trim():'สมัคร';
+    const obj={name,pos,
+      branch:(cols[2]||'').trim(),
+      channel:channels.includes(cols[3]?.trim())?cols[3].trim():'JobThai',
+      date:cols[4]?.trim()||'',status,
+      interviewdate:cols[6]?.trim()||'',
+      startdate:cols[7]?.trim()||'',
+      rec:(cols[8]||'').trim(),
+      reason:(cols[9]||'').trim(),
+      note:(cols[10]||'').trim(),
+      archived:ARCHIVE_STATUSES.includes(status)
+    };
+    const exist=appData.find(a=>a.name===name&&a.pos===pos);
+    if(exist){Object.assign(exist,obj);updated++;}
+    else{appData.push({id:++nextAid,...obj});added++;}
+  }
+  saveToStorage();renderAppTable();renderAppStatusBadges();
+  msg.style.color='var(--teal)';
+  msg.textContent=`✅ เพิ่ม ${added} รายการ, อัปเดต ${updated} รายการ`;
+  setTimeout(()=>msg.textContent='',4000);
+}
+
+// ===================== ALERT SYSTEM =====================
+function getAlerts(){
+  const alerts=[];
+  const today=new Date();today.setHours(0,0,0,0);
+  const tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
+
+  // 1. นัดสัมภาษณ์พรุ่งนี้
+  const tmrIntv=appData.filter(a=>{
+    if(a.status!=='สัมภาษณ์'||!a.interviewdate)return false;
+    const d=new Date(a.interviewdate);d.setHours(0,0,0,0);
+    return d.getTime()===tomorrow.getTime();
+  });
+  tmrIntv.forEach(a=>{
+    alerts.push({type:'interview',icon:'🗓️',color:'var(--yellow)',
+      title:'นัดสัมภาษณ์พรุ่งนี้',
+      body:`${a.name} — ${a.pos} (${a.branch||'–'})`,
+      action:()=>showSection('interview',document.querySelector('.nav-item:has(+[onclick*=interview])'))
+    });
+  });
+
+  // 2. Probation ใกล้ครบ (≤ 14 วัน)
+  empData.filter(e=>e.probationResult==='ทดลองงาน'&&e.startdate&&e.probationDays).forEach(e=>{
+    const due=new Date(e.startdate);due.setDate(due.getDate()+Number(e.probationDays));due.setHours(0,0,0,0);
+    const daysLeft=Math.round((due-today)/(1000*60*60*24));
+    if(daysLeft>=0&&daysLeft<=14){
+      alerts.push({type:'probation',icon:'🔄',color:daysLeft<=7?'var(--red)':'var(--yellow)',
+        title:`Probation ครบใน ${daysLeft} วัน`,
+        body:`${e.name} — ${e.pos} (${e.branch||'–'})`,
+        action:()=>showSection('probation',null)
+      });
+    }
+  });
+
+  // 3. ตำแหน่งว่างค้างนาน (เกิน urgency threshold)
+  const urgDays={'ด่วนมาก (7 วัน)':7,'ด่วน (15 วัน)':15,'ปกติ (30 วัน)':30};
+  posData.filter(p=>p.need-p.hired>0).forEach(p=>{
+    const threshold=urgDays[p.urgency]||30;
+    const age=daysSince(p.opendate);
+    if(age>threshold){
+      alerts.push({type:'position',icon:'❗',color:'var(--red)',
+        title:`ตำแหน่งว่างค้าง ${age} วัน (เกินกำหนด ${threshold} วัน)`,
+        body:`${p.pos} — ${p.branch||'–'} (ยังขาด ${p.need-p.hired} คน)`,
+        action:()=>showSection('recruit',null)
+      });
+    }
+  });
+
+  return alerts;
+}
+
+function renderAlerts(){
+  const alerts=getAlerts();
+  const badge=document.getElementById('alertBadge');
+  const list=document.getElementById('alertList');
+  if(badge){
+    badge.textContent=alerts.length;
+    badge.style.display=alerts.length?'block':'none';
+  }
+  if(!list)return;
+  if(alerts.length===0){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">✅ ไม่มีการแจ้งเตือน</div>';
+    return;
+  }
+  list.innerHTML=alerts.map((a,i)=>`
+    <div onclick="handleAlert(${i})" style="padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">${a.icon}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:${a.color}">${a.title}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.body}</div>
+        </div>
+      </div>
+    </div>`).join('');
+  window._alertActions=alerts.map(a=>a.action);
+}
+
+function handleAlert(i){
+  toggleAlertPanel();
+  if(window._alertActions&&window._alertActions[i])window._alertActions[i]();
+}
+
+function toggleAlertPanel(){
+  const panel=document.getElementById('alertPanel');
+  if(!panel)return;
+  const open=panel.style.display==='block';
+  panel.style.display=open?'none':'block';
+  if(!open)renderAlerts();
+}
+
+// Close alert panel when clicking outside
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('alertPanel');
+  const btn=document.getElementById('alertBellBtn');
+  if(panel&&panel.style.display==='block'&&!panel.contains(e.target)&&!btn.contains(e.target))
+    panel.style.display='none';
+});
+
+// ===================== FLASH SAVE INDICATOR =====================
+function flashSave(indicatorId){
+  const el=document.getElementById(indicatorId);
+  if(!el)return;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ===================== LOCAL STORAGE =====================
+// ===================== FIREBASE CONFIG =====================
+const firebaseConfig = {
+  apiKey: "AIzaSyAgq7O0XKQYBozMu2uoK-Jp9q5eNCIelwk",
+  authDomain: "skygroup-hr.firebaseapp.com",
+  projectId: "skygroup-hr",
+  storageBucket: "skygroup-hr.firebasestorage.app",
+  messagingSenderId: "202198408832",
+  appId: "1:202198408832:web:4e462342f1e2c305525065"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const HR_DOC = db.collection('hr').doc('data');
+
+let _firestoreReady = false;
+
+function saveToStorage(){
+  HR_DOC.set({
+    resignData, posData, appData, empData,
+    nextRid, nextPid, nextAid, nextEid,
+    savedAt: new Date().toISOString()
+  }).catch(e=>console.error('Firestore save error:',e));
+  renderAlerts();
+}
+
+function loadFromStorage(){
+  return false; // handled async in INIT
+}
+
+function applyData(d){
+  if(d.resignData&&d.resignData.length) resignData=d.resignData;
+  if(d.posData&&d.posData.length) posData=d.posData;
+  if(d.appData&&d.appData.length) appData=d.appData;
+  if(d.empData&&d.empData.length) empData=d.empData;
+  if(d.nextRid) nextRid=d.nextRid;
+  if(d.nextPid) nextPid=d.nextPid;
+  if(d.nextAid) nextAid=d.nextAid;
+  if(d.nextEid) nextEid=d.nextEid;
+}
+
+// Patch CRUD to auto-save
+const _sr=saveResign;saveResign=function(){_sr();saveToStorage();};
+const _sp=savePos;savePos=function(){_sp();saveToStorage();};
+const _sa=saveApp;saveApp=function(){_sa();saveToStorage();};
+const _dp=deletePos;deletePos=function(id){_dp(id);saveToStorage();};
+const _da=deleteApp;deleteApp=function(id){_da(id);saveToStorage();};
+
+// renderSection additions
+const _origRenderSection=renderSection;
+renderSection=function(id){
+  if(id==='entry-emp'){cancelEmpEdit();renderEmpTable();renderEmpKpi();}
+  else if(id==='entry-pos'){cancelPosEdit();renderPosTable();}
+  else if(id==='entry-app'){cancelAppEdit();populatePosLinkDropdown();renderAppTable();renderAppStatusBadges();}
+  else _origRenderSection(id);
+};
+
+// ===================== INIT =====================
+document.getElementById('topbarDate').textContent = todayStr();
+
+// Show loading state
+document.getElementById('loginOverlay').style.display='none';
+document.getElementById('sectionTitle').textContent='กำลังโหลดข้อมูล…';
+
+// Track current section for real-time re-render
+let _currentSection='exec';
+const _showSectionOrig=showSection;
+showSection=function(id,el){_currentSection=id;_showSectionOrig(id,el);};
+
+// Load from Firestore then set up real-time listener
+HR_DOC.get().then(doc=>{
+  if(doc.exists) applyData(doc.data());
+  renderExec();
+  renderAlerts();
+  document.getElementById('sectionTitle').textContent=titles['exec']||'';
+  _firestoreReady=true;
+
+  // Real-time listener: re-render whenever another user saves
+  HR_DOC.onSnapshot(snap=>{
+    if(!snap.exists||!_firestoreReady)return;
+    applyData(snap.data());
+    renderAlerts();
+    // re-render current section if it's a data section
+    const dataSecs=['exec','workforce','probation','recruit','applicant','efficiency','interview','pending','monthly','entry-app','entry-pos','entry-emp'];
+    if(dataSecs.includes(_currentSection)) renderSection(_currentSection);
+  });
+
+  // Auth check
+  if(sessionStorage.getItem('skygroup_session')==='1'){
+    applySession();
+  } else {
+    document.getElementById('loginOverlay').style.display='flex';
+  }
+}).catch(e=>{
+  console.error('Firestore load error:',e);
+  document.getElementById('sectionTitle').textContent='⚠️ โหลดข้อมูลไม่สำเร็จ — ตรวจสอบ Firestore Rules';
+  // Fallback: show login anyway
+  if(sessionStorage.getItem('skygroup_session')==='1'){
+    applySession();
+  } else {
+    document.getElementById('loginOverlay').style.display='flex';
+  }
+});
+</script>
+</body>
+</html>
