@@ -2452,22 +2452,24 @@ function touchActivity(){
 }
 
 function checkInactivity(){
-  if(!firebase.auth().currentUser) return;
+  if(!_currentUser) return; // ใช้ _currentUser แทน firebase.auth().currentUser (reliable กว่า)
   const last = parseInt(localStorage.getItem(LAST_ACTIVE_KEY)||'0');
-  if(last && Date.now() - last > INACTIVITY_MS){
+  if(!last) return; // ยังไม่มีข้อมูล
+  if(Date.now() - last > INACTIVITY_MS){
+    localStorage.removeItem(LAST_ACTIVE_KEY);
     firebase.auth().signOut();
   }
 }
 
-// Track user interactions
-['mousemove','keydown','click','scroll','touchstart'].forEach(e=>{
+// Track เฉพาะ interaction จริงๆ — ไม่รวม mousemove (reset บ่อยเกินไป)
+['keydown','click','touchstart'].forEach(e=>{
   document.addEventListener(e, touchActivity, {passive:true});
 });
 
-// Check every minute while tab is open
+// Check ทุก 1 นาทีขณะแท็บเปิดอยู่
 setInterval(checkInactivity, 60*1000);
 
-// Check immediately when tab becomes visible (handles reopening browser/tab)
+// Check ทันทีเมื่อกลับมาที่แท็บ หรือเปิดเบราว์เซอร์ใหม่
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible') checkInactivity();
 });
