@@ -315,15 +315,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="nav-group">
     <div class="nav-label">รายละเอียด</div>
     <div class="nav-item" onclick="showSection('workforce',this)"><span class="icon">👥</span>สถานะกำลังคน</div>
-    <div class="nav-item" onclick="showSection('probation',this)"><span class="icon">🔄</span>Probation</div>
     <div class="nav-item" onclick="showSection('recruit',this)"><span class="icon">🎯</span>สถานะการสรรหา</div>
     <div class="nav-item" onclick="showSection('applicant',this)"><span class="icon">📋</span>ข้อมูลผู้สมัคร</div>
     <div class="nav-item" onclick="showSection('efficiency',this)"><span class="icon">⚡</span>ประสิทธิภาพสรรหา</div>
   </div>
   <div class="nav-group">
-    <div class="nav-label">รายงาน</div>
+    <div class="nav-label">งานที่ต้องดำเนินการ</div>
     <div class="nav-item" onclick="showSection('interview',this)"><span class="icon">🗓️</span>นัดสัมภาษณ์</div>
     <div class="nav-item" onclick="showSection('pending',this)"><span class="icon">📅</span>รอเริ่มงาน</div>
+    <div class="nav-item" onclick="showSection('probation',this)"><span class="icon">🔄</span>Probation Tracking</div>
+    <div class="nav-item" onclick="showSection('social-sec',this)"><span class="icon">🏥</span>ประกันสังคม</div>
+    <div class="nav-item" onclick="showSection('work-permit',this)"><span class="icon">📄</span>ใบอนุญาติต่างด้าว</div>
+    <div class="nav-item" onclick="showSection('training',this)"><span class="icon">🎓</span>Training Tracking</div>
     <div class="nav-item" onclick="showSection('monthly',this)"><span class="icon">📈</span>สรุปรายเดือน</div>
   </div>
   <div class="nav-group" id="adminDataNav">
@@ -473,27 +476,29 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="table-card" style="margin-top:16px">
     <div class="table-card-header">
       <h3>พนักงานในช่วงทดลองงาน</h3>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="prob_result_filter" onchange="renderProbation()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
-          <option value="">สถานะทั้งหมด</option><option>ทดลองงาน</option><option>ผ่าน</option><option>ไม่ผ่าน</option>
-        </select>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="archiveAllFinished()">Archive ที่จบแล้วทั้งหมด</button>
-      </div>
+      <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="archiveAllFinished()">Archive ที่ผ่านโปรทั้งหมด</button>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>ระยะทดลองงาน</th><th>วันที่ครบกำหนด</th><th>เหลืออีก</th><th>ผล</th><th>จัดการ</th></tr></thead>
+      <thead><tr>
+        <th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th>
+        <th style="text-align:center;min-width:90px">📋 Day 14</th>
+        <th style="text-align:center;min-width:90px">📋 Day 30</th>
+        <th style="text-align:center;min-width:90px">📋 Day 60</th>
+        <th style="text-align:center;min-width:110px">🏆 Day 90<br><span style="font-size:10px;font-weight:400">(ผ่านโปร)</span></th>
+        <th>จัดการ</th>
+      </tr></thead>
       <tbody id="probTbody"></tbody>
     </table></div>
   </div>
   <!-- Archive Panel -->
   <div class="table-card" style="margin-top:16px">
     <div class="table-card-header" style="cursor:pointer;user-select:none" onclick="toggleProbArchive()">
-      <h3 style="display:flex;align-items:center;gap:8px">Archive Probation <span id="probArchiveCount" style="font-size:12px;color:var(--muted);font-weight:400"></span></h3>
+      <h3 style="display:flex;align-items:center;gap:8px">🏆 Archive ผ่านโปร <span id="probArchiveCount" style="font-size:12px;color:var(--muted);font-weight:400"></span></h3>
       <span id="probArchiveToggle" style="font-size:12px;color:var(--muted)">▼ แสดง</span>
     </div>
     <div id="probArchiveBody" style="display:none">
       <div class="table-wrap"><table>
-        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>วันครบกำหนด</th><th>ผล</th><th>จัดการ</th></tr></thead>
+        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>Day 14</th><th>Day 30</th><th>Day 60</th><th>Day 90</th><th>จัดการ</th></tr></thead>
         <tbody id="probArchiveTbody"></tbody>
       </table></div>
     </div>
@@ -665,6 +670,210 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   </div>
 </div>
 
+<!-- ===== SOCIAL SECURITY ===== -->
+<div class="section" id="sec-social-sec">
+  <div class="sec-title"><span>🏥</span>ประกันสังคม</div>
+  <div class="cards cards-4" id="ss-kpi-cards"></div>
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header">
+      <h3>สถานะประกันสังคมพนักงาน</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="ss_filter" onchange="renderSocialSec()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">ทั้งหมด</option>
+          <option value="ลงทะเบียนแล้ว">ลงทะเบียนแล้ว</option>
+          <option value="ยังไม่ลง">ยังไม่ลง</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>วันเข้าประกันสังคม</th><th>โรงพยาบาล/บริษัท</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+      <tbody id="ssTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- Modal: แก้ไขประกันสังคม -->
+<div class="overlay" id="ssModal">
+  <div class="modal" style="max-width:420px">
+    <h3 id="ssModalTitle" style="margin:0 0 4px;font-size:16px;color:var(--teal-d)">ข้อมูลประกันสังคม</h3>
+    <p id="ssModalSub" style="color:var(--muted);font-size:12px;margin:0 0 16px"></p>
+    <div class="form-grid">
+      <div><label>วันที่เข้าประกันสังคม</label><input id="ss_date" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+      <div><label>โรงพยาบาล / บริษัทประกัน</label>
+        <select id="ss_company" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+          <option value="">– ไม่ระบุ –</option>
+          <option value="สำนักงานประกันสังคม">สำนักงานประกันสังคม</option>
+          <option value="ประกันสังคมเอกชน">ประกันสังคมเอกชน</option>
+        </select>
+      </div>
+      <div class="full"><label>โรงพยาบาลที่เลือก</label><input id="ss_hospital" type="text" placeholder="เช่น รพ.บำรุงราษฎร์" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+      <div class="full"><label>หมายเหตุ</label><input id="ss_note" type="text" placeholder="บันทึกเพิ่มเติม" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('ssModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveSsModal()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WORK PERMIT ===== -->
+<div class="section" id="sec-work-permit">
+  <div class="sec-title"><span>📄</span>ใบอนุญาติทำงานต่างด้าว</div>
+  <div class="cards cards-4" id="wp-kpi-cards"></div>
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header">
+      <h3>รายชื่อแรงงานต่างด้าว</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="wp_filter" onchange="renderWorkPermit()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">ทั้งหมด</option>
+          <option value="ปกติ">ปกติ</option>
+          <option value="ใกล้หมดอายุ">ใกล้หมดอายุ (≤60 วัน)</option>
+          <option value="หมดอายุ">หมดอายุแล้ว</option>
+          <option value="ไม่มีข้อมูล">ยังไม่มีข้อมูล</option>
+        </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="openWpModal(null)">+ เพิ่ม/แก้ไข</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead>
+        <tr>
+          <th rowspan="2" style="vertical-align:middle">#</th>
+          <th rowspan="2" style="vertical-align:middle">ชื่อ-นามสกุล</th>
+          <th rowspan="2" style="vertical-align:middle">สัญชาติ</th>
+          <th rowspan="2" style="vertical-align:middle">ตำแหน่ง</th>
+          <th rowspan="2" style="vertical-align:middle">สาขา</th>
+          <th colspan="2" style="text-align:center;background:#eff6ff;color:#1e40af;border-bottom:2px solid #93c5fd">🗂 ใบอนุญาตทำงาน (1 ปี)</th>
+          <th colspan="2" style="text-align:center;background:#f0fdf4;color:#14532d;border-bottom:2px solid #86efac">🔄 Visa / รายงานตัว 90 วัน</th>
+          <th rowspan="2" style="vertical-align:middle">จัดการ</th>
+        </tr>
+        <tr>
+          <th style="background:#eff6ff;font-size:11px">วันหมดอายุ</th>
+          <th style="background:#eff6ff;font-size:11px">เหลือ/สถานะ</th>
+          <th style="background:#f0fdf4;font-size:11px">วันครบกำหนด</th>
+          <th style="background:#f0fdf4;font-size:11px">เหลือ/สถานะ</th>
+        </tr>
+      </thead>
+      <tbody id="wpTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- Modal: ใบอนุญาติต่างด้าว (ครบวงจร) -->
+<div class="overlay" id="wpModal">
+  <div class="modal" style="max-width:600px">
+    <h3 id="wpModalTitle" style="margin:0 0 4px;font-size:16px;color:var(--teal-d)">ข้อมูลใบอนุญาติทำงาน</h3>
+    <p id="wpModalSub" style="color:var(--muted);font-size:12px;margin:0 0 12px"></p>
+
+    <!-- พนักงาน -->
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="full"><label>พนักงาน</label>
+        <select id="wp_emp" onchange="onWpEmpChange()" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+          <option value="">– เลือกพนักงาน –</option>
+        </select>
+      </div>
+      <div><label>สัญชาติ</label><input id="wp_nat" type="text" readonly style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#f7f9fb"></div>
+      <!-- hidden fields เก็บไว้แต่ไม่แสดง -->
+      <input type="hidden" id="wp_passport"><input type="hidden" id="wp_passport_exp">
+      <input type="hidden" id="wp_permit_no"><input type="hidden" id="wp_visa_no">
+    </div>
+
+    <!-- ใบอนุญาต 1 ปี — เฉพาะวันที่ -->
+    <div style="background:#eff6ff;border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:#1e40af;margin-bottom:8px">🗂 ใบอนุญาตทำงาน (1 ปี)</div>
+      <div class="form-grid">
+        <div><label>ประเภท</label>
+          <select id="wp_type" style="width:100%;margin-top:4px;padding:8px;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;background:#fff">
+            <option value="WP">Work Permit (WP)</option>
+            <option value="BOI">BOI</option>
+            <option value="อื่น ๆ">อื่น ๆ</option>
+          </select>
+        </div>
+        <div><label>วันที่ออก</label><input id="wp_issue" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid #bfdbfe;border-radius:8px;font-size:13px"></div>
+        <div><label>วันหมดอายุ</label><input id="wp_expire" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid #bfdbfe;border-radius:8px;font-size:13px"></div>
+      </div>
+    </div>
+
+    <!-- Visa 90 วัน — เฉพาะวันที่ -->
+    <div style="background:#f0fdf4;border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:#14532d;margin-bottom:8px">🔄 Visa / รายงานตัว 90 วัน</div>
+      <div class="form-grid">
+        <div><label>วันออก Visa</label><input id="wp_visa_issue" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid #bbf7d0;border-radius:8px;font-size:13px"></div>
+        <div><label>วันหมดอายุ Visa</label><input id="wp_visa_expire" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid #bbf7d0;border-radius:8px;font-size:13px"></div>
+        <div class="full"><label>วันครบรายงานตัว 90 วัน</label><input id="wp_visa90" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid #bbf7d0;border-radius:8px;font-size:13px"></div>
+      </div>
+    </div>
+
+    <div><label style="font-size:12px">หมายเหตุ</label><input id="wp_note" type="text" placeholder="บันทึกเพิ่มเติม" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('wpModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveWpModal()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TRAINING ===== -->
+<div class="section" id="sec-training">
+  <div class="sec-title"><span>🎓</span>Training Tracking</div>
+  <div class="cards cards-4" id="train-kpi-cards"></div>
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header">
+      <h3>สถานะ Training พนักงาน</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="train_filter" onchange="renderTraining()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">ทั้งหมด</option>
+          <option value="ผ่านครบ">ผ่านครบทุกหลักสูตร</option>
+          <option value="กำลังฝึก">กำลังอยู่ระหว่างฝึก</option>
+          <option value="ยังไม่เริ่ม">ยังไม่เริ่ม</option>
+        </select>
+        <button class="btn" style="font-size:12px;padding:6px 14px;border:1px solid var(--border)" onclick="openCourseManager()">⚙️ จัดการหลักสูตร</button>
+      </div>
+    </div>
+    <div class="table-wrap" style="overflow-x:auto">
+      <table id="trainTable" style="min-width:700px"></table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: บันทึกผล Training -->
+<div class="overlay" id="trainEvalModal">
+  <div class="modal" style="max-width:380px">
+    <h3 id="trainEvalTitle" style="margin:0 0 4px;font-size:16px;color:var(--teal-d)">บันทึกผล Training</h3>
+    <p id="trainEvalSub" style="color:var(--muted);font-size:12px;margin:0 0 18px"></p>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <button id="trainPassBtn" onclick="setTrainResult('ผ่าน')" style="flex:1;padding:14px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s">✅ ผ่าน</button>
+      <button id="trainFailBtn" onclick="setTrainResult('ไม่ผ่าน')" style="flex:1;padding:14px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s">❌ ไม่ผ่าน</button>
+    </div>
+    <div class="form-grid">
+      <div><label>คะแนนที่ได้</label><input id="trainEvalScore" type="number" min="0" max="100" placeholder="เช่น 85" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+      <div><label>คะแนนเต็ม</label><input id="trainEvalMaxScore" type="number" min="1" value="100" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+      <div class="full"><label>วันที่อบรม/ทดสอบ</label><input id="trainEvalDate" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+      <div class="full"><label>หมายเหตุ</label><input id="trainEvalNote" type="text" placeholder="บันทึกเพิ่มเติม" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;display:flex;gap:8px">
+      <button id="trainResetBtn" style="display:none;background:#fde8e8;color:#c0392b;border:none;border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer" onclick="resetTrainEval()">🗑 ลบผล</button>
+      <div style="flex:1"></div>
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('trainEvalModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveTrainEval()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: จัดการหลักสูตร -->
+<div class="overlay" id="courseManagerModal">
+  <div class="modal" style="max-width:480px">
+    <h3 style="margin:0 0 12px;font-size:16px;color:var(--teal-d)">⚙️ จัดการหลักสูตร Training</h3>
+    <div id="courseList" style="margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="newCourseName" type="text" placeholder="ชื่อหลักสูตรใหม่" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+      <button class="btn btn-primary" onclick="addCourse()" style="padding:8px 14px;font-size:13px">+ เพิ่ม</button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="saveCourses()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== MONTHLY ===== -->
 <div class="section" id="sec-monthly">
   <div class="sec-title"><span>📈</span>รายงานสรุปรายเดือน</div>
@@ -770,6 +979,26 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         </div>
         <div class="entry-field"><label>วันนัดสัมภาษณ์</label><input id="ea_interviewdate" type="date"></div>
         <div class="entry-field"><label>วันเริ่มงาน (ถ้ามี)</label><input id="ea_startdate" type="date"></div>
+        <div class="entry-field"><label>สัญชาติ</label>
+          <select id="ea_nationality" onchange="toggleTransferField()">
+            <option value="ไทย">ไทย</option>
+            <option value="เมียนมา">เมียนมา</option>
+            <option value="ลาว">ลาว</option>
+            <option value="กัมพูชา">กัมพูชา</option>
+            <option value="เวียดนาม">เวียดนาม</option>
+            <option value="ฟิลิปปินส์">ฟิลิปปินส์</option>
+            <option value="อินโดนีเซีย">อินโดนีเซีย</option>
+            <option value="จีน">จีน</option>
+            <option value="อื่น ๆ">อื่น ๆ</option>
+          </select>
+        </div>
+        <div class="entry-field" id="ea_transferwrap" style="display:none">
+          <label>สถานะการย้ายนายจ้าง</label>
+          <select id="ea_transfer">
+            <option value="ย้ายได้">✅ ย้ายได้</option>
+            <option value="ย้ายไม่ได้">❌ ย้ายไม่ได้</option>
+          </select>
+        </div>
         <div class="entry-field"><label>Recruiter</label><input id="ea_rec" type="text" placeholder="ชื่อ Recruiter"></div>
         <div class="entry-field"><label>เหตุผล (กรณีไม่ผ่าน/ไม่มา)</label>
           <select id="ea_reason">
@@ -820,7 +1049,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       </div>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>ช่องทาง</th><th>วันที่สมัคร</th><th>สถานะ</th><th>วันเริ่มงาน</th><th>Time to Fill</th><th>Recruiter</th><th>เหตุผล</th><th>จัดการ</th></tr></thead>
+      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>สัญชาติ</th><th>ช่องทาง</th><th>วันที่สมัคร</th><th>สถานะ</th><th>วันเริ่มงาน</th><th>Time to Fill</th><th>Recruiter</th><th>เหตุผล</th><th>จัดการ</th></tr></thead>
       <tbody id="appTableBody"></tbody>
     </table></div>
   </div>
@@ -836,7 +1065,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
     </div>
     <div id="archivePanel" style="display:none">
       <div class="table-wrap"><table>
-        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>ช่องทาง</th><th>วันที่สมัคร</th><th>สถานะ</th><th>วันเริ่มงาน</th><th>Time to Fill</th><th>Recruiter</th><th>เหตุผล</th><th>จัดการ</th></tr></thead>
+        <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>สัญชาติ</th><th>ช่องทาง</th><th>วันที่สมัคร</th><th>สถานะ</th><th>วันเริ่มงาน</th><th>Time to Fill</th><th>Recruiter</th><th>เหตุผล</th><th>จัดการ</th></tr></thead>
         <tbody id="archiveTableBody"></tbody>
       </table></div>
     </div>
@@ -887,11 +1116,35 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         <div class="entry-field"><label data-resign-label style="color:var(--muted)">เหตุผลการออก</label>
           <select id="ee_reason" disabled style="opacity:.4;cursor:not-allowed"><option value="">– ไม่ระบุ –</option><option>ค่าตอบแทน</option><option>ความก้าวหน้า</option><option>สภาพแวดล้อม</option><option>สุขภาพ</option><option>ย้ายที่อยู่</option><option>ได้งานใหม่</option><option>อื่น ๆ</option></select>
         </div>
-        <div class="entry-field"><label>ระยะทดลองงาน</label>
-          <select id="ee_probdays"><option value="">– ไม่ระบุ –</option><option value="60">60 วัน</option><option value="90">90 วัน</option><option value="120">120 วัน</option></select>
+        <div class="entry-field"><label>สัญชาติ</label>
+          <select id="ee_nationality" onchange="toggleEmpWpLink()">
+            <option value="ไทย">🇹🇭 ไทย</option>
+            <option value="เมียนมา">🇲🇲 เมียนมา</option>
+            <option value="กัมพูชา">🇰🇭 กัมพูชา</option>
+            <option value="ลาว">🇱🇦 ลาว</option>
+            <option value="เวียดนาม">🇻🇳 เวียดนาม</option>
+            <option value="จีน">🇨🇳 จีน</option>
+            <option value="อื่น ๆ">🌏 อื่น ๆ</option>
+          </select>
         </div>
-        <div class="entry-field"><label>ผลทดลองงาน</label>
-          <select id="ee_probresult"><option value="ทดลองงาน">ทดลองงาน</option><option value="ผ่าน">ผ่าน</option><option value="ไม่ผ่าน">ไม่ผ่าน</option></select>
+        <div class="entry-field" id="ee_wp_link_wrap" style="display:none">
+          <label>ใบอนุญาตทำงาน</label>
+          <div id="ee_wp_link_status" style="font-size:12px;margin-top:4px;padding:8px;background:#f0f7ff;border-radius:8px;color:#1e40af">–</div>
+        </div>
+        <div class="entry-field"><label>วันที่เข้าประกันสังคม</label><input id="ee_ssdate" type="date" onchange="toggleEmpWpLink()"></div>
+        <div class="entry-field"><label>สถานะประกันสังคม</label>
+          <div id="ee_ss_status" style="font-size:12px;margin-top:4px;padding:8px;background:#f0fdf4;border-radius:8px;color:#14532d">–</div>
+        </div>
+        <div class="entry-field"><label>บริษัทประกันสังคม</label>
+          <select id="ee_sscompany">
+            <option value="">– ไม่ระบุ –</option>
+            <option value="สำนักงานประกันสังคม">สำนักงานประกันสังคม</option>
+            <option value="ประกันสังคมเอกชน">ประกันสังคมเอกชน</option>
+          </select>
+        </div>
+        <div class="entry-field" style="grid-column:1/-1">
+          <label>🎓 สถานะ Training</label>
+          <div id="ee_train_status" style="font-size:12px;margin-top:4px;padding:10px;background:#f5f3ff;border-radius:8px;color:#4c1d95;display:flex;gap:12px;flex-wrap:wrap;align-items:center">–</div>
         </div>
       </div>
       <div class="entry-actions">
@@ -908,9 +1161,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <!-- TABLE -->
   <div class="table-card">
     <div class="table-card-header">
-      <h3>👥 รายชื่อพนักงานทั้งหมด</h3>
+      <h3>👥 รายชื่อพนักงานทั้งหมด <span id="empResultCount" style="font-size:12px;font-weight:400;color:var(--muted);margin-left:8px"></span></h3>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input type="text" id="ee_search" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง..." oninput="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;outline:none;width:200px">
+        <input type="text" id="ee_search" placeholder="🔍 ค้นหาชื่อ / ตำแหน่ง / รหัส..." oninput="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;outline:none;width:210px">
         <select id="ee_status_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
           <option value="">สถานะทั้งหมด</option><option>ทดลองงาน</option><option>ทำงานอยู่</option><option>ลาออก</option><option>พักงาน</option>
         </select>
@@ -918,11 +1171,31 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
           <option value="">แผนกทั้งหมด</option>
           <option>Operations</option><option>HR</option><option>Marketing</option><option>IT</option><option>Finance</option>
         </select>
+        <select id="ee_branch_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">สาขาทั้งหมด</option>
+        </select>
+        <select id="ee_nat_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">สัญชาติทั้งหมด</option>
+          <option value="ไทย">🇹🇭 ไทย</option>
+          <option value="ต่างด้าว">🌏 ต่างด้าว</option>
+        </select>
+        <select id="ee_ss_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">🏥 ประกันสังคมทั้งหมด</option>
+          <option value="ลงทะเบียนแล้ว">✅ ลงทะเบียนแล้ว</option>
+          <option value="ยังไม่ลง">⚠️ ยังไม่ลงทะเบียน</option>
+        </select>
+        <select id="ee_train_filter" onchange="renderEmpTable()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+          <option value="">🎓 Training ทั้งหมด</option>
+          <option value="ผ่านครบ">🏆 ผ่านครบ</option>
+          <option value="กำลังฝึก">📚 กำลังฝึก</option>
+          <option value="ยังไม่เริ่ม">⏳ ยังไม่เริ่ม</option>
+        </select>
+        <button onclick="resetEmpFilters()" style="border:1px solid var(--border);background:var(--bg);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">🔄 ล้าง</button>
         <button onclick="exportEmpCSV()" style="border:1px solid var(--teal);background:var(--teal-light);color:var(--teal-d);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">⬇ Export CSV</button>
       </div>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>แผนก</th><th>ร้าน/สาขา</th><th>วันเริ่มงาน</th><th>อายุงาน</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+      <thead><tr><th>#</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>แผนก</th><th>ร้าน/สาขา</th><th>วันเริ่มงาน</th><th>อายุงาน</th><th>สถานะ</th><th style="text-align:center">🏥 ประกัน</th><th style="text-align:center">📄 WP/Visa</th><th style="text-align:center">🎓 Training</th><th>จัดการ</th></tr></thead>
       <tbody id="empTableBody"></tbody>
     </table></div>
   </div>
@@ -1072,13 +1345,61 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <div><label>แผนก</label>
         <select id="aem_dept"><option>Operations</option><option>HR</option><option>Marketing</option><option>IT</option><option>Finance</option><option>อื่น ๆ</option></select>
       </div>
-      <div><label>ระยะทดลองงาน (วัน)</label>
-        <select id="aem_probdays"><option value="60">60 วัน</option><option value="90" selected>90 วัน (ค่าเริ่มต้น)</option><option value="120">120 วัน</option><option value="180">180 วัน</option></select>
+      <div><label>วันที่เข้าประกันสังคม</label><input id="aem_ssdate" type="date"></div>
+      <div><label>บริษัทประกันสังคม</label>
+        <select id="aem_sscompany">
+          <option value="">– ไม่ระบุ –</option>
+          <option value="สำนักงานประกันสังคม">สำนักงานประกันสังคม</option>
+          <option value="ประกันสังคมเอกชน">ประกันสังคมเอกชน</option>
+        </select>
       </div>
     </div>
     <div class="modal-actions" style="margin-top:16px">
+      <button class="btn" style="background:#fde8e8;color:#c0392b;border-color:#fca5a5" onclick="cancelAddEmp()">✖ ยกเลิก</button>
       <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('addEmpModal')">ข้ามขั้นตอนนี้</button>
       <button class="btn btn-primary" onclick="confirmAddEmp()" style="background:var(--teal);border-color:var(--teal)">✅ เพิ่มเข้าฐานข้อมูล</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: ประเมิน Probation Checkpoint -->
+<div class="overlay" id="probEvalModal">
+  <div class="modal" style="max-width:420px">
+    <h3 id="probEvalTitle" style="margin:0 0 4px;font-size:16px;color:var(--teal-d)">ประเมิน Probation</h3>
+    <p id="probEvalSubtitle" style="color:var(--muted);font-size:12px;margin:0 0 18px"></p>
+    <div class="form-grid">
+      <div class="full">
+        <label style="font-size:13px;font-weight:600">ผลการประเมิน</label>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="probPassBtn" onclick="setProbResult('ผ่าน')"
+            style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;background:var(--bg);transition:.2s">
+            ✅ ผ่าน
+          </button>
+          <button id="probFailBtn" onclick="setProbResult('ไม่ผ่าน')"
+            style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;background:var(--bg);transition:.2s">
+            ❌ ไม่ผ่าน
+          </button>
+        </div>
+      </div>
+      <div class="full" id="probExtendSection" style="display:none;background:#FFF8E1;border-radius:10px;padding:12px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+          <input type="checkbox" id="probExtendChk" onchange="toggleProbExtend()" style="width:16px;height:16px">
+          ต่อเวลาประเมินใหม่
+        </label>
+        <div id="probExtendDateWrap" style="display:none;margin-top:10px">
+          <label style="font-size:12px;color:var(--muted)">วันที่นัดประเมินใหม่</label>
+          <input id="probExtendUntil" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--muted)">วันที่ประเมิน</label>
+        <input id="probEvalDate" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:18px">
+      <button class="btn" style="background:var(--bg);color:var(--muted)" onclick="closeModal('probEvalModal')">ยกเลิก</button>
+      <button id="probResetBtn" class="btn" style="display:none;background:#FDE8E8;color:var(--red);border-color:var(--red)" onclick="resetProbEval()">🗑 ลบผลนี้</button>
+      <button class="btn btn-primary" onclick="saveProbEval()">💾 บันทึกผล</button>
     </div>
   </div>
 </div>
@@ -1217,6 +1538,9 @@ function renderSection(id){
   else if(id==='interview')renderInterview();
   else if(id==='pending')renderPending();
   else if(id==='monthly')renderMonthly();
+  else if(id==='social-sec')renderSocialSec();
+  else if(id==='work-permit')renderWorkPermit();
+  else if(id==='training')renderTraining();
 }
 
 // ===================== EXEC =====================
@@ -1614,6 +1938,418 @@ function renderPendTable(){
   `).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px">ไม่พบข้อมูล</td></tr>';
 }
 
+// ===================== SOCIAL SECURITY =====================
+let _ssEditId = null;
+function renderSocialSec() {
+  const filter = document.getElementById('ss_filter')?.value || '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  // KPI
+  const all = empData.filter(e => e.status !== 'ลาออก');
+  const enrolled = all.filter(e => e.ssDate);
+  const notEnrolled = all.filter(e => !e.ssDate);
+  // New employees (<=60 days) not yet enrolled
+  const newNotEnrolled = notEnrolled.filter(e => {
+    if(!e.startdate) return false;
+    const d = new Date(e.startdate+'T00:00:00');
+    return Math.round((today-d)/(86400000)) <= 60;
+  });
+  const kpi = [
+    {label:'พนักงานทั้งหมด', value:all.length, icon:'👥', color:'#3b82f6'},
+    {label:'ลงทะเบียนแล้ว', value:enrolled.length, icon:'✅', color:'#10b981'},
+    {label:'ยังไม่ลงทะเบียน', value:notEnrolled.length, icon:'⚠️', color:'#f59e0b'},
+    {label:'พนักงานใหม่รอลง', value:newNotEnrolled.length, icon:'🆕', color:'#ef4444'},
+  ];
+  document.getElementById('ss-kpi-cards').innerHTML = kpi.map(k=>`
+    <div class="card" style="border-left:4px solid ${k.color}">
+      <div style="font-size:24px">${k.icon}</div>
+      <div style="font-size:26px;font-weight:700;color:${k.color}">${k.value}</div>
+      <div style="font-size:12px;color:var(--muted)">${k.label}</div>
+    </div>`).join('');
+  // Filter
+  let rows = all;
+  if(filter === 'ลงทะเบียนแล้ว') rows = all.filter(e=>e.ssDate);
+  else if(filter === 'ยังไม่ลง') rows = all.filter(e=>!e.ssDate);
+  const tbody = document.getElementById('ssTbody');
+  tbody.innerHTML = rows.length ? rows.map((e,i)=>{
+    const enrolled = e.ssDate;
+    const badge = enrolled
+      ? `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:12px;font-size:11px">✅ ลงทะเบียนแล้ว</span>`
+      : `<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:12px;font-size:11px">⚠️ ยังไม่ลง</span>`;
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${e.name||'-'}</td>
+      <td>${e.pos||e.position||'-'}</td>
+      <td>${e.branch||'-'}</td>
+      <td>${e.startdate||'-'}</td>
+      <td>${e.ssDate||'-'}</td>
+      <td>${[e.ssCompany, e.ssHospital].filter(Boolean).join(' / ')||'-'}</td>
+      <td>${badge}</td>
+      <td><button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="openSsModal('${e.id}')">✏️ แก้ไข</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">ไม่มีข้อมูล</td></tr>`;
+}
+
+function openSsModal(empId) {
+  empId = isNaN(empId) ? empId : +empId;
+  _ssEditId = empId;
+  const emp = empData.find(e=>e.id==empId);
+  if(!emp) return;
+  document.getElementById('ssModalTitle').textContent = 'ข้อมูลประกันสังคม';
+  document.getElementById('ssModalSub').textContent = `${emp.name||''} · ${emp.pos||emp.position||''} · ${emp.branch||''}`;
+  document.getElementById('ss_date').value = emp.ssDate||'';
+  document.getElementById('ss_company').value = emp.ssCompany||'';
+  document.getElementById('ss_hospital').value = emp.ssHospital||'';
+  document.getElementById('ss_note').value = emp.ssNote||'';
+  document.getElementById('ssModal').classList.add('open');
+}
+
+function saveSsModal() {
+  const emp = empData.find(e=>e.id==_ssEditId);
+  if(!emp) return;
+  emp.ssDate = document.getElementById('ss_date').value;
+  emp.ssCompany = document.getElementById('ss_company').value;
+  emp.ssHospital = document.getElementById('ss_hospital').value;
+  emp.ssNote = document.getElementById('ss_note').value;
+  saveToStorage();
+  closeModal('ssModal');
+  renderSocialSec();
+}
+
+// ===================== WORK PERMIT =====================
+let _wpEditId = null;
+
+function _wpBadge(expireDate, today) {
+  if(!expireDate) return { badge:`<span style="background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:10px;font-size:11px">📭 ไม่มีข้อมูล</span>`, days:null, status:'ไม่มีข้อมูล' };
+  const exp = new Date(expireDate+'T00:00:00');
+  const dl = Math.round((exp-today)/86400000);
+  const daysStr = dl < 0 ? `เกิน ${Math.abs(dl)} วัน` : `${dl} วัน`;
+  let badge, status;
+  if(dl < 0){ badge=`<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:11px">🚨 หมดอายุ</span>`; status='หมดอายุ'; }
+  else if(dl<=60){ badge=`<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:11px">⚠️ ${daysStr}</span>`; status='ใกล้หมดอายุ'; }
+  else { badge=`<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;font-size:11px">✅ ${daysStr}</span>`; status='ปกติ'; }
+  return { badge, days:dl, status };
+}
+
+function _wpOverallStatus(e, today) {
+  const wp = e.workPermit||{};
+  const p = _wpBadge(wp.expireDate, today).status;
+  const v = _wpBadge(wp.visaExpire, today).status;
+  const order = ['หมดอายุ','ใกล้หมดอายุ','ปกติ','ไม่มีข้อมูล'];
+  return order[Math.min(order.indexOf(p), order.indexOf(v))];
+}
+
+function renderWorkPermit() {
+  const filter = document.getElementById('wp_filter')?.value || '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const foreign = empData.filter(e => e.nationality && e.nationality !== 'ไทย' && e.status !== 'ลาออก');
+  // KPI — worst-case per employee
+  const expired  = foreign.filter(e=>_wpOverallStatus(e,today)==='หมดอายุ');
+  const nearExp  = foreign.filter(e=>_wpOverallStatus(e,today)==='ใกล้หมดอายุ');
+  const ok       = foreign.filter(e=>_wpOverallStatus(e,today)==='ปกติ');
+  const noData   = foreign.filter(e=>_wpOverallStatus(e,today)==='ไม่มีข้อมูล');
+  const kpi = [
+    {label:'แรงงานต่างด้าว', value:foreign.length, icon:'🌏', color:'#3b82f6'},
+    {label:'ปกติ', value:ok.length, icon:'✅', color:'#10b981'},
+    {label:'ใกล้หมดอายุ (≤60 วัน)', value:nearExp.length, icon:'⚠️', color:'#f59e0b'},
+    {label:'หมดอายุ / ไม่มีข้อมูล', value:expired.length+noData.length, icon:'🚨', color:'#ef4444'},
+  ];
+  document.getElementById('wp-kpi-cards').innerHTML = kpi.map(k=>`
+    <div class="card" style="border-left:4px solid ${k.color}">
+      <div style="font-size:24px">${k.icon}</div>
+      <div style="font-size:26px;font-weight:700;color:${k.color}">${k.value}</div>
+      <div style="font-size:12px;color:var(--muted)">${k.label}</div>
+    </div>`).join('');
+  let rows = foreign;
+  if(filter) rows = foreign.filter(e=>_wpOverallStatus(e,today)===filter);
+  const tbody = document.getElementById('wpTbody');
+  tbody.innerHTML = rows.length ? rows.map((e,i)=>{
+    const wp = e.workPermit||{};
+    const perm = _wpBadge(wp.expireDate, today);
+    const visa = _wpBadge(wp.visaExpire, today);
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong>${e.name||'-'}</strong></td>
+      <td>${e.nationality||'-'}</td>
+      <td style="font-size:12px">${e.pos||e.position||'-'}</td>
+      <td style="font-size:12px">${e.branch||'-'}</td>
+      <td style="background:#eff6ff;font-size:12px;text-align:center">${wp.expireDate||'–'}</td>
+      <td style="background:#eff6ff;text-align:center">${perm.badge}</td>
+      <td style="background:#f0fdf4;font-size:12px;text-align:center">${wp.visa90Date||wp.visaExpire||'–'}</td>
+      <td style="background:#f0fdf4;text-align:center">${visa.badge}</td>
+      <td><button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="openWpModal('${e.id}')">✏️ แก้ไข</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">ไม่มีข้อมูล${filter?' สำหรับตัวกรองนี้':' — ไม่พบแรงงานต่างด้าว'}</td></tr>`;
+}
+
+function _wpClear() {
+  ['wp_nat','wp_passport','wp_passport_exp','wp_permit_no','wp_issue','wp_expire','wp_visa_no','wp_visa90','wp_visa_issue','wp_visa_expire','wp_note'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('wp_type').value='WP';
+}
+
+function openWpModal(empId) {
+  if(empId) empId = isNaN(empId) ? empId : +empId;
+  _wpEditId = empId;
+  const sel = document.getElementById('wp_emp');
+  const foreign = empData.filter(e=>e.nationality&&e.nationality!=='ไทย'&&e.status!=='ลาออก');
+  sel.innerHTML = '<option value="">– เลือกพนักงาน –</option>' +
+    foreign.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  _wpClear();
+  if(empId) {
+    sel.value = empId;
+    const emp = empData.find(e=>e.id==empId);
+    const wp = emp?.workPermit||{};
+    document.getElementById('wpModalTitle').textContent = 'แก้ไขใบอนุญาติทำงาน';
+    document.getElementById('wpModalSub').textContent = `${emp?.name||''} · ${emp?.nationality||''}`;
+    document.getElementById('wp_nat').value = emp?.nationality||'';
+    document.getElementById('wp_passport').value = wp.passportNo||'';
+    document.getElementById('wp_passport_exp').value = wp.passportExpire||'';
+    document.getElementById('wp_type').value = wp.type||'WP';
+    document.getElementById('wp_permit_no').value = wp.permitNo||'';
+    document.getElementById('wp_issue').value = wp.issueDate||'';
+    document.getElementById('wp_expire').value = wp.expireDate||'';
+    document.getElementById('wp_visa_no').value = wp.visaNo||'';
+    document.getElementById('wp_visa90').value = wp.visa90Date||'';
+    document.getElementById('wp_visa_issue').value = wp.visaIssue||'';
+    document.getElementById('wp_visa_expire').value = wp.visaExpire||'';
+    document.getElementById('wp_note').value = wp.note||'';
+  } else {
+    document.getElementById('wpModalTitle').textContent = 'เพิ่ม/แก้ไขใบอนุญาติทำงาน';
+    document.getElementById('wpModalSub').textContent = 'กรุณาเลือกพนักงาน';
+  }
+  document.getElementById('wpModal').classList.add('open');
+}
+
+function onWpEmpChange() {
+  const id = document.getElementById('wp_emp').value;
+  const emp = empData.find(e=>e.id==id);
+  document.getElementById('wp_nat').value = emp?.nationality||'';
+  _wpEditId = id ? +id : null;
+  // load existing data if any
+  if(emp?.workPermit) {
+    const wp = emp.workPermit;
+    document.getElementById('wp_passport').value = wp.passportNo||'';
+    document.getElementById('wp_passport_exp').value = wp.passportExpire||'';
+    document.getElementById('wp_type').value = wp.type||'WP';
+    document.getElementById('wp_permit_no').value = wp.permitNo||'';
+    document.getElementById('wp_issue').value = wp.issueDate||'';
+    document.getElementById('wp_expire').value = wp.expireDate||'';
+    document.getElementById('wp_visa_no').value = wp.visaNo||'';
+    document.getElementById('wp_visa90').value = wp.visa90Date||'';
+    document.getElementById('wp_visa_issue').value = wp.visaIssue||'';
+    document.getElementById('wp_visa_expire').value = wp.visaExpire||'';
+    document.getElementById('wp_note').value = wp.note||'';
+  }
+}
+
+function saveWpModal() {
+  const empId = _wpEditId || document.getElementById('wp_emp').value;
+  if(!empId) return alert('กรุณาเลือกพนักงาน');
+  const emp = empData.find(e=>e.id==empId);
+  if(!emp) return;
+  emp.workPermit = {
+    passportNo:     document.getElementById('wp_passport').value,
+    passportExpire: document.getElementById('wp_passport_exp').value,
+    type:           document.getElementById('wp_type').value,
+    permitNo:       document.getElementById('wp_permit_no').value,
+    issueDate:      document.getElementById('wp_issue').value,
+    expireDate:     document.getElementById('wp_expire').value,
+    visaNo:         document.getElementById('wp_visa_no').value,
+    visa90Date:     document.getElementById('wp_visa90').value,
+    visaIssue:      document.getElementById('wp_visa_issue').value,
+    visaExpire:     document.getElementById('wp_visa_expire').value,
+    note:           document.getElementById('wp_note').value,
+  };
+  saveToStorage();
+  closeModal('wpModal');
+  renderWorkPermit();
+}
+
+// ===================== TRAINING =====================
+const DEFAULT_COURSES = [
+  {id:1, name:'Food Safety & Hygiene'},
+  {id:2, name:'Service Standard'},
+  {id:3, name:'Fire Safety'},
+  {id:4, name:'กฎระเบียบบริษัท'},
+  {id:5, name:'Customer Service'},
+];
+let trainingCourses = JSON.parse(localStorage.getItem('skygroup_courses')||'null') || DEFAULT_COURSES.map(c=>({...c}));
+let _trainEmpId = null, _trainCourseId = null, _trainResult = null;
+
+function getTrainResult(emp, courseId) {
+  return (emp.trainingResults||{})[courseId] || { result:null, date:null, note:'' };
+}
+
+function isTrainComplete(emp) {
+  return trainingCourses.every(c => getTrainResult(emp,c.id).result === 'ผ่าน');
+}
+
+function trainStatus(emp) {
+  const results = trainingCourses.map(c => getTrainResult(emp,c.id).result);
+  if(results.every(r=>r==='ผ่าน')) return 'ผ่านครบ';
+  if(results.some(r=>r!=null)) return 'กำลังฝึก';
+  return 'ยังไม่เริ่ม';
+}
+
+function renderTraining() {
+  const filter = document.getElementById('train_filter')?.value||'';
+  const active = empData.filter(e=>e.status!=='ลาออก');
+  const complete = active.filter(e=>trainStatus(e)==='ผ่านครบ');
+  const inprog  = active.filter(e=>trainStatus(e)==='กำลังฝึก');
+  const notyet  = active.filter(e=>trainStatus(e)==='ยังไม่เริ่ม');
+  document.getElementById('train-kpi-cards').innerHTML = [
+    {label:'พนักงานทั้งหมด', value:active.length, icon:'👥', color:'#3b82f6'},
+    {label:'ผ่านครบทุกหลักสูตร', value:complete.length, icon:'🏆', color:'#10b981'},
+    {label:'กำลังอยู่ระหว่างฝึก', value:inprog.length, icon:'📚', color:'#f59e0b'},
+    {label:'ยังไม่เริ่ม', value:notyet.length, icon:'⏳', color:'#ef4444'},
+  ].map(k=>`<div class="card" style="border-left:4px solid ${k.color}">
+    <div style="font-size:24px">${k.icon}</div>
+    <div style="font-size:26px;font-weight:700;color:${k.color}">${k.value}</div>
+    <div style="font-size:12px;color:var(--muted)">${k.label}</div>
+  </div>`).join('');
+
+  let rows = active;
+  if(filter) rows = active.filter(e=>trainStatus(e)===filter);
+
+  const table = document.getElementById('trainTable');
+  if(!rows.length){
+    table.innerHTML = `<tr><td style="text-align:center;color:var(--muted);padding:32px">ไม่มีข้อมูล</td></tr>`;
+    return;
+  }
+
+  const thCourses = trainingCourses.map(c=>
+    `<th style="text-align:center;min-width:110px;font-size:11px">📚 ${c.name}</th>`).join('');
+  table.innerHTML = `
+    <thead><tr>
+      <th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th>
+      ${thCourses}
+      <th style="text-align:center">สถานะรวม</th>
+    </tr></thead>
+    <tbody>${rows.map((e,i)=>{
+      const cells = trainingCourses.map(c=>{
+        const tr = getTrainResult(e,c.id);
+        let cell;
+        const scoreStr = tr.score!=null ? `${tr.score}/${tr.maxScore||100}` : '';
+        if(tr.result==='ผ่าน'){
+          cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#d1fae5;color:#065f46;border:none;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;width:100%">✅ ผ่าน${scoreStr?` (${scoreStr})`:''}${tr.date?`<br><span style="font-size:10px;opacity:.7">${tr.date}</span>`:''}</button>`;
+        } else if(tr.result==='ไม่ผ่าน'){
+          cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;width:100%">❌ ไม่ผ่าน${scoreStr?` (${scoreStr})`:''}${tr.date?`<br><span style="font-size:10px;opacity:.7">${tr.date}</span>`:''}</button>`;
+        } else {
+          cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:6px 8px;font-size:11px;cursor:pointer;width:100%">📝 บันทึกผล</button>`;
+        }
+        return `<td style="padding:6px 8px;text-align:center">${cell}</td>`;
+      }).join('');
+      const st = trainStatus(e);
+      const stBadge = st==='ผ่านครบ'
+        ? `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:10px;font-size:11px">🏆 ผ่านครบ</span>`
+        : st==='กำลังฝึก'
+        ? `<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:11px">📚 กำลังฝึก</span>`
+        : `<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:10px;font-size:11px">⏳ ยังไม่เริ่ม</span>`;
+      return `<tr>
+        <td>${i+1}</td>
+        <td><strong>${e.name}</strong></td>
+        <td style="font-size:12px">${e.pos||'-'}</td>
+        <td style="font-size:12px">${e.branch||'-'}</td>
+        <td style="font-size:12px">${e.startdate||'-'}</td>
+        ${cells}
+        <td style="text-align:center">${stBadge}</td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function openTrainEvalModal(empId, courseId) {
+  _trainEmpId = +empId; _trainCourseId = +courseId; _trainResult = null;
+  const emp = empData.find(e=>e.id===_trainEmpId);
+  const course = trainingCourses.find(c=>c.id===_trainCourseId);
+  if(!emp||!course) return;
+  const tr = getTrainResult(emp, courseId);
+  document.getElementById('trainEvalTitle').textContent = course.name;
+  document.getElementById('trainEvalSub').textContent = `${emp.name} · ${emp.pos||''} · ${emp.branch||''}`;
+  document.getElementById('trainEvalDate').value = tr.date||new Date().toISOString().slice(0,10);
+  document.getElementById('trainEvalScore').value = tr.score!=null ? tr.score : '';
+  document.getElementById('trainEvalMaxScore').value = tr.maxScore||100;
+  document.getElementById('trainEvalNote').value = tr.note||'';
+  // pre-select result
+  _trainResult = tr.result||null;
+  _updateTrainBtns();
+  document.getElementById('trainResetBtn').style.display = tr.result ? '' : 'none';
+  document.getElementById('trainEvalModal').classList.add('open');
+}
+
+function setTrainResult(val) {
+  _trainResult = val;
+  _updateTrainBtns();
+}
+
+function _updateTrainBtns() {
+  const pass = document.getElementById('trainPassBtn');
+  const fail = document.getElementById('trainFailBtn');
+  pass.style.background = _trainResult==='ผ่าน' ? '#d1fae5' : '#fff';
+  pass.style.borderColor = _trainResult==='ผ่าน' ? '#10b981' : '#e5e7eb';
+  fail.style.background = _trainResult==='ไม่ผ่าน' ? '#fee2e2' : '#fff';
+  fail.style.borderColor = _trainResult==='ไม่ผ่าน' ? '#ef4444' : '#e5e7eb';
+}
+
+function saveTrainEval() {
+  if(!_trainResult) return alert('กรุณาเลือกผล ผ่าน หรือ ไม่ผ่าน');
+  const emp = empData.find(e=>e.id===_trainEmpId);
+  if(!emp) return;
+  if(!emp.trainingResults) emp.trainingResults = {};
+  const score = document.getElementById('trainEvalScore').value;
+  const maxScore = document.getElementById('trainEvalMaxScore').value;
+  emp.trainingResults[_trainCourseId] = {
+    result: _trainResult,
+    date: document.getElementById('trainEvalDate').value,
+    score: score !== '' ? +score : null,
+    maxScore: maxScore ? +maxScore : 100,
+    note: document.getElementById('trainEvalNote').value,
+  };
+  saveToStorage(); closeModal('trainEvalModal'); renderTraining();
+}
+
+function resetTrainEval() {
+  const emp = empData.find(e=>e.id===_trainEmpId);
+  if(!emp) return;
+  if(emp.trainingResults) delete emp.trainingResults[_trainCourseId];
+  saveToStorage(); closeModal('trainEvalModal'); renderTraining();
+}
+
+// --- Course Manager ---
+function openCourseManager() {
+  renderCourseList();
+  document.getElementById('courseManagerModal').classList.add('open');
+}
+
+function renderCourseList() {
+  document.getElementById('courseList').innerHTML = trainingCourses.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;font-size:13px">📚 ${c.name}</span>
+      <button onclick="deleteCourse(${c.id})" style="background:#fde8e8;color:#c0392b;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">🗑 ลบ</button>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">ยังไม่มีหลักสูตร</p>';
+}
+
+function addCourse() {
+  const name = document.getElementById('newCourseName').value.trim();
+  if(!name) return;
+  const maxId = trainingCourses.reduce((m,c)=>Math.max(m,c.id),0);
+  trainingCourses.push({id: maxId+1, name});
+  document.getElementById('newCourseName').value = '';
+  renderCourseList();
+}
+
+function deleteCourse(id) {
+  if(!confirm('ลบหลักสูตรนี้? ผลการอบรมที่บันทึกไว้จะยังคงอยู่')) return;
+  trainingCourses = trainingCourses.filter(c=>c.id!==id);
+  renderCourseList();
+}
+
+function saveCourses() {
+  localStorage.setItem('skygroup_courses', JSON.stringify(trainingCourses));
+  closeModal('courseManagerModal');
+  renderTraining();
+}
+
 // ===================== MONTHLY =====================
 function renderMonthly(){
   const labels=monthlyReport.map(r=>r.m);
@@ -1689,93 +2425,254 @@ function renderHtmlBars(elId, labels, counts, color){
 }
 
 
-// ===================== PROBATION =====================
-function renderProbation(){
-  const filter=document.getElementById('prob_result_filter')?.value||'';
-  const today=new Date();
-  // Main table: non-archived only
-  const rows=empData.filter(e=>e.probationDays&&e.status!=='ลาออก'&&!e.archivedProbation&&(!filter||e.probationResult===filter));
-  const onProb=empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.probationResult==='ทดลองงาน').length;
-  const passed=empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.probationResult==='ผ่าน').length;
-  const failed=empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.probationResult==='ไม่ผ่าน').length;
-  const dueSoon=empData.filter(e=>{
-    if(e.archivedProbation||e.probationResult!=='ทดลองงาน'||!e.startdate||!e.probationDays)return false;
-    const due=new Date(e.startdate);due.setDate(due.getDate()+e.probationDays);
-    const diff=Math.floor((due-today)/(1000*60*60*24));
-    return diff>=0&&diff<=14;
-  }).length;
-  document.getElementById('prob-cards').innerHTML=`
-    <div class="kpi-card yellow"><div class="kpi-label">กำลังทดลองงาน</div><div class="kpi-value yellow">${onProb}</div><div class="kpi-sub">คน</div></div>
-    <div class="kpi-card red"><div class="kpi-label">ครบกำหนดใน 14 วัน</div><div class="kpi-value red">${dueSoon}</div><div class="kpi-sub">คน</div></div>
-    <div class="kpi-card green"><div class="kpi-label">ผ่านทดลองงาน</div><div class="kpi-value green">${passed}</div><div class="kpi-sub">คน</div></div>
-    <div class="kpi-card red"><div class="kpi-label">ไม่ผ่านทดลองงาน</div><div class="kpi-value red">${failed}</div><div class="kpi-sub">คน</div></div>
-  `;
-  const probColor={ทดลองงาน:'badge-yellow',ผ่าน:'badge-green',ไม่ผ่าน:'badge-red'};
-  document.getElementById('probTbody').innerHTML=rows.map((e,i)=>{
-    const due=new Date(e.startdate);due.setDate(due.getDate()+(e.probationDays||90));
-    const daysLeft=Math.floor((due-today)/(1000*60*60*24));
-    const daysStr=e.probationResult==='ทดลองงาน'?(daysLeft>0?`<span style="color:${daysLeft<=14?'var(--red)':'var(--teal)'};font-weight:600">${daysLeft} วัน</span>`:'<span style="color:var(--red);font-weight:600">ครบแล้ว</span>'):'–';
-    const canArchive=e.probationResult==='ผ่าน'||e.probationResult==='ไม่ผ่าน';
-    return `<tr>
-      <td>${i+1}</td><td><strong>${e.name}</strong></td><td>${e.pos}</td><td>${e.branch||'–'}</td>
-      <td>${fmtDate(e.startdate)}</td><td>${e.probationDays||90} วัน</td>
-      <td>${fmtDate(due.toISOString().split('T')[0])}</td><td>${daysStr}</td>
-      <td><span class="badge ${probColor[e.probationResult]||'badge-gray'}">${e.probationResult||'ทดลองงาน'}</span></td>
-      <td>${canArchive?`<button class="tbl-del-btn" style="background:#E0F2F2;color:var(--teal-d)" onclick="archiveProbation(${e.id})">Archive</button>`:''}</td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">ไม่มีข้อมูล</td></tr>';
-  // Render archive panel
+// ===================== PROBATION (4-Checkpoint System) =====================
+const PROB_PERIODS = [14, 30, 60, 90];
+
+function getProbEval(emp, period) {
+  if (!emp.probationEvals) emp.probationEvals = {};
+  return emp.probationEvals[period] || { result: null, evalDate: null, extendUntil: null };
+}
+
+function getProbDueDate(emp, period) {
+  const ev = getProbEval(emp, period);
+  if (ev.result === 'ไม่ผ่าน' && ev.extendUntil) return new Date(ev.extendUntil + 'T00:00:00');
+  const d = new Date(emp.startdate + 'T00:00:00');
+  d.setDate(d.getDate() + period);
+  return d;
+}
+
+function isProbComplete(emp) {
+  if (!emp.probationDays) return false;
+  return PROB_PERIODS.every(p => getProbEval(emp, p).result === 'ผ่าน');
+}
+
+function probCellHtml(emp, period) {
+  if (!emp.startdate) return '<td style="text-align:center;color:var(--muted)">–</td>';
+  const ev = getProbEval(emp, period);
+  const due = getProbDueDate(emp, period);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const daysUntil = Math.floor((due - today) / 86400000);
+
+  // ผ่านแล้ว — คลิกเพื่อแก้ไขได้
+  if (ev.result === 'ผ่าน') {
+    return `<td style="text-align:center;cursor:pointer" onclick="openProbEvalModal(${emp.id},${period})" title="คลิกเพื่อแก้ไข">
+      <div style="font-size:18px">✅</div>
+      <div style="font-size:10px;color:var(--muted)">${ev.evalDate ? fmtDate(ev.evalDate) : ''}</div>
+      <div style="font-size:9px;color:var(--border)">แก้ไข</div>
+    </td>`;
+  }
+
+  // ไม่ผ่าน + ต่อเวลา (extendUntil ยังไม่ถึง)
+  if (ev.result === 'ไม่ผ่าน' && ev.extendUntil && today <= new Date(ev.extendUntil + 'T00:00:00')) {
+    return `<td style="text-align:center">
+      <span style="font-size:11px;font-weight:700;color:#C8860A;background:#FFF3CD;padding:2px 7px;border-radius:10px">⏳ ต่อเวลา</span>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">ถึง ${fmtDate(ev.extendUntil)}</div>
+    </td>`;
+  }
+
+  // ไม่ผ่าน (ไม่ต่อเวลา)
+  if (ev.result === 'ไม่ผ่าน') {
+    return `<td style="text-align:center">
+      <div style="font-size:18px">❌</div>
+      <button onclick="openProbEvalModal(${emp.id},${period})" style="font-size:10px;background:#FDE8E8;color:var(--red);border:none;border-radius:6px;padding:2px 6px;cursor:pointer;margin-top:2px">ประเมินใหม่</button>
+    </td>`;
+  }
+
+  // ถึงกำหนดแล้ว รอประเมิน
+  if (today >= due) {
+    const overdue = Math.abs(daysUntil);
+    return `<td style="text-align:center">
+      <button onclick="openProbEvalModal(${emp.id},${period})" style="background:var(--yellow);color:#7A5A1A;border:none;border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700">ประเมิน</button>
+      ${overdue > 0 ? `<div style="font-size:10px;color:var(--red);margin-top:2px">เกิน ${overdue} วัน</div>` : ''}
+    </td>`;
+  }
+
+  // ยังไม่ถึงกำหนด
+  return `<td style="text-align:center"><span style="color:var(--muted);font-size:11px">อีก ${daysUntil} วัน</span><div style="font-size:10px;color:var(--border)">${fmtDate(due.toISOString().split('T')[0])}</div></td>`;
+}
+
+function renderProbation() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const active = empData.filter(e => e.probationDays && !e.archivedProbation && e.status !== 'ลาออก');
+
+  // Count pending per period (due & not yet passed)
+  const pendingByPeriod = {};
+  PROB_PERIODS.forEach(p => {
+    pendingByPeriod[p] = active.filter(e => {
+      const ev = getProbEval(e, p);
+      if (ev.result === 'ผ่าน') return false;
+      if (ev.result === 'ไม่ผ่าน' && ev.extendUntil && today <= new Date(ev.extendUntil + 'T00:00:00')) return false;
+      return today >= getProbDueDate(e, p);
+    }).length;
+  });
+
+  const kpiColors = { 14: 'yellow', 30: 'yellow', 60: 'yellow', 90: 'green' };
+  document.getElementById('prob-cards').innerHTML = PROB_PERIODS.map(p => `
+    <div class="kpi-card ${pendingByPeriod[p] > 0 ? kpiColors[p] : ''}">
+      <div class="kpi-label">รอประเมิน Day ${p}${p===90?' (ผ่านโปร)':''}</div>
+      <div class="kpi-value ${pendingByPeriod[p] > 0 ? kpiColors[p] : ''}">${pendingByPeriod[p]}</div>
+      <div class="kpi-sub">คน</div>
+    </div>`).join('');
+
+  document.getElementById('probTbody').innerHTML = active.length
+    ? active.map((e, i) => {
+        const complete = isProbComplete(e);
+        return `<tr style="${complete ? 'background:rgba(0,180,136,0.06)' : ''}">
+          <td>${i+1}</td>
+          <td><strong>${e.name}</strong>${complete ? ' <span style="font-size:10px;background:#E0F2F2;color:var(--teal-d);padding:1px 6px;border-radius:8px">ผ่านโปร</span>' : ''}</td>
+          <td style="font-size:12px">${e.pos}</td>
+          <td style="font-size:12px">${e.branch||'–'}</td>
+          <td style="font-size:12px">${fmtDate(e.startdate)}</td>
+          ${PROB_PERIODS.map(p => probCellHtml(e, p)).join('')}
+          <td>${complete ? `<button class="tbl-del-btn" style="background:#E0F2F2;color:var(--teal-d);font-size:11px" onclick="archiveProbation(${e.id})">Archive</button>` : ''}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">ไม่มีพนักงานในช่วงทดลองงาน</td></tr>';
+
   renderProbArchive();
 }
 
-function archiveProbation(id){
-  const e=empData.find(x=>x.id===id);
-  if(!e)return;
-  e.archivedProbation=true;
+function archiveProbation(id) {
+  const e = empData.find(x => x.id === id); if (!e) return;
+  e.archivedProbation = true;
+  e.probationResult = 'ผ่านโปร';
+  e.status = 'ทำงานอยู่';
+  saveToStorage(); renderProbation();
+}
+
+function unarchiveProbation(id) {
+  const e = empData.find(x => x.id === id); if (!e) return;
+  e.archivedProbation = false;
+  saveToStorage(); renderProbation();
+}
+
+function archiveAllFinished() {
+  const list = empData.filter(e => e.probationDays && !e.archivedProbation && isProbComplete(e));
+  if (!list.length) { alert('ไม่มีพนักงานที่ผ่านโปรครบทุกรอบในขณะนี้'); return; }
+  if (!confirm(`Archive พนักงานที่ผ่านโปรแล้ว ${list.length} คน ใช่ไหม?`)) return;
+  list.forEach(e => { e.archivedProbation = true; e.probationResult = 'ผ่านโปร'; e.status = 'ทำงานอยู่'; });
+  saveToStorage(); renderProbation();
+}
+
+let _probArchiveOpen = false;
+function toggleProbArchive() {
+  _probArchiveOpen = !_probArchiveOpen;
+  document.getElementById('probArchiveBody').style.display = _probArchiveOpen ? 'block' : 'none';
+  document.getElementById('probArchiveToggle').textContent = _probArchiveOpen ? '▲ ซ่อน' : '▼ แสดง';
+  if (_probArchiveOpen) renderProbArchive();
+}
+
+function renderProbArchive() {
+  const archived = empData.filter(e => e.archivedProbation);
+  const countEl = document.getElementById('probArchiveCount');
+  if (countEl) countEl.textContent = archived.length ? `(${archived.length} คน)` : '';
+  if (!_probArchiveOpen) return;
+  document.getElementById('probArchiveTbody').innerHTML = archived.map((e, i) => `
+    <tr style="opacity:.8">
+      <td>${i+1}</td><td><strong>${e.name}</strong></td><td style="font-size:12px">${e.pos}</td><td style="font-size:12px">${e.branch||'–'}</td>
+      <td style="font-size:12px">${fmtDate(e.startdate)}</td>
+      ${PROB_PERIODS.map(p => {
+        const ev = getProbEval(e, p);
+        if (ev.result === 'ผ่าน') return `<td style="text-align:center;font-size:14px">✅</td>`;
+        if (ev.result === 'ไม่ผ่าน') return `<td style="text-align:center;font-size:14px">❌</td>`;
+        return `<td style="text-align:center;color:var(--muted);font-size:11px">–</td>`;
+      }).join('')}
+      <td><button class="tbl-edit-btn" style="background:#FEF5E4;color:var(--yellow);font-size:11px" onclick="unarchiveProbation(${e.id})">Restore</button></td>
+    </tr>`).join('') || '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">ไม่มีข้อมูลใน Archive</td></tr>';
+}
+
+// ===================== PROBATION EVAL MODAL =====================
+let _probEvalEmpId = null;
+let _probEvalPeriod = null;
+let _probEvalResult = null;
+
+function openProbEvalModal(empId, period) {
+  const emp = empData.find(e => e.id === empId); if (!emp) return;
+  _probEvalEmpId = empId;
+  _probEvalPeriod = period;
+  _probEvalResult = null;
+  document.getElementById('probEvalTitle').textContent = `ประเมิน Day ${period} — ${emp.name}`;
+  const due = getProbDueDate(emp, period);
+  document.getElementById('probEvalSubtitle').textContent = `ตำแหน่ง: ${emp.pos} | วันครบกำหนด: ${fmtDate(due.toISOString().split('T')[0])}`;
+  // โหลดค่าเดิม (ถ้ามี)
+  const existing = getProbEval(emp, period);
+  document.getElementById('probEvalDate').value = existing.evalDate || new Date().toISOString().split('T')[0];
+  document.getElementById('probExtendSection').style.display = 'none';
+  document.getElementById('probExtendChk').checked = false;
+  document.getElementById('probExtendDateWrap').style.display = 'none';
+  document.getElementById('probExtendUntil').value = existing.extendUntil || '';
+  // Reset button styles แล้ว highlight ค่าเดิม
+  ['probPassBtn','probFailBtn'].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.style.background = 'var(--bg)';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = '';
+  });
+  if (existing.result) setProbResult(existing.result);
+  if (existing.result === 'ไม่ผ่าน' && existing.extendUntil) {
+    document.getElementById('probExtendChk').checked = true;
+    document.getElementById('probExtendDateWrap').style.display = 'block';
+  }
+  // แสดงปุ่ม Reset ถ้ามีผลเดิมอยู่แล้ว
+  const resetBtn = document.getElementById('probResetBtn');
+  if (resetBtn) resetBtn.style.display = existing.result ? 'inline-block' : 'none';
+  document.getElementById('probEvalModal').classList.add('open');
+}
+
+function setProbResult(result) {
+  _probEvalResult = result;
+  const passBtn = document.getElementById('probPassBtn');
+  const failBtn = document.getElementById('probFailBtn');
+  if (result === 'ผ่าน') {
+    passBtn.style.background = 'var(--teal)'; passBtn.style.borderColor = 'var(--teal)'; passBtn.style.color = '#fff';
+    failBtn.style.background = 'var(--bg)'; failBtn.style.borderColor = 'var(--border)'; failBtn.style.color = '';
+    document.getElementById('probExtendSection').style.display = 'none';
+  } else {
+    failBtn.style.background = 'var(--red)'; failBtn.style.borderColor = 'var(--red)'; failBtn.style.color = '#fff';
+    passBtn.style.background = 'var(--bg)'; passBtn.style.borderColor = 'var(--border)'; passBtn.style.color = '';
+    document.getElementById('probExtendSection').style.display = 'block';
+  }
+}
+
+function resetProbEval() {
+  if (!confirm('ลบผลประเมิน checkpoint นี้ออก?')) return;
+  const emp = empData.find(e => e.id === _probEvalEmpId); if (!emp) return;
+  if (!emp.probationEvals) emp.probationEvals = {};
+  delete emp.probationEvals[_probEvalPeriod];
+  // ถ้าเคย ผ่านโปร ให้ reset กลับ
+  if (emp.probationResult === 'ผ่านโปร') emp.probationResult = 'ทดลองงาน';
   saveToStorage();
+  closeModal('probEvalModal');
   renderProbation();
 }
 
-function unarchiveProbation(id){
-  const e=empData.find(x=>x.id===id);
-  if(!e)return;
-  e.archivedProbation=false;
+function toggleProbExtend() {
+  const checked = document.getElementById('probExtendChk').checked;
+  document.getElementById('probExtendDateWrap').style.display = checked ? 'block' : 'none';
+}
+
+function saveProbEval() {
+  if (!_probEvalResult) { alert('กรุณาเลือกผลการประเมิน'); return; }
+  const emp = empData.find(e => e.id === _probEvalEmpId); if (!emp) return;
+  if (!emp.probationEvals) emp.probationEvals = {};
+  const evalDate = document.getElementById('probEvalDate').value;
+  let extendUntil = null;
+  if (_probEvalResult === 'ไม่ผ่าน' && document.getElementById('probExtendChk').checked) {
+    extendUntil = document.getElementById('probExtendUntil').value;
+    if (!extendUntil) { alert('กรุณาเลือกวันที่นัดประเมินใหม่'); return; }
+  }
+  emp.probationEvals[_probEvalPeriod] = { result: _probEvalResult, evalDate, extendUntil };
+  // Check if all 4 passed → ผ่านโปร
+  if (isProbComplete(emp)) {
+    emp.probationResult = 'ผ่านโปร';
+    emp.status = 'ทำงานอยู่';
+  }
   saveToStorage();
+  closeModal('probEvalModal');
   renderProbation();
-}
-
-function archiveAllFinished(){
-  const count=empData.filter(e=>e.probationDays&&!e.archivedProbation&&(e.probationResult==='ผ่าน'||e.probationResult==='ไม่ผ่าน')).length;
-  if(!count){alert('ไม่มีรายการที่จบแล้วในขณะนี้');return;}
-  if(!confirm(`Archive พนักงานที่จบ probation แล้ว ${count} คน ใช่ไหม?`))return;
-  empData.forEach(e=>{if(e.probationDays&&!e.archivedProbation&&(e.probationResult==='ผ่าน'||e.probationResult==='ไม่ผ่าน'))e.archivedProbation=true;});
-  saveToStorage();
-  renderProbation();
-}
-
-let _probArchiveOpen=false;
-function toggleProbArchive(){
-  _probArchiveOpen=!_probArchiveOpen;
-  document.getElementById('probArchiveBody').style.display=_probArchiveOpen?'block':'none';
-  document.getElementById('probArchiveToggle').textContent=_probArchiveOpen?'▲ ซ่อน':'▼ แสดง';
-  if(_probArchiveOpen)renderProbArchive();
-}
-
-function renderProbArchive(){
-  const archived=empData.filter(e=>e.archivedProbation);
-  const countEl=document.getElementById('probArchiveCount');
-  if(countEl)countEl.textContent=archived.length?`(${archived.length} คน)`:'';
-  if(!_probArchiveOpen)return;
-  const probColor={ทดลองงาน:'badge-yellow',ผ่าน:'badge-green',ไม่ผ่าน:'badge-red'};
-  document.getElementById('probArchiveTbody').innerHTML=archived.map((e,i)=>{
-    const due=new Date(e.startdate);due.setDate(due.getDate()+(e.probationDays||90));
-    return `<tr style="opacity:.75">
-      <td>${i+1}</td><td><strong>${e.name}</strong></td><td>${e.pos}</td><td>${e.branch||'–'}</td>
-      <td>${fmtDate(e.startdate)}</td><td>${fmtDate(due.toISOString().split('T')[0])}</td>
-      <td><span class="badge ${probColor[e.probationResult]||'badge-gray'}">${e.probationResult||'–'}</span></td>
-      <td><button class="tbl-edit-btn" style="background:#FEF5E4;color:var(--yellow)" onclick="unarchiveProbation(${e.id})">Restore</button></td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">ไม่มีข้อมูลใน Archive</td></tr>';
+  if (isProbComplete(emp)) {
+    setTimeout(() => alert(`🎉 ${emp.name} ผ่านโปรครบทุกรอบแล้ว!\nกด "Archive" เพื่อย้ายออกจาก Probation Tracking`), 200);
+  }
 }
 
 // ===================== INTERVIEW SCHEDULE =====================
@@ -1872,9 +2769,17 @@ function saveEmpEntry(){
     status:document.getElementById('ee_status').value,
     enddate:document.getElementById('ee_enddate').value,
     reason:document.getElementById('ee_reason').value,
-    probationDays:parseInt(document.getElementById('ee_probdays').value)||null,
-    probationResult:document.getElementById('ee_probresult').value||'ทดลองงาน',
-    archivedProbation:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.archivedProbation||false):false
+    probationDays:90,
+    probationResult:'ทดลองงาน',
+    archivedProbation:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.archivedProbation||false):false,
+    ssDate:document.getElementById('ee_ssdate').value||'',
+    ssCompany:document.getElementById('ee_sscompany').value||'',
+    nationality:document.getElementById('ee_nationality').value||'ไทย',
+    workPermit:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.workPermit||{}):{},
+    probationEvals:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.probationEvals||{}):{},
+    trainingResults:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.trainingResults||{}):{},
+    ssHospital:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.ssHospital||''):'',
+    ssNote:editingEmpId?(empData.find(e=>e.id===editingEmpId)?.ssNote||''):'',
   };
   const prevEmp=editingEmpId?empData.find(e=>e.id===editingEmpId):null;
   const prevStatus=prevEmp?.status||'';
@@ -1910,10 +2815,13 @@ function editEmpEntry(id){
   document.getElementById('ee_status').value=e.status||'ทำงานอยู่';
   document.getElementById('ee_enddate').value=e.enddate||'';
   document.getElementById('ee_reason').value=e.reason||'';
-  document.getElementById('ee_probdays').value=e.probationDays||'';
-  document.getElementById('ee_probresult').value=e.probationResult||'ทดลองงาน';
+  // probationDays และ probationResult จัดการผ่าน Probation Tracking แล้ว
+  document.getElementById('ee_ssdate').value=e.ssDate||'';
+  document.getElementById('ee_sscompany').value=e.ssCompany||'';
+  document.getElementById('ee_nationality').value=e.nationality||'ไทย';
   document.getElementById('empFormTitle').textContent='✏️ แก้ไขข้อมูล: '+e.name;
   toggleResignFields();
+  toggleEmpWpLink();
   const body=document.getElementById('empBody');
   body.classList.remove('collapsed');
   document.getElementById('empToggle').style.transform='';
@@ -1924,6 +2832,71 @@ function deleteEmpEntry(id){
   if(!confirm('ลบข้อมูลพนักงานคนนี้?'))return;
   empData=empData.filter(e=>e.id!==id);
   saveToStorage();renderEmpTable();renderEmpKpi();
+}
+
+function toggleEmpWpLink(){
+  const nat = document.getElementById('ee_nationality')?.value||'ไทย';
+  const wrap = document.getElementById('ee_wp_link_wrap');
+  const statusEl = document.getElementById('ee_wp_link_status');
+  const ssEl = document.getElementById('ee_ss_status');
+  if(!wrap) return;
+  // SS status
+  if(ssEl){
+    const ssDate = document.getElementById('ee_ssdate')?.value;
+    ssEl.textContent = ssDate ? `✅ ลงทะเบียนแล้ว (${ssDate})` : '⚠️ ยังไม่ลงทะเบียน';
+    ssEl.style.color = ssDate ? '#14532d' : '#92400e';
+    ssEl.style.background = ssDate ? '#f0fdf4' : '#fef3c7';
+  }
+  // WP status (non-Thai only)
+  if(nat !== 'ไทย'){
+    wrap.style.display = '';
+    // find current employee's WP data
+    const today = new Date(); today.setHours(0,0,0,0);
+    const emp = editingEmpId ? empData.find(e=>e.id===editingEmpId) : null;
+    const wp = emp?.workPermit||{};
+    const parts = [];
+    if(wp.permitNo) parts.push(`ใบอนุญาต: ${wp.permitNo}`);
+    if(wp.expireDate){
+      const dl = Math.round((new Date(wp.expireDate+'T00:00:00')-today)/86400000);
+      parts.push(`หมด ${wp.expireDate} (${dl<0?'เกิน '+Math.abs(dl)+' วัน':dl+' วันที่เหลือ'})`);
+    }
+    if(wp.visaExpire){
+      const dl = Math.round((new Date(wp.visaExpire+'T00:00:00')-today)/86400000);
+      parts.push(`Visa หมด ${wp.visaExpire} (${dl<0?'เกิน '+Math.abs(dl)+' วัน':dl+' วัน'})`);
+    }
+    if(statusEl) {
+      statusEl.innerHTML = parts.length
+        ? parts.join('<br>') + ` &nbsp;<button onclick="openWpModal(${editingEmpId||'null'})" style="font-size:11px;padding:2px 8px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer">✏️ แก้ไข WP</button>`
+        : `📭 ยังไม่มีข้อมูล &nbsp;<button onclick="openWpModal(${editingEmpId||'null'})" style="font-size:11px;padding:2px 8px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer">+ บันทึก WP</button>`;
+    }
+  } else {
+    wrap.style.display = 'none';
+  }
+  // Training status
+  const trainEl = document.getElementById('ee_train_status');
+  if(trainEl) {
+    const emp = editingEmpId ? empData.find(e=>e.id===editingEmpId) : null;
+    if(!emp) { trainEl.innerHTML = '<span style="color:var(--muted)">บันทึกพนักงานก่อนเพื่อดูสถานะ Training</span>'; }
+    else {
+      const done = trainingCourses.filter(c=>getTrainResult(emp,c.id).result==='ผ่าน').length;
+      const total = trainingCourses.length;
+      const st = trainStatus(emp);
+      const pills = trainingCourses.map(c=>{
+        const tr = getTrainResult(emp,c.id);
+        const color = tr.result==='ผ่าน'?'#d1fae5;color:#065f46' : tr.result==='ไม่ผ่าน'?'#fee2e2;color:#991b1b' : '#f3f4f6;color:#6b7280';
+        const icon = tr.result==='ผ่าน'?'✅':tr.result==='ไม่ผ่าน'?'❌':'⏳';
+        const score = tr.score!=null?` ${tr.score}/${tr.maxScore||100}`:'';
+        return `<span style="background:${color};padding:2px 8px;border-radius:10px;font-size:11px;white-space:nowrap">${icon} ${c.name}${score}</span>`;
+      }).join('');
+      trainEl.innerHTML = `<div style="width:100%">
+        <div style="margin-bottom:8px;font-weight:600;color:${st==='ผ่านครบ'?'#065f46':st==='กำลังฝึก'?'#92400e':'#6b7280'}">
+          ${st==='ผ่านครบ'?'🏆 ผ่านครบทุกหลักสูตร':st==='กำลังฝึก'?`📚 ผ่านแล้ว ${done}/${total} หลักสูตร`:`⏳ ยังไม่เริ่ม Training`}
+          &nbsp;<button onclick="showSection('training',null);closeModal && closeModal()" style="font-size:11px;padding:2px 8px;background:#7c3aed;color:#fff;border:none;border-radius:6px;cursor:pointer">🎓 ไปหน้า Training</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${pills}</div>
+      </div>`;
+    }
+  }
 }
 
 function toggleResignFields(){
@@ -1948,8 +2921,8 @@ function cancelEmpEdit(){
   const r=document.getElementById('ee_reason');if(r)r.value='';
   const d=document.getElementById('ee_dept');if(d)d.value='Operations';
   const s=document.getElementById('ee_status');if(s)s.value='ทำงานอยู่';
-  const pb=document.getElementById('ee_probdays');if(pb)pb.value='90';
-  const pr=document.getElementById('ee_probresult');if(pr)pr.value='ทดลองงาน';
+  const ss=document.getElementById('ee_ssdate');if(ss)ss.value='';
+  const sc=document.getElementById('ee_sscompany');if(sc)sc.value='';
   document.getElementById('empFormTitle').textContent='➕ เพิ่มพนักงานใหม่';
   toggleResignFields();
 }
@@ -1968,32 +2941,91 @@ function renderEmpKpi(){
   `;
 }
 
+function resetEmpFilters(){
+  ['ee_search','ee_status_filter','ee_dept_filter','ee_branch_filter','ee_nat_filter','ee_ss_filter','ee_train_filter'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  renderEmpTable();
+}
+
 function renderEmpTable(){
+  // Populate branch dropdown dynamically from actual data
+  const branchSel = document.getElementById('ee_branch_filter');
+  if(branchSel){
+    const curBranch = branchSel.value;
+    const branches = [...new Set(empData.map(e=>e.branch).filter(Boolean))].sort();
+    branchSel.innerHTML = '<option value="">สาขาทั้งหมด</option>' + branches.map(b=>`<option${b===curBranch?' selected':''}>${b}</option>`).join('');
+  }
+
   const q=(document.getElementById('ee_search')?.value||'').toLowerCase();
   const st=document.getElementById('ee_status_filter')?.value||'';
   const dept=document.getElementById('ee_dept_filter')?.value||'';
+  const branch=document.getElementById('ee_branch_filter')?.value||'';
+  const nat=document.getElementById('ee_nat_filter')?.value||'';
+  const ssF=document.getElementById('ee_ss_filter')?.value||'';
+  const trainF=document.getElementById('ee_train_filter')?.value||'';
+
   let rows=empData.filter(e=>{
     if(st&&e.status!==st)return false;
     if(dept&&e.dept!==dept)return false;
-    if(q&&!e.name.toLowerCase().includes(q)&&!e.pos.toLowerCase().includes(q)&&!e.empId?.toLowerCase().includes(q))return false;
+    if(branch&&e.branch!==branch)return false;
+    if(nat==='ไทย'&&e.nationality&&e.nationality!=='ไทย')return false;
+    if(nat==='ต่างด้าว'&&(!e.nationality||e.nationality==='ไทย'))return false;
+    if(ssF==='ลงทะเบียนแล้ว'&&!e.ssDate)return false;
+    if(ssF==='ยังไม่ลง'&&e.ssDate)return false;
+    if(trainF&&trainStatus(e)!==trainF)return false;
+    if(q&&!e.name.toLowerCase().includes(q)&&!(e.pos||'').toLowerCase().includes(q)&&!(e.empId||'').toLowerCase().includes(q)&&!(e.branch||'').toLowerCase().includes(q))return false;
     return true;
   });
   const stColors={'ทำงานอยู่':'var(--teal)','ลาออก':'var(--red)','พักงาน':'var(--yellow)'};
   const stBg={'ทำงานอยู่':'var(--teal-light)','ลาออก':'#fde8e8','พักงาน':'#fef5e0'};
-  document.getElementById('empTableBody').innerHTML=rows.length?rows.map((e,i)=>`
-    <tr>
+  const today=new Date();today.setHours(0,0,0,0);
+  document.getElementById('empTableBody').innerHTML=rows.length?rows.map((e,i)=>{
+    // SS badge
+    const ssBadge = e.ssDate
+      ? `<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;font-size:10px">✅ ลงทะเบียน</span>`
+      : `<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:10px">⚠️ ยังไม่ลง</span>`;
+    // WP badge (non-Thai only)
+    let wpBadge = '<span style="color:var(--muted);font-size:11px">–</span>';
+    if(e.nationality && e.nationality!=='ไทย'){
+      const wp=e.workPermit||{};
+      const dates=[wp.expireDate,wp.visaExpire].filter(Boolean);
+      if(!dates.length){
+        wpBadge=`<span style="background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:10px;font-size:10px">📭 ไม่มีข้อมูล</span>`;
+      } else {
+        const minDl=Math.min(...dates.map(d=>Math.round((new Date(d+'T00:00:00')-today)/86400000)));
+        if(minDl<0) wpBadge=`<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:10px">🚨 หมดอายุ</span>`;
+        else if(minDl<=60) wpBadge=`<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:10px">⚠️ ${minDl} วัน</span>`;
+        else wpBadge=`<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;font-size:10px">✅ ปกติ</span>`;
+      }
+    }
+    return `<tr>
       <td>${i+1}</td>
       <td style="font-size:12px;color:var(--muted)">${e.empId||'–'}</td>
-      <td><strong>${e.name}</strong></td>
+      <td><strong>${e.name}</strong>${e.nationality&&e.nationality!=='ไทย'?` <span style="font-size:10px;color:var(--muted)">(${e.nationality})</span>`:''}</td>
       <td>${e.pos}</td>
       <td style="font-size:12px">${e.dept||'–'}</td>
       <td style="font-size:12px">${e.branch||'–'}</td>
       <td style="font-size:12px">${fmtDate(e.startdate)}</td>
       <td style="font-size:12px;color:var(--muted)">${calcTenure(e.startdate)}</td>
       <td><span style="background:${stBg[e.status]||'#eee'};color:${stColors[e.status]||'#666'};border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700">${e.status}</span></td>
+      <td style="text-align:center">${ssBadge}</td>
+      <td style="text-align:center">${wpBadge}</td>
+      <td style="text-align:center">${(()=>{
+        const st=trainStatus(e);
+        const done=trainingCourses.filter(c=>getTrainResult(e,c.id).result==='ผ่าน').length;
+        const total=trainingCourses.length;
+        if(st==='ผ่านครบ') return `<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;font-size:10px">🏆 ผ่านครบ</span>`;
+        if(st==='กำลังฝึก') return `<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:10px">📚 ${done}/${total}</span>`;
+        return `<span style="background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:10px;font-size:10px">⏳ 0/${total}</span>`;
+      })()}</td>
       <td><button class="tbl-edit-btn" onclick="editEmpEntry(${e.id})">แก้ไข</button><button class="tbl-del-btn" onclick="deleteEmpEntry(${e.id})">ลบ</button></td>
-    </tr>`).join('')
-    :'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีข้อมูลพนักงาน</td></tr>';
+    </tr>`;
+  }).join('')
+    :'<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:28px">ไม่พบพนักงานตามเงื่อนไข</td></tr>';
+  // show result count
+  const countEl = document.getElementById('empResultCount');
+  if(countEl) countEl.textContent = rows.length < empData.length ? `แสดง ${rows.length} จาก ${empData.length} คน` : `ทั้งหมด ${empData.length} คน`;
 }
 
 // ===================== IMPORT EXCEL =====================
@@ -2009,27 +3041,44 @@ function importEmpExcel(input){
       if(!rows.length){alert('ไม่พบข้อมูลในไฟล์');return;}
       
       const colMap={
-        'รหัสพนักงาน':['empId','รหัสพนักงาน','EmpID','Employee ID'],
-        'name':['ชื่อ-นามสกุล','ชื่อ','Name','Full Name'],
-        'pos':['ตำแหน่ง','Position','Role'],
-        'dept':['แผนก','Department','Dept'],
-        'branch':['สาขา','Branch','ร้าน/สาขา','สาขา/ร้าน'],
-        'startdate':['วันที่เริ่มงาน','Start Date','StartDate','วันเริ่มงาน'],
-        'status':['สถานะ','Status'],
-        'enddate':['วันที่ออก','End Date','วันออกงาน']
+        'empId':    ['รหัสพนักงาน','EmpID','Employee ID'],
+        'name':     ['ชื่อ-นามสกุล','ชื่อ','Name','Full Name'],
+        'pos':      ['ตำแหน่ง','Position','Role'],
+        'dept':     ['แผนก','Department','Dept'],
+        'branch':   ['สาขา','Branch','ร้าน/สาขา'],
+        'startdate':['วันที่เริ่มงาน','Start Date','วันเริ่มงาน'],
+        'status':   ['สถานะ','Status'],
+        'enddate':  ['วันที่ออก','End Date','วันออกงาน'],
+        'reason':   ['เหตุผลการออก','Reason'],
+        'nationality':['สัญชาติ','Nationality'],
+        'ssDate':   ['วันที่เข้าประกันสังคม','SS Date','วันประกันสังคม'],
+        'ssCompany':['บริษัทประกันสังคม','SS Company'],
+        'wpExpire': ['วันหมดอายุใบอนุญาต','WP Expire','WP Expiry'],
+        'wpIssue':  ['วันที่ออกใบอนุญาต','WP Issue'],
+        'wpType':   ['ประเภทใบอนุญาต','WP Type'],
+        'visaExpire':['วันหมดอายุ Visa','Visa Expire','Visa Expiry'],
+        'visa90':   ['วันครบรายงาน 90 วัน','Visa 90 Day','90 Day Report'],
+        'visaIssue':['วันออก Visa','Visa Issue'],
       };
-      
+
       const getVal=(row,keys)=>{
         for(const k of keys){if(row[k]!==undefined&&row[k]!=='')return String(row[k]).trim();}
         return '';
       };
-      
+
       let added=0,updated=0;
       rows.forEach(row=>{
-        const empId=getVal(row,colMap['รหัสพนักงาน']);
+        const empId=getVal(row,colMap['empId']);
         const name=getVal(row,colMap['name']);
         if(!name)return;
         const existing=empId?empData.find(e=>e.empId===empId):null;
+        const wpExpire=getVal(row,colMap['wpExpire']);
+        const visaExpire=getVal(row,colMap['visaExpire']);
+        const wpIssue=getVal(row,colMap['wpIssue']);
+        const wpType=getVal(row,colMap['wpType']);
+        const visa90=getVal(row,colMap['visa90']);
+        const visaIssue=getVal(row,colMap['visaIssue']);
+        const nat=getVal(row,colMap['nationality'])||'ไทย';
         const obj={
           id:existing?existing.id:++nextEid,
           empId,name,
@@ -2038,7 +3087,24 @@ function importEmpExcel(input){
           branch:getVal(row,colMap['branch']),
           startdate:getVal(row,colMap['startdate']),
           status:getVal(row,colMap['status'])||'ทำงานอยู่',
-          enddate:getVal(row,colMap['enddate'])
+          enddate:getVal(row,colMap['enddate']),
+          reason:getVal(row,colMap['reason']),
+          nationality:nat,
+          ssDate:getVal(row,colMap['ssDate']),
+          ssCompany:getVal(row,colMap['ssCompany']),
+          probationDays:existing?.probationDays||90,
+          probationResult:existing?.probationResult||'ทดลองงาน',
+          archivedProbation:existing?.archivedProbation||false,
+          probationEvals:existing?.probationEvals||{},
+          trainingResults:existing?.trainingResults||{},
+          workPermit:(wpExpire||visaExpire)?{
+            type:wpType||'WP',
+            issueDate:wpIssue,
+            expireDate:wpExpire,
+            visaIssue,
+            visaExpire,
+            visa90Date:visa90,
+          }:(existing?.workPermit||{}),
         };
         if(existing){const i=empData.indexOf(existing);empData[i]=obj;updated++;}
         else{empData.push(obj);added++;}
@@ -2053,10 +3119,16 @@ function importEmpExcel(input){
 
 function downloadEmpTemplate(){
   const rows=[
-    ['รหัสพนักงาน','ชื่อ-นามสกุล','ตำแหน่ง','แผนก','สาขา','วันที่เริ่มงาน (YYYY-MM-DD)','สถานะ (ทำงานอยู่/ลาออก/พักงาน)','วันที่ออก (YYYY-MM-DD)','เหตุผลการออก','ระยะทดลองงาน (วัน)','ผลทดลองงาน (ทดลองงาน/ผ่าน/ไม่ผ่าน)'],
-    ['SKY001','นิดา ยิ้มแย้ม','Supervisor','Operations','สาขาพระราม9','2023-01-10','ทำงานอยู่','','','90','ผ่าน'],
-    ['SKY002','แนน สดใส','Barista','Operations','สาขาสยาม','2026-06-01','ทำงานอยู่','','','90','ทดลองงาน'],
-    ['SKY003','วรรณา สุขใจ','Cashier','Operations','สาขาอโศก','2024-12-01','ลาออก','2026-05-31','ได้งานใหม่','90','ผ่าน'],
+    // Row 1: headers
+    ['รหัสพนักงาน','ชื่อ-นามสกุล','ตำแหน่ง','แผนก','สาขา','วันที่เริ่มงาน','สถานะ','วันที่ออก','เหตุผลการออก','สัญชาติ','วันที่เข้าประกันสังคม','บริษัทประกันสังคม','วันที่ออกใบอนุญาต','วันหมดอายุใบอนุญาต','ประเภทใบอนุญาต','วันออก Visa','วันหมดอายุ Visa','วันครบรายงาน 90 วัน'],
+    // Row 2: คำอธิบาย
+    ['(required)','(required)','','','','YYYY-MM-DD','ทำงานอยู่/ลาออก/พักงาน','YYYY-MM-DD','','ไทย/เมียนมา/กัมพูชา/ลาว/อื่นๆ','YYYY-MM-DD','ชื่อบริษัทประกัน','YYYY-MM-DD (ต่างด้าวเท่านั้น)','YYYY-MM-DD (ต่างด้าวเท่านั้น)','WP/BOI/etc.','YYYY-MM-DD (ต่างด้าวเท่านั้น)','YYYY-MM-DD (ต่างด้าวเท่านั้น)','YYYY-MM-DD (ต่างด้าวเท่านั้น)'],
+    // ตัวอย่างพนักงานไทย
+    ['SKY001','นิดา ยิ้มแย้ม','Supervisor','Operations','สาขาพระราม9','2023-01-10','ทำงานอยู่','','','ไทย','2023-01-25','กรุงไทย AXA','','','','','',''],
+    // ตัวอย่างพนักงานต่างด้าว
+    ['SKY004','Mg Aung Zin','Dishwasher','Operations','สาขาสยาม','2025-03-01','ทำงานอยู่','','','เมียนมา','2025-03-15','กรุงไทย AXA','2025-03-01','2026-03-01','WP','2025-03-01','2025-09-01','2025-06-01'],
+    // ตัวอย่างพนักงานลาออก
+    ['SKY003','วรรณา สุขใจ','Cashier','Operations','สาขาอโศก','2024-12-01','ลาออก','2026-05-31','ได้งานใหม่','ไทย','2024-12-15','กรุงเทพประกันภัย','','','','','',''],
   ];
   const csv='﻿'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
@@ -2237,6 +3309,8 @@ function saveAppEntry(){
     status:document.getElementById('ea_status').value,
     interviewdate:document.getElementById('ea_interviewdate').value,
     startdate:document.getElementById('ea_startdate').value,
+    nationality:document.getElementById('ea_nationality').value,
+    transfer:document.getElementById('ea_nationality').value!=='ไทย'?document.getElementById('ea_transfer').value:'',
     rec:document.getElementById('ea_rec').value.trim(),
     reason:document.getElementById('ea_reason').value,
     note:document.getElementById('ea_note').value.trim(),
@@ -2288,13 +3362,27 @@ function saveAppEntry(){
   }
 }
 
+function cancelAddEmp(){
+  // revert applicant status back to เริ่มงาน (undo the hire action)
+  const a = window._pendingNewEmp;
+  if(a){
+    const app = appData.find(x=>x.id===a.id);
+    if(app) app.status = 'รอเริ่มงาน';
+  }
+  window._pendingNewEmp = null;
+  closeModal('addEmpModal');
+  saveToStorage();
+  if(_currentSection==='pending') renderPending();
+  else if(_currentSection==='applicant') renderApplicant();
+}
+
 function confirmAddEmp(){
   const a=window._pendingNewEmp;
   if(!a)return;
   empData.push({
     id:++nextEid,
     empId:document.getElementById('aem_id').value.trim(),
-    probationDays:parseInt(document.getElementById('aem_probdays').value)||90,
+    probationDays:90,
     probationResult:'ทดลองงาน',
     archivedProbation:false,
     name:a.name,
@@ -2302,7 +3390,12 @@ function confirmAddEmp(){
     dept:document.getElementById('aem_dept').value,
     branch:a.branch||'',
     startdate:a.startdate||'',
-    status:'ทดลองงาน'
+    status:'ทดลองงาน',
+    ssDate:document.getElementById('aem_ssdate').value||'',
+    ssCompany:document.getElementById('aem_sscompany').value||'',
+    nationality:a.nationality||'ไทย',
+    workPermit:{},
+    trainingResults:{}
   });
   saveToStorage();
   closeModal('addEmpModal');
@@ -2326,6 +3419,9 @@ function editAppEntry(id){
   document.getElementById('ea_status').value=a.status||'สมัคร';
   document.getElementById('ea_interviewdate').value=a.interviewdate||'';
   document.getElementById('ea_startdate').value=a.startdate||'';
+  document.getElementById('ea_nationality').value=a.nationality||'ไทย';
+  toggleTransferField();
+  if(a.transfer) document.getElementById('ea_transfer').value=a.transfer;
   document.getElementById('ea_rec').value=a.rec||'';
   document.getElementById('ea_reason').value=a.reason||'';
   document.getElementById('ea_note').value=a.note||'';
@@ -2347,6 +3443,8 @@ function deleteAppEntry(id){
 function cancelAppEdit(){
   editingAppId=null;
   ['ea_name','ea_pos','ea_branch','ea_date','ea_interviewdate','ea_startdate','ea_rec','ea_note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ea_nationality').value='ไทย';
+  toggleTransferField();
   document.getElementById('ea_channel').value='JobThai';
   document.getElementById('ea_status').value='สมัคร';
   document.getElementById('ea_reason').value='';
@@ -2393,6 +3491,10 @@ function appRowHtml(a,i,isArchive){
     <td><strong>${a.name}</strong></td>
     <td>${a.pos}</td>
     <td style="font-size:12px">${a.branch||'–'}</td>
+    <td style="font-size:12px">
+      ${a.nationality||'ไทย'}
+      ${a.transfer?`<br><span style="font-size:10px;font-weight:700;color:${a.transfer==='ย้ายได้'?'var(--teal)':'var(--red)'}">${a.transfer==='ย้ายได้'?'✅':'❌'} ${a.transfer}</span>`:''}
+    </td>
     <td style="font-size:12px">${a.channel||'–'}</td>
     <td style="font-size:12px">${fmtDate(a.date)}</td>
     <td><span style="background:${statusColors[a.status]||'#999'}1a;color:${statusColors[a.status]||'#999'};border:1px solid ${statusColors[a.status]||'#999'};border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap">${a.status}</span></td>
@@ -2642,6 +3744,12 @@ function renderUserTable(){
 }
 
 // ===================== DUPLICATE NAME CHECK =====================
+function toggleTransferField(){
+  const nat=document.getElementById('ea_nationality').value;
+  const wrap=document.getElementById('ea_transferwrap');
+  if(wrap) wrap.style.display=(nat&&nat!=='ไทย')?'':'none';
+}
+
 function checkDupName(val){
   const warn=document.getElementById('dupNameWarn');
   if(!warn)return;
@@ -2723,8 +3831,8 @@ function exportEmpCSV(){
 }
 
 function exportAppCSV(){
-  const header=['ชื่อ-นามสกุล','ตำแหน่ง','สาขา','ช่องทาง','วันที่สมัคร','สถานะ','วันนัดสัมภาษณ์','วันเริ่มงาน','Time to Fill (วัน)','Recruiter','เหตุผล','หมายเหตุ'];
-  const rows=appData.map(a=>[a.name,a.pos,a.branch||'',a.channel||'',a.date||'',a.status,a.interviewdate||'',a.startdate||'',calcTTF(a)??'',a.rec||'',a.reason||'',a.note||'']);
+  const header=['ชื่อ-นามสกุล','ตำแหน่ง','สาขา','สัญชาติ','ย้ายนายจ้าง','ช่องทาง','วันที่สมัคร','สถานะ','วันนัดสัมภาษณ์','วันเริ่มงาน','Time to Fill (วัน)','Recruiter','เหตุผล','หมายเหตุ'];
+  const rows=appData.map(a=>[a.name,a.pos,a.branch||'',a.nationality||'ไทย',a.transfer||'',a.channel||'',a.date||'',a.status,a.interviewdate||'',a.startdate||'',calcTTF(a)??'',a.rec||'',a.reason||'',a.note||'']);
   const today=new Date().toISOString().split('T')[0];
   dlCSV([header,...rows],`applicants_${today}.csv`);
 }
@@ -2755,8 +3863,8 @@ function exportMonthlyCSV(){
 
 // ===================== IMPORT ผู้สมัคร =====================
 function downloadAppTemplate(){
-  const header=['ชื่อ-นามสกุล *','ตำแหน่ง *','สาขา','ช่องทาง (JobThai/Facebook/TikTok/Line/Walk-in/Employee Referral/อื่น ๆ)','วันที่สมัคร (YYYY-MM-DD)','สถานะ','วันนัดสัมภาษณ์ (YYYY-MM-DD)','วันเริ่มงาน (YYYY-MM-DD)','Recruiter','เหตุผล','หมายเหตุ'];
-  const sample=['สมใจ มั่นคง','Barista','สาขาสยาม','JobThai','2026-06-10','สมัคร','','','คุณนิดา','',''];
+  const header=['ชื่อ-นามสกุล *','ตำแหน่ง *','สาขา','สัญชาติ (ไทย/เมียนมา/ลาว/กัมพูชา/อื่น ๆ)','ช่องทาง (JobThai/Facebook/TikTok/Line/Walk-in/Employee Referral/อื่น ๆ)','วันที่สมัคร (YYYY-MM-DD)','สถานะ','วันนัดสัมภาษณ์ (YYYY-MM-DD)','วันเริ่มงาน (YYYY-MM-DD)','Recruiter','เหตุผล','หมายเหตุ'];
+  const sample=['สมใจ มั่นคง','Barista','สาขาสยาม','ไทย','JobThai','2026-06-10','สมัคร','','','คุณนิดา','',''];
   dlCSV([header,sample],'applicant_import_template.csv');
 }
 
@@ -2799,16 +3907,17 @@ function processAppCSV(text,msg){
     if(!name||!pos)continue;
     const channels=['JobThai','Facebook','TikTok','Line','Walk-in','Employee Referral','อื่น ๆ'];
     const validStatuses=['สมัคร','ผ่านคัดกรอง','สัมภาษณ์','ผ่านสัมภาษณ์','รอเริ่มงาน','เริ่มงานแล้ว','ไม่ผ่านสัมภาษณ์','ไม่มาเริ่มงาน'];
-    const status=validStatuses.includes(cols[5]?.trim())?cols[5].trim():'สมัคร';
+    const status=validStatuses.includes(cols[6]?.trim())?cols[6].trim():'สมัคร';
     const obj={name,pos,
       branch:(cols[2]||'').trim(),
-      channel:channels.includes(cols[3]?.trim())?cols[3].trim():'JobThai',
-      date:cols[4]?.trim()||'',status,
-      interviewdate:cols[6]?.trim()||'',
-      startdate:cols[7]?.trim()||'',
-      rec:(cols[8]||'').trim(),
-      reason:(cols[9]||'').trim(),
-      note:(cols[10]||'').trim(),
+      nationality:(cols[3]||'ไทย').trim(),
+      channel:channels.includes(cols[4]?.trim())?cols[4].trim():'JobThai',
+      date:cols[5]?.trim()||'',status,
+      interviewdate:cols[7]?.trim()||'',
+      startdate:cols[8]?.trim()||'',
+      rec:(cols[9]||'').trim(),
+      reason:(cols[10]||'').trim(),
+      note:(cols[11]||'').trim(),
       archived:ARCHIVE_STATUSES.includes(status)
     };
     const exist=appData.find(a=>a.name===name&&a.pos===pos);
@@ -2841,17 +3950,66 @@ function getAlerts(){
     });
   });
 
-  // 2. Probation ใกล้ครบ (≤ 14 วัน)
-  empData.filter(e=>e.probationResult==='ทดลองงาน'&&e.startdate&&e.probationDays).forEach(e=>{
-    const due=new Date(e.startdate);due.setDate(due.getDate()+Number(e.probationDays));due.setHours(0,0,0,0);
-    const daysLeft=Math.round((due-today)/(1000*60*60*24));
-    if(daysLeft>=0&&daysLeft<=14){
-      alerts.push({type:'probation',icon:'🔄',color:daysLeft<=7?'var(--red)':'var(--yellow)',
-        title:`Probation ครบใน ${daysLeft} วัน`,
-        body:`${e.name} — ${e.pos} (${e.branch||'–'})`,
-        action:()=>showSection('probation',null)
+  // 2. Probation checkpoint รอประเมิน (due แล้วยังไม่ได้ประเมิน)
+  empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.status!=='ลาออก').forEach(e=>{
+    PROB_PERIODS.forEach(p=>{
+      const ev=getProbEval(e,p);
+      if(ev.result==='ผ่าน')return;
+      if(ev.result==='ไม่ผ่าน'&&ev.extendUntil&&today<=new Date(ev.extendUntil+'T00:00:00'))return;
+      const due=getProbDueDate(e,p);due.setHours(0,0,0,0);
+      const daysLeft=Math.round((due-today)/(1000*60*60*24));
+      if(daysLeft<=3){
+        alerts.push({type:'probation',icon:'🔄',color:daysLeft<0?'var(--red)':'var(--yellow)',
+          title:daysLeft<0?`Probation Day ${p} เกินกำหนด ${Math.abs(daysLeft)} วัน`:`Probation Day ${p} ครบใน ${daysLeft} วัน`,
+          body:`${e.name} — ${e.pos} (${e.branch||'–'})`,
+          action:()=>showSection('probation',null)
+        });
+      }
+    });
+  });
+
+  // 2a2. Training — พนักงานที่ยังไม่ผ่านครบ (เริ่มงาน >7 วัน)
+  empData.filter(e=>e.status!=='ลาออก'&&e.startdate).forEach(e=>{
+    if(trainStatus(e)==='ผ่านครบ')return;
+    const daysIn=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
+    if(daysIn<7)return; // grace period
+    const pending=trainingCourses.filter(c=>getTrainResult(e,c.id).result!=='ผ่าน').map(c=>c.name);
+    if(pending.length){
+      alerts.push({type:'training',icon:'🎓',color:'var(--yellow)',
+        title:`Training ยังไม่ครบ (${pending.length} หลักสูตร)`,
+        body:`${e.name} · ค้าง: ${pending.slice(0,2).join(', ')}${pending.length>2?` +${pending.length-2}`:''}`,
+        action:()=>showSection('training',null)
       });
     }
+  });
+
+  // 2b. ประกันสังคม — พนักงานใหม่ยังไม่ลงทะเบียน (<=60 วัน)
+  empData.filter(e=>e.status!=='ลาออก'&&!e.ssDate&&e.startdate).forEach(e=>{
+    const daysIn=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
+    if(daysIn>=0&&daysIn<=60){
+      alerts.push({type:'social-sec',icon:'🏥',color:'var(--yellow)',
+        title:`ยังไม่ลงทะเบียนประกันสังคม (เข้างาน ${daysIn} วัน)`,
+        body:`${e.name} — ${e.pos||e.position||''} (${e.branch||'–'})`,
+        action:()=>showSection('social-sec',null)
+      });
+    }
+  });
+
+  // 2c. ใบอนุญาติต่างด้าว — ใกล้หมดอายุหรือหมดแล้ว (ทั้ง 1ปี และ 90วัน)
+  empData.filter(e=>e.nationality&&e.nationality!=='ไทย'&&e.status!=='ลาออก').forEach(e=>{
+    const wp=e.workPermit||{};
+    [[wp.expireDate,'ใบอนุญาตทำงาน (1ปี)'],[wp.visaExpire,'Visa 90 วัน']].forEach(([dateStr,label])=>{
+      if(!dateStr)return;
+      const exp=new Date(dateStr+'T00:00:00');
+      const dl=Math.round((exp-today)/86400000);
+      if(dl<=60){
+        alerts.push({type:'work-permit',icon:'📄',color:dl<0?'var(--red)':'var(--yellow)',
+          title:dl<0?`${label} หมดอายุ ${Math.abs(dl)} วันแล้ว`:`${label} จะหมดใน ${dl} วัน`,
+          body:`${e.name} — ${e.nationality} (${e.branch||'–'}) · หมด ${dateStr}`,
+          action:()=>showSection('work-permit',null)
+        });
+      }
+    });
   });
 
   // 3. ตำแหน่งว่างค้างนาน (เกิน urgency threshold)
@@ -3009,7 +4167,7 @@ function loadFirestoreData(){
       if(!snap.exists||!_firestoreReady)return;
       applyData(snap.data());
       renderAlerts();
-      const dataSecs=['exec','workforce','probation','recruit','applicant','efficiency','interview','pending','monthly','entry-app','entry-pos','entry-emp'];
+      const dataSecs=['exec','workforce','probation','recruit','applicant','efficiency','interview','pending','monthly','social-sec','work-permit','training','entry-app','entry-pos','entry-emp'];
       if(dataSecs.includes(_currentSection)) renderSection(_currentSection);
     });
   }).catch(e=>{
