@@ -179,6 +179,7 @@ tr:hover td{background:#F0FAFA}
 
 /* MODAL */
 .overlay{display:none;position:fixed;inset:0;background:rgba(42,69,85,.5);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,42,56,.6);backdrop-filter:blur(4px);z-index:1000;justify-content:center;overflow-y:auto}
 .overlay.open{display:flex}
 .modal{background:#fff;border-radius:18px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 50px rgba(42,69,85,.2);animation:fadeIn .2s;border-top:4px solid var(--teal)}
 .modal h2{font-size:16px;font-weight:700;margin-bottom:18px;color:var(--primary-d)}
@@ -233,8 +234,65 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
 .user-table-card .table-card-header h3{font-size:14px;font-weight:700;color:var(--primary-d)}
 .user-row-actions{display:flex;gap:6px}
 
-@media(max-width:1200px){.cards-6{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:900px){.sidebar{display:none}.cards-4,.cards-3{grid-template-columns:repeat(2,1fr)}.row-2,.row-3,.row-32,.row-23{grid-template-columns:1fr}.content{padding:16px}}
+/* ====== RESPONSIVE ====== */
+@media(max-width:1200px){
+  .cards-6{grid-template-columns:repeat(3,1fr)}
+}
+/* Hamburger — hidden on desktop */
+.hamburger-btn{display:none;border:none;background:none;cursor:pointer;padding:6px 8px;border-radius:8px;font-size:22px;color:var(--primary);line-height:1;flex-shrink:0}
+.hamburger-btn:hover{background:var(--bg)}
+/* Sidebar overlay for mobile */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:498;-webkit-tap-highlight-color:transparent}
+.sidebar-overlay.active{display:block}
+
+@media(max-width:900px){
+  /* Sidebar slides in from left */
+  .sidebar{position:fixed;left:-260px;top:0;height:100vh;width:240px;z-index:499;transition:left .25s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.2)}
+  .sidebar.mobile-open{left:0}
+  /* Show hamburger */
+  .hamburger-btn{display:flex;align-items:center;justify-content:center}
+  /* Topbar adjustments */
+  .topbar{padding:0 12px;gap:8px}
+  .topbar-title{font-size:13px}
+  .topbar-date{display:none}
+  .filter-group{display:none}
+  /* Content */
+  .content{padding:14px 12px}
+  /* Cards */
+  .cards-4,.cards-3{grid-template-columns:repeat(2,1fr)}
+  .cards-6{grid-template-columns:repeat(2,1fr)}
+  /* Rows */
+  .row-2,.row-3,.row-32,.row-23{grid-template-columns:1fr}
+  /* Entry form */
+  .entry-grid{grid-template-columns:1fr 1fr}
+  /* Aging pills */
+  .aging-grid{grid-template-columns:repeat(2,1fr)}
+  /* HTML bar chart label */
+  .hbar-label{width:110px;min-width:110px;font-size:11px}
+  /* Section title icon */
+  .sec-title span{display:inline}
+  /* Print btn — icon only */
+  .print-btn-text{display:none}
+  /* Modal full-width */
+  .modal{width:95vw;padding:20px}
+  /* Table responsive */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Form grid */
+  .form-grid{grid-template-columns:1fr}
+  /* Topbar user area compact */
+  #topbarUser .role-badge{display:none}
+  /* Alert panel narrower */
+  #alertPanel{width:280px}
+}
+@media(max-width:540px){
+  .cards-4,.cards-3,.cards-6{grid-template-columns:1fr}
+  .entry-grid{grid-template-columns:1fr}
+  .aging-grid{grid-template-columns:repeat(2,1fr)}
+  .topbar-title{font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kpi-card .kpi-value{font-size:22px}
+  .hbar-label{width:80px;min-width:80px;font-size:10px}
+  #alertPanel{width:calc(100vw - 24px);right:-8px}
+}
 </style>
 </head>
 <body>
@@ -315,6 +373,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="nav-group">
     <div class="nav-label">รายละเอียด</div>
     <div class="nav-item" onclick="showSection('workforce',this)"><span class="icon">👥</span>สถานะกำลังคน</div>
+    <div class="nav-item" onclick="showSection('resign-analysis',this)"><span class="icon">📉</span>วิเคราะห์การลาออก</div>
     <div class="nav-item" onclick="showSection('recruit',this)"><span class="icon">🎯</span>สถานะการสรรหา</div>
     <div class="nav-item" onclick="showSection('applicant',this)"><span class="icon">📋</span>ข้อมูลผู้สมัคร</div>
     <div class="nav-item" onclick="showSection('efficiency',this)"><span class="icon">⚡</span>ประสิทธิภาพสรรหา</div>
@@ -332,12 +391,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="nav-group" id="adminDataNav">
     <div class="nav-label">จัดการข้อมูล</div>
     <div class="nav-item" onclick="showSection('entry-emp',this)"><span class="icon">🏢</span>ฐานข้อมูลพนักงาน</div>
-    <div class="nav-item" onclick="showSection('entry-pos',this)"><span class="icon">✏️</span>ตำแหน่งว่าง</div>
+    <div class="nav-item" id="navEntryPos" onclick="showSection('entry-pos',this)"><span class="icon">✏️</span>ตำแหน่งว่าง</div>
     <div class="nav-item" onclick="showSection('entry-app',this)"><span class="icon">📝</span>ผู้สมัคร</div>
   </div>
   <div class="nav-group" id="adminUserNav" style="display:none">
     <div class="nav-label">ผู้ดูแลระบบ</div>
     <div class="nav-item" onclick="showSection('manage-users',this)"><span class="icon">👤</span>จัดการทีม HR</div>
+    <div class="nav-item" id="navAuditLog" onclick="showSection('audit-log',this)" style="display:none"><span class="icon">🔍</span>Audit Log</div>
   </div>
   <!-- Sidebar user info -->
   <div id="sidebarUserInfo" style="margin-top:auto;padding:14px 14px 16px;border-top:1px solid rgba(255,255,255,.1);display:none">
@@ -348,9 +408,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   </div>
 </div>
 
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
 <!-- MAIN -->
 <div class="main-wrap">
 <div class="topbar">
+  <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileSidebar()" aria-label="เมนู">☰</button>
   <div class="topbar-title" id="sectionTitle">📊 Executive Summary</div>
   <div class="topbar-right">
     <div class="filter-group">
@@ -367,6 +431,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
     </div>
     <div id="topbarDate" class="topbar-date"></div>
     <div id="topbarUser" style="display:flex;align-items:center;gap:8px;padding-left:10px;border-left:1px solid var(--border)"></div>
+    <!-- Print Button -->
+    <button onclick="openPrintModal()" title="พิมพ์ / Export PDF" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;transition:all .15s" onmouseenter="this.style.background='#fff';this.style.borderColor='var(--teal)'" onmouseleave="this.style.background='var(--bg)';this.style.borderColor='var(--border)'">🖨️<span class="print-btn-text"> พิมพ์ / PDF</span></button>
     <!-- Alert Bell -->
     <div style="position:relative">
       <button id="alertBellBtn" onclick="toggleAlertPanel()" style="border:none;background:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='none'">
@@ -501,6 +567,93 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>Day 14</th><th>Day 30</th><th>Day 60</th><th>Day 90</th><th>จัดการ</th></tr></thead>
         <tbody id="probArchiveTbody"></tbody>
       </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESIGN ANALYSIS ===== -->
+<div class="section" id="sec-resign-analysis">
+
+  <!-- Section Header -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <div>
+      <div style="font-size:20px;font-weight:800;color:#1e293b;letter-spacing:-.3px">วิเคราะห์การลาออก</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">ข้อมูลรวมจากพนักงานที่ลาออกทั้งหมด · อัปเดตอัตโนมัติ</div>
+    </div>
+    <div id="resignInsightBadge" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div id="resignKpiCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px"></div>
+
+  <!-- Charts row: Trend (60%) + Reason (40%) -->
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:16px">
+    <div class="table-card" style="padding:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#1e293b">แนวโน้มการลาออกรายเดือน</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">ย้อนหลัง 8 เดือน</div>
+        </div>
+        <div id="resignTrendNote" style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600"></div>
+      </div>
+      <canvas id="resignTrendChart" height="140"></canvas>
+    </div>
+    <div class="table-card" style="padding:20px">
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:#1e293b">สาเหตุการลาออก</div>
+        <div id="resignTopReason" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+      </div>
+      <canvas id="resignReasonChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Branch horizontal bar -->
+  <div class="table-card" style="padding:20px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#1e293b">การลาออกแยกตามสาขา</div>
+        <div id="resignTopBranch" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+      </div>
+    </div>
+    <div id="resignBranchBars"></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card" style="padding:0;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);background:#fafafa">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#1e293b">รายชื่อผู้ลาออก</div>
+        <div id="resignTableCount" style="font-size:11px;color:var(--muted);margin-top:1px"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="resignFilterMonth" onchange="renderResignAnalysis()" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;background:#fff">
+          <option value="">📅 ทุกเดือน</option>
+        </select>
+        <select id="resignFilterBranch" onchange="renderResignAnalysis()" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;background:#fff">
+          <option value="">🏢 ทุกสาขา</option>
+        </select>
+        <select id="resignFilterReason" onchange="renderResignAnalysis()" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;background:#fff">
+          <option value="">🔍 ทุกสาเหตุ</option>
+        </select>
+        <button onclick="exportResignCSV()" style="background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fca5a5;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;color:#b91c1c;display:flex;align-items:center;gap:5px">⬇ Export CSV</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>ชื่อ-นามสกุล</th>
+            <th>ตำแหน่ง</th>
+            <th>สาขา</th>
+            <th>วันเริ่มงาน</th>
+            <th>วันลาออก</th>
+            <th>อยู่นาน</th>
+            <th>สาเหตุ</th>
+          </tr>
+        </thead>
+        <tbody id="resignTbody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -683,6 +836,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
           <option value="ลงทะเบียนแล้ว">ลงทะเบียนแล้ว</option>
           <option value="ยังไม่ลง">ยังไม่ลง</option>
         </select>
+        <button onclick="exportSSCSV()" style="border:1px solid var(--teal);background:var(--teal-light);color:var(--teal-d);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">⬇ Export CSV</button>
       </div>
     </div>
     <div class="table-wrap"><table>
@@ -743,14 +897,24 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="table-card" style="margin-top:20px">
     <div class="table-card-header">
       <h3>รายชื่อแรงงานต่างด้าว</h3>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="wp_filter" onchange="renderWorkPermit()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;outline:none">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap">🗂 WP:</span>
+        <select id="wp_filter" onchange="renderWorkPermit()" style="border:1px solid #93c5fd;border-radius:8px;padding:6px 10px;font-size:12px;outline:none;background:#eff6ff">
           <option value="">ทั้งหมด</option>
           <option value="ปกติ">ปกติ</option>
           <option value="ใกล้หมดอายุ">ใกล้หมดอายุ (≤60 วัน)</option>
           <option value="หมดอายุ">หมดอายุแล้ว</option>
           <option value="ไม่มีข้อมูล">ยังไม่มีข้อมูล</option>
         </select>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap">🔄 Visa:</span>
+        <select id="visa_filter" onchange="renderWorkPermit()" style="border:1px solid #86efac;border-radius:8px;padding:6px 10px;font-size:12px;outline:none;background:#f0fdf4">
+          <option value="">ทั้งหมด</option>
+          <option value="ปกติ">ปกติ</option>
+          <option value="ใกล้หมดอายุ">ใกล้หมดอายุ (≤60 วัน)</option>
+          <option value="หมดอายุ">หมดอายุแล้ว</option>
+          <option value="ไม่มีข้อมูล">ยังไม่มีข้อมูล</option>
+        </select>
+        <button onclick="exportWpCSV()" style="border:1px solid var(--teal);background:var(--teal-light);color:var(--teal-d);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600">⬇ Export CSV</button>
         <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="openWpModal(null)">+ เพิ่ม/แก้ไข</button>
       </div>
     </div>
@@ -1215,19 +1379,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="sec-title"><span>🏢</span>ฐานข้อมูลพนักงาน</div>
 
   <!-- IMPORT ZONE -->
-  <div class="entry-card" style="margin-bottom:16px">
-    <div class="entry-card-header" style="cursor:default">
-      <span>📥 นำเข้าข้อมูลจาก Excel</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <label class="btn btn-primary" style="cursor:pointer;font-size:12px;padding:6px 14px;margin:0">
-          📂 เลือกไฟล์ Excel
-          <input type="file" id="empExcelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importEmpExcel(this)">
-        </label>
-        <button class="btn" style="background:var(--bg);color:var(--muted);font-size:12px" onclick="downloadEmpTemplate()">⬇️ ดาวน์โหลด Template</button>
-      </div>
+  <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px dashed #93c5fd;border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+    <div>
+      <div style="font-size:14px;font-weight:700;color:#1e40af;margin-bottom:4px">📥 นำเข้าพนักงานจาก CSV / Excel</div>
+      <div style="font-size:12px;color:#3b82f6">อัปโหลดไฟล์ → ตรวจสอบ Preview → ยืนยันนำเข้า · รองรับ .csv / .xlsx / .xls</div>
     </div>
-    <div style="padding:10px 22px;font-size:12px;color:var(--muted);background:var(--bg)">
-      คอลัมน์ที่รองรับ: <strong>รหัสพนักงาน, ชื่อ-นามสกุล, ตำแหน่ง, แผนก, สาขา, วันที่เริ่มงาน (YYYY-MM-DD), สถานะ (ทำงานอยู่/ลาออก)</strong>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button onclick="downloadEmpTemplate()" style="background:#fff;border:1px solid #93c5fd;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;color:#1d4ed8;display:flex;align-items:center;gap:5px">
+        📄 ดาวน์โหลด Template
+      </button>
+      <label style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px #2563eb44">
+        📂 เลือกไฟล์และ Preview
+        <input type="file" id="empExcelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="openImportPreview(this)">
+      </label>
     </div>
   </div>
 
@@ -1428,10 +1592,161 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   </div>
 </div>
 
+<!-- ===== AUDIT LOG ===== -->
+<div class="section" id="sec-audit-log">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:var(--primary-d)">🔍 Audit Log</div>
+      <div id="auditCount" style="font-size:12px;color:var(--muted);margin-top:2px">0 รายการ</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="auditFilterAction" onchange="renderAuditLog()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;background:var(--bg)">
+        <option value="">ทุกการกระทำ</option>
+        <option value="เพิ่ม">เพิ่ม</option>
+        <option value="แก้ไข">แก้ไข</option>
+        <option value="ลบ">ลบ</option>
+        <option value="บันทึก">บันทึก</option>
+      </select>
+      <select id="auditFilterTarget" onchange="renderAuditLog()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;background:var(--bg)">
+        <option value="">ทุกหมวด</option>
+        <option value="พนักงาน">พนักงาน</option>
+        <option value="ผู้สมัคร">ผู้สมัคร</option>
+        <option value="ตำแหน่งว่าง">ตำแหน่งว่าง</option>
+        <option value="ประกันสังคม">ประกันสังคม</option>
+        <option value="ใบอนุญาตทำงาน">ใบอนุญาตทำงาน</option>
+        <option value="Training">Training</option>
+        <option value="Probation">Probation</option>
+        <option value="หลักสูตร">หลักสูตร</option>
+      </select>
+      <input id="auditFilterUser" oninput="renderAuditLog()" placeholder="🔎 ค้นหาผู้ใช้…" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;background:var(--bg);width:150px">
+      <button onclick="exportAuditCSV()" style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;color:#15803d">⬇ Export CSV</button>
+    </div>
+  </div>
+  <div class="table-card" style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>วันที่</th><th>เวลา</th><th>ผู้ใช้</th><th>การกระทำ</th><th>หมวด</th><th>ชื่อ/รายการ</th><th>รายละเอียด</th>
+        </tr>
+      </thead>
+      <tbody id="auditTbody"></tbody>
+    </table>
+  </div>
+</div>
+
 </div><!-- /content -->
 </div><!-- /main-wrap -->
 
 <!-- ===== MODALS ===== -->
+
+<!-- ===== PRINT / PDF MODAL ===== -->
+<div id="printModal" class="overlay" style="z-index:1001">
+  <div class="modal" style="width:480px;border-top:4px solid var(--teal)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--primary-d)">🖨️ พิมพ์ / Export PDF</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">เลือกรายงานที่ต้องการพิมพ์</div>
+      </div>
+      <button onclick="closePrintModal()" style="border:none;background:var(--bg);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--muted)">✕</button>
+    </div>
+
+    <!-- Report checkboxes -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg)" id="pchk_exec_wrap">
+        <input type="checkbox" id="pchk_exec" checked style="width:15px;height:15px;accent-color:var(--teal)">
+        <div><div style="font-size:13px;font-weight:600">📊 Executive Summary</div><div style="font-size:11px;color:var(--muted)">KPI ภาพรวม — กำลังคน, การสรรหา, Turnover</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg)">
+        <input type="checkbox" id="pchk_workforce" checked style="width:15px;height:15px;accent-color:var(--teal)">
+        <div><div style="font-size:13px;font-weight:600">👥 รายชื่อพนักงาน</div><div style="font-size:11px;color:var(--muted)">ตารางพนักงานที่ทำงานอยู่ทั้งหมด</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg)">
+        <input type="checkbox" id="pchk_resign" style="width:15px;height:15px;accent-color:var(--teal)">
+        <div><div style="font-size:13px;font-weight:600">📉 รายงานการลาออก</div><div style="font-size:11px;color:var(--muted)">รายชื่อและสาเหตุการลาออก</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg)">
+        <input type="checkbox" id="pchk_probation" style="width:15px;height:15px;accent-color:var(--teal)">
+        <div><div style="font-size:13px;font-weight:600">🔄 ติดตามทดลองงาน</div><div style="font-size:11px;color:var(--muted)">สถานะการผ่านโปรของพนักงานใหม่</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg)">
+        <input type="checkbox" id="pchk_ss" style="width:15px;height:15px;accent-color:var(--teal)">
+        <div><div style="font-size:13px;font-weight:600">🏥 ประกันสังคม</div><div style="font-size:11px;color:var(--muted)">รายชื่อและสถานะการลงทะเบียนประกันสังคม</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg)">
+        <input type="checkbox" id="pchk_wp" style="width:15px;height:15px;accent-color:var(--teal)">
+        <div><div style="font-size:13px;font-weight:600">📄 ใบอนุญาตทำงาน & Visa</div><div style="font-size:11px;color:var(--muted)">รายชื่อแรงงานต่างด้าวและสถานะเอกสาร</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg)">
+        <input type="checkbox" id="pchk_training" style="width:15px;height:15px;accent-color:var(--teal)">
+        <div><div style="font-size:13px;font-weight:600">🎓 สรุปการอบรม</div><div style="font-size:11px;color:var(--muted)">สถานะ Training ของพนักงานในช่วงทดลองงาน</div></div>
+      </label>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button onclick="closePrintModal()" style="flex:1;border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:10px;font-size:13px;cursor:pointer;font-weight:600;color:var(--muted)">ยกเลิก</button>
+      <button onclick="executePrint()" style="flex:2;background:linear-gradient(135deg,var(--teal),var(--teal-d));border:none;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(32,178,170,.35)">🖨️ สร้างรายงานและพิมพ์</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BULK IMPORT PREVIEW MODAL ===== -->
+<div id="importPreviewModal" class="modal-overlay" style="display:none;align-items:flex-start;padding-top:40px">
+  <div style="background:#fff;border-radius:16px;width:92%;max-width:1000px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1e40af,#2563eb);padding:20px 24px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff">📥 Preview ก่อนนำเข้าข้อมูล</div>
+        <div id="importPreviewSummary" style="font-size:12px;color:rgba(255,255,255,.75);margin-top:3px"></div>
+      </div>
+      <button onclick="closeImportPreview()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:7px 14px;color:#fff;font-size:13px;cursor:pointer;font-weight:600">✕ ปิด</button>
+    </div>
+
+    <!-- Step indicators -->
+    <div style="display:flex;padding:14px 24px;gap:8px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+      <div id="impStep1" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#dbeafe;color:#1d4ed8">✅ 1. อัปโหลด</div>
+      <div style="color:#cbd5e1;padding:5px 0">→</div>
+      <div id="impStep2" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#dbeafe;color:#1d4ed8">👁 2. ตรวจสอบ</div>
+      <div style="color:#cbd5e1;padding:5px 0">→</div>
+      <div id="impStep3" style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#f1f5f9;color:#94a3b8">⬆ 3. นำเข้า</div>
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+        <div id="impStatNew" style="font-size:12px;padding:4px 12px;border-radius:20px;background:#f0fdf4;color:#15803d;font-weight:600"></div>
+        <div id="impStatUpdate" style="font-size:12px;padding:4px 12px;border-radius:20px;background:#fffbeb;color:#92400e;font-weight:600"></div>
+        <div id="impStatError" style="font-size:12px;padding:4px 12px;border-radius:20px;background:#fef2f2;color:#b91c1c;font-weight:600"></div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow:auto;flex:1;padding:16px 24px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#f8fafc;position:sticky;top:0">
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0;white-space:nowrap">#</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">สถานะ</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">รหัส</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">ชื่อ-นามสกุล</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">ตำแหน่ง</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">แผนก</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">สาขา</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">วันเริ่มงาน</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">สัญชาติ</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">สถานะพนักงาน</th>
+            <th style="padding:8px 10px;text-align:left;color:var(--muted);font-size:11px;border-bottom:1px solid #e2e8f0">หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody id="importPreviewTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:16px 24px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="font-size:12px;color:var(--muted)">⚠️ แถวที่มีข้อผิดพลาด (❌) จะถูกข้ามในการนำเข้า</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeImportPreview()" style="border:1px solid var(--border);background:#fff;border-radius:8px;padding:8px 18px;font-size:13px;cursor:pointer;font-weight:600;color:var(--muted)">ยกเลิก</button>
+        <button id="importConfirmBtn" onclick="confirmImport()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;border-radius:8px;padding:8px 22px;font-size:13px;cursor:pointer;font-weight:700;color:#fff;box-shadow:0 2px 8px #2563eb44">✅ ยืนยันนำเข้า</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Resign Modal -->
 <div class="overlay" id="resignModal">
@@ -1737,6 +2052,7 @@ let branchTargets=[
 ];
 let nextEid=15;
 let nextRid=6,nextPid=7,nextAid=13;
+let auditLog=[];
 let chartInstances={};
 
 // ===================== UTILS =====================
@@ -1745,15 +2061,109 @@ const fmtDate=d=>d?new Date(d).toLocaleDateString('th-TH',{day:'numeric',month:'
 const daysSince=d=>{if(!d)return 0;return Math.floor((new Date()-new Date(d))/(1000*60*60*24));};
 const mkChart=(id,cfg)=>{const c=document.getElementById(id);if(!c)return;if(chartInstances[id])chartInstances[id].destroy();chartInstances[id]=new Chart(c,cfg);return chartInstances[id];};
 
+// ===================== PERMISSIONS =====================
+const ADMIN_ONLY_SECTIONS = ['entry-pos','manage-users','audit-log'];
+function isAdmin(){ return _currentUserRole==='admin'; }
+function adminBtn(html){ return isAdmin()?html:''; }
+function applyRoleUI(){
+  // entry-pos nav: admin only
+  const ep=document.getElementById('navEntryPos');
+  if(ep) ep.style.display=isAdmin()?'':'none';
+  // audit-log nav: admin only
+  const al=document.getElementById('navAuditLog');
+  if(al) al.style.display=isAdmin()?'':'none';
+  // manage-users nav: admin only (already handled by adminUserNav)
+}
+
+// ===================== AUDIT LOG =====================
+function logAudit(action, target, name, detail=''){
+  auditLog.unshift({
+    ts: new Date().toISOString(),
+    user: _currentUserName||_currentUser?.email||'unknown',
+    role: _currentUserRole||'hr',
+    action,   // 'เพิ่ม' | 'แก้ไข' | 'ลบ' | 'บันทึก'
+    target,   // 'พนักงาน' | 'ผู้สมัคร' | 'ตำแหน่งว่าง' | 'Training' | 'Probation' | 'SS' | 'WP' | 'หลักสูตร'
+    name,
+    detail
+  });
+  if(auditLog.length>500) auditLog.length=500; // cap
+}
+function renderAuditLog(){
+  const filterAction=document.getElementById('auditFilterAction')?.value||'';
+  const filterTarget=document.getElementById('auditFilterTarget')?.value||'';
+  const filterUser=document.getElementById('auditFilterUser')?.value.trim().toLowerCase()||'';
+  let rows=auditLog;
+  if(filterAction) rows=rows.filter(r=>r.action===filterAction);
+  if(filterTarget) rows=rows.filter(r=>r.target===filterTarget);
+  if(filterUser) rows=rows.filter(r=>(r.user||'').toLowerCase().includes(filterUser));
+  const actionColor={
+    'เพิ่ม':'#10b981','แก้ไข':'#3b82f6','ลบ':'#ef4444','บันทึก':'#f59e0b'
+  };
+  const tbody=document.getElementById('auditTbody');
+  if(!tbody) return;
+  tbody.innerHTML=rows.length?rows.map((r,i)=>{
+    const dt=new Date(r.ts);
+    const dateStr=dt.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'});
+    const timeStr=dt.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const col=actionColor[r.action]||'#6b7280';
+    return `<tr>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${dateStr}</td>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${timeStr}</td>
+      <td style="font-size:12px;font-weight:600">${r.user||'-'}</td>
+      <td><span style="background:${col}22;color:${col};border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">${r.action}</span></td>
+      <td style="font-size:12px">${r.target||'-'}</td>
+      <td style="font-size:12px;font-weight:600">${r.name||'-'}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.detail||'-'}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px">ไม่มี Log${filterAction||filterTarget||filterUser?' สำหรับตัวกรองนี้':''}</td></tr>`;
+  document.getElementById('auditCount').textContent=`${rows.length} รายการ (ทั้งหมด ${auditLog.length})`;
+}
+function exportAuditCSV(){
+  const header=['วันที่','เวลา','ผู้ใช้','Role','การกระทำ','หมวด','ชื่อ','รายละเอียด'];
+  const rows=auditLog.map(r=>{
+    const dt=new Date(r.ts);
+    return [
+      dt.toLocaleDateString('th-TH'),
+      dt.toLocaleTimeString('th-TH'),
+      r.user||'',r.role||'',r.action||'',r.target||'',r.name||'',r.detail||''
+    ];
+  });
+  dlCSV([header,...rows],`audit_log_${new Date().toISOString().split('T')[0]}.csv`);
+}
+
 // ===================== NAV =====================
-const titles={exec:'📊 Executive Summary',workforce:'👥 สถานะกำลังคน',probation:'🔄 ติดตามทดลองงาน',recruit:'🎯 สถานะการสรรหา',applicant:'📋 ข้อมูลผู้สมัคร',efficiency:'⚡ ประสิทธิภาพการสรรหา',interview:'🗓️ นัดสัมภาษณ์',pending:'📅 รายงานรอเริ่มงาน',monthly:'📈 สรุปรายเดือน','manage-users':'👤 จัดการทีม HR'};
+const titles={
+  'exec':'📊 Executive Summary',
+  'workforce':'👥 สถานะกำลังคน',
+  'resign-analysis':'📉 วิเคราะห์การลาออก',
+  'probation':'🔄 ติดตามทดลองงาน',
+  'recruit':'🎯 สถานะการสรรหา',
+  'applicant':'📋 ข้อมูลผู้สมัคร',
+  'efficiency':'⚡ ประสิทธิภาพการสรรหา',
+  'interview':'🗓️ นัดสัมภาษณ์',
+  'pending':'📅 รายงานรอเริ่มงาน',
+  'monthly':'📈 สรุปรายเดือน',
+  'social-sec':'🏥 ประกันสังคม',
+  'work-permit':'📄 ใบอนุญาตทำงาน & Visa',
+  'training':'🎓 การอบรม',
+  'entry-pos':'✏️ จัดการตำแหน่งว่าง',
+  'entry-app':'📝 จัดการข้อมูลผู้สมัคร',
+  'entry-emp':'🏢 ฐานข้อมูลพนักงาน',
+  'manage-users':'👤 จัดการทีม HR',
+  'audit-log':'🔍 Audit Log',
+};
 function showSection(id,el){
+  if(ADMIN_ONLY_SECTIONS.includes(id)&&!isAdmin()){
+    alert('⛔ สิทธิ์ไม่เพียงพอ — เฉพาะ Admin เท่านั้น');return;
+  }
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   document.getElementById('sectionTitle').textContent=titles[id]||id;
   renderSection(id);
+  // Close mobile sidebar after navigation
+  if(window.innerWidth<=900) closeMobileSidebar();
 }
 function renderSection(id){
   if(id==='exec')renderExec();
@@ -1768,6 +2178,7 @@ function renderSection(id){
   else if(id==='social-sec')renderSocialSec();
   else if(id==='work-permit')renderWorkPermit();
   else if(id==='training')renderTraining();
+  else if(id==='resign-analysis')renderResignAnalysis();
 }
 
 // ===================== EXEC =====================
@@ -1971,6 +2382,164 @@ function renderWorkforce(){
   `).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">ไม่มีรายการลาออกในช่วงเวลาที่เลือก</td></tr>';
 }
 
+// ===================== RESIGN ANALYSIS =====================
+function _getResignedAll(){
+  // Merge resignData + empData(status=ลาออก) without duplicates
+  const merged = [...resignData.map(r=>({...r, _src:'resign'}))];
+  empData.filter(e=>e.status==='ลาออก').forEach(e=>{
+    const dup = merged.find(r=>r.name===e.name&&(r.branch||'')===(e.branch||''));
+    if(!dup) merged.push({id:e.id,name:e.name,pos:e.pos||e.position||'',dept:e.dept||'',branch:e.branch||'',date:e.enddate||'',reason:e.reason||'',startdate:e.startdate||'',_src:'emp'});
+    else if(!dup.startdate) dup.startdate=e.startdate||''; // enrich with startdate
+  });
+  // Also enrich resignData entries with startdate from empData
+  merged.forEach(r=>{
+    if(!r.startdate){
+      const match=empData.find(e=>e.name===r.name&&(e.branch||'')===(r.branch||''));
+      if(match) r.startdate=match.startdate||'';
+    }
+  });
+  return merged;
+}
+function renderResignAnalysis(){
+  const all = _getResignedAll();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const activeEmp = empData.filter(e=>e.status!=='ลาออก').length;
+  const totalEmp = activeEmp + all.length || 1;
+
+  // ---- Computed values ----
+  const thisMonth = all.filter(r=>{if(!r.date)return false;const d=new Date(r.date);return d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth();});
+  const lastMonth = all.filter(r=>{if(!r.date)return false;const d=new Date(r.date);const lm=new Date(today);lm.setMonth(lm.getMonth()-1);return d.getFullYear()===lm.getFullYear()&&d.getMonth()===lm.getMonth();});
+  const delta = thisMonth.length - lastMonth.length;
+  const turnoverRate = (all.length/totalEmp*100).toFixed(1);
+  const tenures = all.filter(r=>r.startdate&&r.date).map(r=>Math.round((new Date(r.date)-new Date(r.startdate))/86400000));
+  const avgTenure = tenures.length?Math.round(tenures.reduce((a,b)=>a+b,0)/tenures.length):0;
+  const avgTenureStr = avgTenure>=365?`${Math.floor(avgTenure/365)} ปี ${Math.floor((avgTenure%365)/30)} เดือน`:avgTenure>=30?`${Math.floor(avgTenure/30)} เดือน`:`${avgTenure} วัน`;
+
+  // ---- Reason map ----
+  const reasonMap={};
+  all.forEach(r=>{const k=r.reason||'ไม่ระบุ';reasonMap[k]=(reasonMap[k]||0)+1;});
+  const reasons=Object.keys(reasonMap).sort((a,b)=>reasonMap[b]-reasonMap[a]);
+  const rCounts=reasons.map(r=>reasonMap[r]);
+  const topReason=reasons[0]||'–';
+
+  // ---- Branch map ----
+  const branchMap={};
+  all.forEach(r=>{const k=r.branch||'ไม่ระบุ';branchMap[k]=(branchMap[k]||0)+1;});
+  const branches=Object.keys(branchMap).sort((a,b)=>branchMap[b]-branchMap[a]);
+  const topBranch=branches[0]||'–';
+  const maxBranchVal=branchMap[topBranch]||1;
+
+  // ---- Insight badges ----
+  const insights=[];
+  if(delta>0) insights.push(`<span style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600">⚠️ เดือนนี้เพิ่มขึ้น ${delta} ราย</span>`);
+  else if(delta<0) insights.push(`<span style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600">✅ เดือนนี้ลดลง ${Math.abs(delta)} ราย</span>`);
+  if(topReason!=='–') insights.push(`<span style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600">🔍 สาเหตุหลัก: ${topReason}</span>`);
+  document.getElementById('resignInsightBadge').innerHTML=insights.join('');
+
+  // ---- KPI Cards ----
+  const deltaArrow=delta>0?`<span style="color:#ef4444;font-size:11px">▲ ${delta}</span>`:delta<0?`<span style="color:#10b981;font-size:11px">▼ ${Math.abs(delta)}</span>`:`<span style="color:var(--muted);font-size:11px">— เท่าเดิม</span>`;
+  const kpis=[
+    {label:'ลาออกสะสม',value:all.length,unit:'ราย',sub:'ทั้งหมด',icon:'👥',grad:'linear-gradient(135deg,#f8fafc,#f1f5f9)',border:'#cbd5e1',valColor:'#1e293b'},
+    {label:'ลาออกเดือนนี้',value:thisMonth.length,unit:'ราย',sub:deltaArrow+` vs เดือนก่อน`,icon:'📉',grad:'linear-gradient(135deg,#fff1f2,#ffe4e6)',border:'#fecaca',valColor:'#be123c'},
+    {label:'Turnover Rate',value:turnoverRate+'%',unit:'',sub:'คิดจากพนักงานทั้งหมด',icon:'📊',grad:'linear-gradient(135deg,#fffbeb,#fef3c7)',border:'#fcd34d',valColor:'#b45309'},
+    {label:'อยู่นานเฉลี่ย',value:avgTenureStr,unit:'',sub:'ก่อนลาออก',icon:'⏱️',grad:'linear-gradient(135deg,#eff6ff,#dbeafe)',border:'#93c5fd',valColor:'#1d4ed8'},
+  ];
+  document.getElementById('resignKpiCards').innerHTML=kpis.map(k=>`
+    <div style="background:${k.grad};border:1px solid ${k.border};border-radius:14px;padding:18px 20px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:12px;right:14px;font-size:26px;opacity:.18">${k.icon}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">${k.label}</div>
+      <div style="font-size:${k.value.toString().length>7?'20px':'28px'};font-weight:800;color:${k.valColor};line-height:1.1;margin-bottom:4px">${k.value}<span style="font-size:13px;font-weight:500;margin-left:3px;opacity:.7">${k.unit}</span></div>
+      <div style="font-size:11px;color:var(--muted)">${k.sub}</div>
+    </div>`).join('');
+
+  // ---- Trend Chart ----
+  const trendMonths=[]; const trendCounts=[];
+  for(let i=7;i>=0;i--){
+    const d=new Date(today);d.setDate(1);d.setMonth(d.getMonth()-i);
+    trendMonths.push(d.toLocaleDateString('th-TH',{month:'short',year:'2-digit'}));
+    trendCounts.push(all.filter(r=>{if(!r.date)return false;const rd=new Date(r.date);return rd.getFullYear()===d.getFullYear()&&rd.getMonth()===d.getMonth();}).length);
+  }
+  const maxTrend=Math.max(...trendCounts,1);
+  const trendNote=document.getElementById('resignTrendNote');
+  if(trendNote){const last=trendCounts[trendCounts.length-1];const prev=trendCounts[trendCounts.length-2]||0;if(last>prev){trendNote.style.cssText='font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:#fef2f2;color:#b91c1c';}else if(last<prev){trendNote.style.cssText='font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:#f0fdf4;color:#15803d';}else{trendNote.style.cssText='font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:#f1f5f9;color:#64748b';}trendNote.textContent=last>prev?`▲ เพิ่มขึ้น`:last<prev?`▼ ลดลง`:`— เท่าเดิม`;}
+  mkChart('resignTrendChart',{type:'bar',data:{labels:trendMonths,datasets:[{label:'ราย',data:trendCounts,backgroundColor:trendCounts.map((v,i)=>i===trendCounts.length-1?'#be123c':v>=maxTrend*0.7?'#f87171':'#fca5a5'),borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw} ราย`}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+
+  // ---- Reason Chart (doughnut) ----
+  const rColors=['#be123c','#b45309','#c2410c','#6d28d9','#0e7490','#1d4ed8','#047857','#94a3b8'];
+  document.getElementById('resignTopReason').textContent=topReason!=='–'?`สาเหตุหลัก: ${topReason} (${reasonMap[topReason]} ราย)`:'';
+  mkChart('resignReasonChart',{type:'doughnut',data:{labels:reasons,datasets:[{data:rCounts,backgroundColor:rColors.slice(0,reasons.length),hoverOffset:10,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:10,padding:10,usePointStyle:true}}}}});
+
+  // ---- Branch Horizontal Bars (HTML, not canvas) ----
+  document.getElementById('resignTopBranch').textContent=topBranch!=='–'?`สาขาที่ลาออกมากสุด: ${topBranch} (${branchMap[topBranch]} ราย)`:'';
+  document.getElementById('resignBranchBars').innerHTML=branches.map((b,i)=>{
+    const pct=Math.round(branchMap[b]/maxBranchVal*100);
+    const barColor=i===0?'#be123c':i===1?'#f87171':'#fca5a5';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:600;color:#374151">${b}</span>
+        <span style="font-size:12px;font-weight:700;color:${barColor}">${branchMap[b]} ราย</span>
+      </div>
+      <div style="background:#f1f5f9;border-radius:99px;height:10px;overflow:hidden">
+        <div style="background:${barColor};width:${pct}%;height:100%;border-radius:99px;transition:width .4s ease"></div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">ไม่มีข้อมูล</div>';
+
+  // ---- Populate Filters ----
+  const monthSel=document.getElementById('resignFilterMonth');
+  const allMonthsSet=new Set(all.filter(r=>r.date).map(r=>{const d=new Date(r.date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}));
+  const prevMonth=monthSel.value;
+  monthSel.innerHTML='<option value="">📅 ทุกเดือน</option>'+[...allMonthsSet].sort().reverse().map(m=>{const[y,mo]=m.split('-');const label=new Date(+y,+mo-1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});return `<option value="${m}">${label}</option>`;}).join('');
+  if(prevMonth) monthSel.value=prevMonth;
+
+  const branchSel=document.getElementById('resignFilterBranch');
+  const prevBranch=branchSel.value;
+  branchSel.innerHTML='<option value="">🏢 ทุกสาขา</option>'+branches.map(b=>`<option value="${b}">${b}</option>`).join('');
+  if(prevBranch) branchSel.value=prevBranch;
+
+  const reasonSel=document.getElementById('resignFilterReason');
+  const prevReason=reasonSel.value;
+  reasonSel.innerHTML='<option value="">🔍 ทุกสาเหตุ</option>'+reasons.map(r=>`<option value="${r}">${r}</option>`).join('');
+  if(prevReason) reasonSel.value=prevReason;
+
+  // ---- Table ----
+  const fMonth=monthSel.value; const fBranch=branchSel.value; const fReason=reasonSel.value;
+  let rows=all;
+  if(fMonth) rows=rows.filter(r=>{if(!r.date)return false;const d=new Date(r.date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`===fMonth;});
+  if(fBranch) rows=rows.filter(r=>(r.branch||'ไม่ระบุ')===fBranch);
+  if(fReason) rows=rows.filter(r=>(r.reason||'ไม่ระบุ')===fReason);
+  rows.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const tc=document.getElementById('resignTableCount');
+  if(tc) tc.textContent=`แสดง ${rows.length} จาก ${all.length} ราย`;
+  const reasonColors={'ค่าตอบแทน':'#fef2f2::#b91c1c','ได้งานใหม่':'#fffbeb::#92400e','ความก้าวหน้า':'#f0fdf4::#15803d','ย้ายที่อยู่':'#eff6ff::#1d4ed8'};
+  document.getElementById('resignTbody').innerHTML=rows.length?rows.map((r,i)=>{
+    const tenure=r.startdate&&r.date?Math.round((new Date(r.date)-new Date(r.startdate))/86400000):null;
+    const tenureStr=tenure===null?'–':tenure>=365?`${Math.floor(tenure/365)}ปี ${Math.floor((tenure%365)/30)}ด.`:tenure>=30?`${Math.floor(tenure/30)} เดือน`:`${tenure} วัน`;
+    const tenureBg=tenure===null?'transparent':tenure<90?'#fef2f2':tenure<365?'#fffbeb':'#f0fdf4';
+    const tenureColor=tenure===null?'var(--muted)':tenure<90?'#b91c1c':tenure<365?'#92400e':'#15803d';
+    const rc=reasonColors[r.reason]?.split('::')||['#f8fafc','#64748b'];
+    return `<tr>
+      <td style="color:var(--muted);font-size:12px">${i+1}</td>
+      <td><div style="font-weight:700;font-size:13px">${r.name||'-'}</div><div style="font-size:11px;color:var(--muted)">${r.pos||'-'}</div></td>
+      <td style="font-size:12px;color:var(--muted)">${r.branch||'-'}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.startdate?fmtDate(r.startdate):'–'}</td>
+      <td style="font-size:12px;font-weight:600;color:#b91c1c">${r.date?fmtDate(r.date):'–'}</td>
+      <td><span style="background:${tenureBg};color:${tenureColor};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700">${tenureStr}</span></td>
+      <td><span style="background:${rc[0]};color:${rc[1]};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600">${r.reason||'ไม่ระบุ'}</span></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px;font-size:13px">ไม่มีข้อมูล${fMonth||fBranch||fReason?' สำหรับตัวกรองนี้':''}</td></tr>`;
+}
+function exportResignCSV(){
+  const all=_getResignedAll();
+  all.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const header=['ชื่อ-นามสกุล','ตำแหน่ง','แผนก','สาขา','วันเริ่มงาน','วันลาออก','อยู่นาน (วัน)','สาเหตุ'];
+  const rows=all.map(r=>{
+    const tenure=r.startdate&&r.date?Math.round((new Date(r.date)-new Date(r.startdate))/86400000):'';
+    return [r.name||'',r.pos||'',r.dept||'',r.branch||'',r.startdate||'',r.date||'',tenure,r.reason||''];
+  });
+  dlCSV([header,...rows],`resign_analysis_${new Date().toISOString().split('T')[0]}.csv`);
+}
+
 // ===================== RECRUIT STATUS =====================
 function renderRecruit(){
   const totalPos=posData.length;
@@ -2075,7 +2644,7 @@ function renderAppTable(){
       <td>${a.channel}</td><td>${fmtDate(a.date)}</td>
       <td><span class="badge ${statusColor[a.status]||'badge-gray'}">${a.status}</span></td>
       <td style="color:var(--muted)">${a.reason||'–'}</td><td>${a.rec}</td>
-      <td><button class="btn-sm btn-del" onclick="deleteApp(${a.id})">ลบ</button></td>
+      <td>${adminBtn(`<button class="btn-sm btn-del" onclick="deleteApp(${a.id})">ลบ</button>`)}</td>
     </tr>
   `).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px">ไม่พบข้อมูล</td></tr>';
 }
@@ -2236,6 +2805,7 @@ function saveSsModal() {
   emp.ssCompany = document.getElementById('ss_company').value;
   emp.ssHospital = document.getElementById('ss_hospital').value;
   emp.ssNote = document.getElementById('ss_note').value;
+  logAudit('แก้ไข','ประกันสังคม',emp.name,`บริษัท: ${emp.ssCompany||'-'} | วันเข้า: ${emp.ssDate||'-'}`);
   saveToStorage();
   closeModal('ssModal');
   renderSocialSec();
@@ -2266,6 +2836,7 @@ function _wpOverallStatus(e, today) {
 
 function renderWorkPermit() {
   const filter = document.getElementById('wp_filter')?.value || '';
+  const visaFilterVal = document.getElementById('visa_filter')?.value || '';
   const today = new Date(); today.setHours(0,0,0,0);
   const foreign = empData.filter(e => e.nationality && e.nationality !== 'ไทย' && e.status !== 'ลาออก');
 
@@ -2301,9 +2872,10 @@ function renderWorkPermit() {
     <div style="font-size:12px;color:#14532d">${k.label}</div>
   </div>`).join('');
 
-  // ===== Combined Table =====
+  // ===== Combined Table (filter แยก WP + Visa) =====
   let rows = foreign;
-  if(filter) rows = foreign.filter(e=>_wpOverallStatus(e,today)===filter);
+  if(filter) rows = rows.filter(e=>_wpBadge((e.workPermit||{}).expireDate,today).status===filter);
+  if(visaFilterVal) rows = rows.filter(e=>_wpBadge((e.workPermit||{}).visaExpire,today).status===visaFilterVal);
   document.getElementById('wpTbody').innerHTML = rows.length ? rows.map((e,i)=>{
     const wp = e.workPermit||{};
     const perm = _wpBadge(wp.expireDate, today);
@@ -2403,6 +2975,7 @@ function saveWpModal() {
     visaExpire:     document.getElementById('wp_visa_expire').value,
     note:           document.getElementById('wp_note').value,
   };
+  logAudit('แก้ไข','ใบอนุญาตทำงาน',emp.name,`WP หมดอายุ: ${emp.workPermit.expireDate||'-'} | Visa หมดอายุ: ${emp.workPermit.visaExpire||'-'}`);
   saveToStorage();
   closeModal('wpModal');
   renderWorkPermit();
@@ -2581,6 +3154,8 @@ function saveTrainEval() {
     maxScore: maxScore ? +maxScore : 100,
     note: document.getElementById('trainEvalNote').value,
   };
+  const courseName=trainingCourses.find(c=>c.id===_trainCourseId)?.name||_trainCourseId;
+  logAudit('บันทึก','Training',emp.name,`${courseName} → ${_trainResult}`);
   saveToStorage(); closeModal('trainEvalModal'); renderTraining();
 }
 
@@ -2601,7 +3176,7 @@ function renderCourseList() {
   document.getElementById('courseList').innerHTML = trainingCourses.map((c,i)=>`
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
       <span style="flex:1;font-size:13px">📚 ${c.name}${c.noEval?'<span style="margin-left:6px;font-size:10px;background:#dbeafe;color:#1e40af;padding:1px 6px;border-radius:10px">ไม่มีวัดผล</span>':''}</span>
-      <button onclick="deleteCourse(${c.id})" style="background:#fde8e8;color:#c0392b;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">🗑 ลบ</button>
+      ${adminBtn(`<button onclick="deleteCourse(${c.id})" style="background:#fde8e8;color:#c0392b;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">🗑 ลบ</button>`)}
     </div>`).join('') || '<p style="color:var(--muted);font-size:13px">ยังไม่มีหลักสูตร</p>';
 }
 
@@ -2615,7 +3190,10 @@ function addCourse() {
 }
 
 function deleteCourse(id) {
+  if(!isAdmin()){alert('⛔ เฉพาะ Admin เท่านั้น');return;}
+  const c=trainingCourses.find(x=>x.id===id);
   if(!confirm('ลบหลักสูตรนี้? ผลการอบรมที่บันทึกไว้จะยังคงอยู่')) return;
+  logAudit('ลบ','หลักสูตร',c?.name||id,'');
   trainingCourses = trainingCourses.filter(c=>c.id!==id);
   renderCourseList();
 }
@@ -2673,8 +3251,8 @@ function saveApp(){
   appData.push({id:++nextAid,name,pos,branch:document.getElementById('a_branch').value,channel:document.getElementById('a_channel').value,date:document.getElementById('a_date').value,status:document.getElementById('a_status').value,startdate:document.getElementById('a_startdate').value,rec:document.getElementById('a_rec').value,reason:document.getElementById('a_reason').value,note:document.getElementById('a_note').value});
   closeModal('appModal');renderApplicant();
 }
-function deletePos(id){if(confirm('ลบตำแหน่งนี้?')){posData=posData.filter(p=>p.id!==id);renderRecruit();}}
-function deleteApp(id){if(confirm('ลบผู้สมัครนี้?')){appData=appData.filter(a=>a.id!==id);renderApplicant();}}
+function deletePos(id){if(!isAdmin()){alert('⛔ เฉพาะ Admin');return;}const p=posData.find(x=>x.id===id);if(confirm('ลบตำแหน่งนี้?')){logAudit('ลบ','ตำแหน่งว่าง',p?.pos||id,'');posData=posData.filter(p=>p.id!==id);renderRecruit();}}
+function deleteApp(id){if(!isAdmin()){alert('⛔ เฉพาะ Admin');return;}const a=appData.find(x=>x.id===id);if(confirm('ลบผู้สมัครนี้?')){logAudit('ลบ','ผู้สมัคร',a?.name||id,'');appData=appData.filter(a=>a.id!==id);renderApplicant();}}
 
 
 // ===================== MODAL =====================
@@ -2944,6 +3522,7 @@ function saveProbEval() {
     emp.probationResult = 'ผ่านโปร';
     emp.status = 'ทำงานอยู่';
   }
+  logAudit('บันทึก','Probation',emp.name,`Day ${_probEvalPeriod} → ${_probEvalResult}${extendUntil?' (ต่อถึง '+extendUntil+')':''}`);
   saveToStorage();
   closeModal('probEvalModal');
   renderProbation();
@@ -3080,6 +3659,7 @@ function saveEmpEntry(){
   if(prevStatus==='ลาออก'&&obj.status!=='ลาออก'){
     resignData=resignData.filter(r=>!(r.name===obj.name&&r.branch===obj.branch));
   }
+  logAudit(editingEmpId?'แก้ไข':'เพิ่ม','พนักงาน',obj.name,`ตำแหน่ง: ${obj.pos} | สาขา: ${obj.branch||'-'} | สถานะ: ${obj.status}`);
   saveToStorage();cancelEmpEdit();renderEmpTable();renderEmpKpi();flashSave('empSaveInd');
 }
 
@@ -3110,7 +3690,10 @@ function editEmpEntry(id){
 }
 
 function deleteEmpEntry(id){
+  if(!isAdmin()){alert('⛔ เฉพาะ Admin เท่านั้น');return;}
+  const e=empData.find(x=>x.id===id);
   if(!confirm('ลบข้อมูลพนักงานคนนี้?'))return;
+  logAudit('ลบ','พนักงาน',e?.name||id,'');
   empData=empData.filter(e=>e.id!==id);
   saveToStorage();renderEmpTable();renderEmpKpi();
 }
@@ -3303,7 +3886,7 @@ function renderEmpTable(){
         if(st==='กำลังฝึก') return `<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:10px">📚 ${done}/${total}</span>`;
         return `<span style="background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:10px;font-size:10px">⏳ 0/${total}</span>`;
       })()}</td>
-      <td><button class="tbl-edit-btn" onclick="editEmpEntry(${e.id})">แก้ไข</button><button class="tbl-del-btn" onclick="deleteEmpEntry(${e.id})">ลบ</button></td>
+      <td><button class="tbl-edit-btn" onclick="editEmpEntry(${e.id})">แก้ไข</button>${adminBtn(`<button class="tbl-del-btn" onclick="deleteEmpEntry(${e.id})">ลบ</button>`)}</td>
     </tr>`;
   }).join('')
     :'<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:28px">ไม่พบพนักงานตามเงื่อนไข</td></tr>';
@@ -3313,93 +3896,167 @@ function renderEmpTable(){
 }
 
 // ===================== IMPORT EXCEL =====================
-function importEmpExcel(input){
-  const file=input.files[0];if(!file)return;
+// ===== BULK IMPORT =====
+let _importRows = []; // parsed & validated rows ready for confirmImport
+
+const _impColMap={
+  'empId':     ['รหัสพนักงาน','EmpID','Employee ID'],
+  'name':      ['ชื่อ-นามสกุล','ชื่อ','Name','Full Name'],
+  'pos':       ['ตำแหน่ง','Position','Role'],
+  'dept':      ['แผนก','Department','Dept'],
+  'branch':    ['สาขา','Branch','ร้าน/สาขา'],
+  'startdate': ['วันที่เริ่มงาน','Start Date','วันเริ่มงาน'],
+  'status':    ['สถานะ','Status'],
+  'enddate':   ['วันที่ออก','End Date','วันออกงาน'],
+  'reason':    ['เหตุผลการออก','Reason'],
+  'nationality':['สัญชาติ','Nationality'],
+  'ssDate':    ['วันที่เข้าประกันสังคม','SS Date','วันประกันสังคม'],
+  'ssCompany': ['บริษัทประกันสังคม','SS Company'],
+  'wpExpire':  ['วันหมดอายุใบอนุญาต','WP Expire','WP Expiry'],
+  'wpIssue':   ['วันที่ออกใบอนุญาต','WP Issue'],
+  'wpType':    ['ประเภทใบอนุญาต','WP Type'],
+  'visaExpire':['วันหมดอายุ Visa','Visa Expire','Visa Expiry'],
+  'visa90':    ['วันครบรายงาน 90 วัน','Visa 90 Day','90 Day Report'],
+  'visaIssue': ['วันออก Visa','Visa Issue'],
+};
+const _impGetVal=(row,keys)=>{for(const k of keys){if(row[k]!==undefined&&row[k]!=='')return String(row[k]).trim();}return '';};
+
+function openImportPreview(input){
+  const file=input.files[0]; input.value=''; if(!file)return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
-      const data=new Uint8Array(e.target.result);
-      const wb=XLSX.read(data,{type:'array'});
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(!rows.length){alert('ไม่พบข้อมูลในไฟล์');return;}
-      
-      const colMap={
-        'empId':    ['รหัสพนักงาน','EmpID','Employee ID'],
-        'name':     ['ชื่อ-นามสกุล','ชื่อ','Name','Full Name'],
-        'pos':      ['ตำแหน่ง','Position','Role'],
-        'dept':     ['แผนก','Department','Dept'],
-        'branch':   ['สาขา','Branch','ร้าน/สาขา'],
-        'startdate':['วันที่เริ่มงาน','Start Date','วันเริ่มงาน'],
-        'status':   ['สถานะ','Status'],
-        'enddate':  ['วันที่ออก','End Date','วันออกงาน'],
-        'reason':   ['เหตุผลการออก','Reason'],
-        'nationality':['สัญชาติ','Nationality'],
-        'ssDate':   ['วันที่เข้าประกันสังคม','SS Date','วันประกันสังคม'],
-        'ssCompany':['บริษัทประกันสังคม','SS Company'],
-        'wpExpire': ['วันหมดอายุใบอนุญาต','WP Expire','WP Expiry'],
-        'wpIssue':  ['วันที่ออกใบอนุญาต','WP Issue'],
-        'wpType':   ['ประเภทใบอนุญาต','WP Type'],
-        'visaExpire':['วันหมดอายุ Visa','Visa Expire','Visa Expiry'],
-        'visa90':   ['วันครบรายงาน 90 วัน','Visa 90 Day','90 Day Report'],
-        'visaIssue':['วันออก Visa','Visa Issue'],
-      };
+      const rawRows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rawRows.length){alert('ไม่พบข้อมูลในไฟล์');return;}
 
-      const getVal=(row,keys)=>{
-        for(const k of keys){if(row[k]!==undefined&&row[k]!=='')return String(row[k]).trim();}
-        return '';
-      };
+      _importRows=[];
+      let cntNew=0,cntUpdate=0,cntError=0;
 
-      let added=0,updated=0;
-      rows.forEach(row=>{
-        const empId=getVal(row,colMap['empId']);
-        const name=getVal(row,colMap['name']);
-        if(!name)return;
+      rawRows.forEach((row,i)=>{
+        // skip pure description rows (row 2 in template)
+        const empId=_impGetVal(row,_impColMap['empId']);
+        const name=_impGetVal(row,_impColMap['name']);
+        const errors=[];
+        if(!name || name.startsWith('(required)')) return; // skip header desc rows
+        if(!_impGetVal(row,_impColMap['pos'])) errors.push('ไม่มีตำแหน่ง');
+        const sd=_impGetVal(row,_impColMap['startdate']);
+        if(sd&&!/^\d{4}-\d{2}-\d{2}$/.test(sd)) errors.push('วันเริ่มงานไม่ใช่ YYYY-MM-DD');
+
         const existing=empId?empData.find(e=>e.empId===empId):null;
-        const wpExpire=getVal(row,colMap['wpExpire']);
-        const visaExpire=getVal(row,colMap['visaExpire']);
-        const wpIssue=getVal(row,colMap['wpIssue']);
-        const wpType=getVal(row,colMap['wpType']);
-        const visa90=getVal(row,colMap['visa90']);
-        const visaIssue=getVal(row,colMap['visaIssue']);
-        const nat=getVal(row,colMap['nationality'])||'ไทย';
-        const obj={
-          id:existing?existing.id:++nextEid,
-          empId,name,
-          pos:getVal(row,colMap['pos']),
-          dept:getVal(row,colMap['dept'])||'Operations',
-          branch:getVal(row,colMap['branch']),
-          startdate:getVal(row,colMap['startdate']),
-          status:getVal(row,colMap['status'])||'ทำงานอยู่',
-          enddate:getVal(row,colMap['enddate']),
-          reason:getVal(row,colMap['reason']),
-          nationality:nat,
-          ssDate:getVal(row,colMap['ssDate']),
-          ssCompany:getVal(row,colMap['ssCompany']),
-          probationDays:existing?.probationDays||90,
-          probationResult:existing?.probationResult||'ทดลองงาน',
-          archivedProbation:existing?.archivedProbation||false,
-          probationEvals:existing?.probationEvals||{},
-          trainingResults:existing?.trainingResults||{},
-          workPermit:(wpExpire||visaExpire)?{
-            type:wpType||'WP',
-            issueDate:wpIssue,
-            expireDate:wpExpire,
-            visaIssue,
-            visaExpire,
-            visa90Date:visa90,
-          }:(existing?.workPermit||{}),
-        };
-        if(existing){const i=empData.indexOf(existing);empData[i]=obj;updated++;}
-        else{empData.push(obj);added++;}
+        const action=existing?'update':'new';
+        if(action==='new') cntNew++; else cntUpdate++;
+        if(errors.length) cntError++;
+
+        _importRows.push({
+          _row:i+2, _action:action, _errors:errors,
+          empId, name,
+          pos:   _impGetVal(row,_impColMap['pos']),
+          dept:  _impGetVal(row,_impColMap['dept'])||'Operations',
+          branch:_impGetVal(row,_impColMap['branch']),
+          startdate:sd,
+          status:_impGetVal(row,_impColMap['status'])||'ทำงานอยู่',
+          enddate:_impGetVal(row,_impColMap['enddate']),
+          reason:_impGetVal(row,_impColMap['reason']),
+          nationality:_impGetVal(row,_impColMap['nationality'])||'ไทย',
+          ssDate:_impGetVal(row,_impColMap['ssDate']),
+          ssCompany:_impGetVal(row,_impColMap['ssCompany']),
+          wpExpire:_impGetVal(row,_impColMap['wpExpire']),
+          wpIssue:_impGetVal(row,_impColMap['wpIssue']),
+          wpType:_impGetVal(row,_impColMap['wpType']),
+          visaExpire:_impGetVal(row,_impColMap['visaExpire']),
+          visa90:_impGetVal(row,_impColMap['visa90']),
+          visaIssue:_impGetVal(row,_impColMap['visaIssue']),
+          _existing:existing,
+        });
       });
-      saveToStorage();renderEmpTable();renderEmpKpi();
-      alert(`✅ นำเข้าสำเร็จ\nเพิ่มใหม่: ${added} คน | อัปเดต: ${updated} คน`);
+
+      // Update summary badges
+      document.getElementById('impStatNew').textContent=`✅ เพิ่มใหม่ ${cntNew} ราย`;
+      document.getElementById('impStatUpdate').textContent=`🔄 อัปเดต ${cntUpdate} ราย`;
+      document.getElementById('impStatError').textContent=`❌ ข้อผิดพลาด ${cntError} แถว`;
+      document.getElementById('impStatError').style.display=cntError?'':'none';
+      document.getElementById('importPreviewSummary').textContent=`พบข้อมูลทั้งหมด ${_importRows.length} แถว จากไฟล์ "${file.name}"`;
+
+      // Build preview table
+      const valid=_importRows.filter(r=>!r._errors.length);
+      document.getElementById('importConfirmBtn').textContent=`✅ ยืนยันนำเข้า ${valid.length} ราย`;
+      document.getElementById('importPreviewTbody').innerHTML=_importRows.map((r,i)=>{
+        const hasErr=r._errors.length>0;
+        const actionBadge=hasErr
+          ?`<span style="background:#fef2f2;color:#b91c1c;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">❌ ข้าม</span>`
+          :r._action==='new'
+          ?`<span style="background:#f0fdf4;color:#15803d;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">✅ เพิ่มใหม่</span>`
+          :`<span style="background:#fffbeb;color:#92400e;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">🔄 อัปเดต</span>`;
+        const bg=hasErr?'#fff8f8':i%2===0?'#fff':'#f8fafc';
+        return `<tr style="background:${bg}">
+          <td style="padding:7px 10px;color:var(--muted)">${r._row}</td>
+          <td style="padding:7px 10px">${actionBadge}${hasErr?`<div style="font-size:10px;color:#b91c1c;margin-top:2px">${r._errors.join(', ')}</div>`:''}</td>
+          <td style="padding:7px 10px;font-size:12px;color:var(--muted)">${r.empId||'–'}</td>
+          <td style="padding:7px 10px;font-weight:600;font-size:12px">${r.name}</td>
+          <td style="padding:7px 10px;font-size:12px">${r.pos||'–'}</td>
+          <td style="padding:7px 10px;font-size:12px;color:var(--muted)">${r.dept||'–'}</td>
+          <td style="padding:7px 10px;font-size:12px">${r.branch||'–'}</td>
+          <td style="padding:7px 10px;font-size:12px;color:var(--muted);white-space:nowrap">${r.startdate||'–'}</td>
+          <td style="padding:7px 10px;font-size:12px">${r.nationality}</td>
+          <td style="padding:7px 10px;font-size:12px">${r.status}</td>
+          <td style="padding:7px 10px;font-size:11px;color:var(--muted)">${r.wpExpire?`WP: ${r.wpExpire}`:''}${r.visaExpire?` · Visa: ${r.visaExpire}`:''}</td>
+        </tr>`;
+      }).join('');
+
+      const modal=document.getElementById('importPreviewModal');
+      modal.style.display='flex';
     }catch(err){alert('❌ อ่านไฟล์ไม่ได้: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
-  input.value='';
 }
+
+function closeImportPreview(){
+  document.getElementById('importPreviewModal').style.display='none';
+  _importRows=[];
+}
+
+function confirmImport(){
+  const validRows=_importRows.filter(r=>!r._errors.length);
+  if(!validRows.length){alert('ไม่มีแถวที่สามารถนำเข้าได้');return;}
+  let added=0,updated=0;
+  validRows.forEach(r=>{
+    const existing=r._existing;
+    const obj={
+      id:existing?existing.id:++nextEid,
+      empId:r.empId, name:r.name, pos:r.pos,
+      dept:r.dept, branch:r.branch, startdate:r.startdate,
+      status:r.status, enddate:r.enddate, reason:r.reason,
+      nationality:r.nationality,
+      ssDate:r.ssDate, ssCompany:r.ssCompany,
+      probationDays:existing?.probationDays||90,
+      probationResult:existing?.probationResult||'ทดลองงาน',
+      archivedProbation:existing?.archivedProbation||false,
+      probationEvals:existing?.probationEvals||{},
+      trainingResults:existing?.trainingResults||{},
+      workPermit:(r.wpExpire||r.visaExpire)?{
+        type:r.wpType||'WP', issueDate:r.wpIssue, expireDate:r.wpExpire,
+        visaIssue:r.visaIssue, visaExpire:r.visaExpire, visa90Date:r.visa90,
+      }:(existing?.workPermit||{}),
+    };
+    if(existing){const i=empData.indexOf(existing);empData[i]=obj;updated++;}
+    else{empData.push(obj);added++;}
+  });
+  logAudit('เพิ่ม','พนักงาน',`Bulk Import`,`เพิ่มใหม่ ${added} คน, อัปเดต ${updated} คน`);
+  saveToStorage(); renderEmpTable(); renderEmpKpi();
+  closeImportPreview();
+
+  // Success toast
+  const toast=document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1d4ed8;color:#fff;padding:12px 28px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2)';
+  toast.textContent=`✅ นำเข้าสำเร็จ · เพิ่มใหม่ ${added} คน · อัปเดต ${updated} คน`;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),3500);
+}
+
+// keep old name as alias (in case called elsewhere)
+function importEmpExcel(input){ openImportPreview(input); }
 
 function downloadEmpTemplate(){
   const rows=[
@@ -3537,6 +4194,7 @@ function savePosEntry(){
   }else{
     posData.push(obj);
   }
+  logAudit(editingPosId?'แก้ไข':'เพิ่ม','ตำแหน่งว่าง',obj.pos,`สาขา: ${obj.branch||'-'} | ต้องการ: ${obj.need}`);
   saveToStorage();
   cancelPosEdit();
   renderPosTable();
@@ -3726,6 +4384,7 @@ function saveAppEntry(){
     }
     appData.push(obj);
   }
+  logAudit(editingAppId?'แก้ไข':'เพิ่ม','ผู้สมัคร',obj.name,`ตำแหน่ง: ${obj.pos} | สถานะ: ${obj.status}`);
   saveToStorage();
   cancelAppEdit();
   renderAppTable();
@@ -3821,7 +4480,10 @@ function editAppEntry(id){
 }
 
 function deleteAppEntry(id){
+  if(!isAdmin()){alert('⛔ เฉพาะ Admin เท่านั้น');return;}
+  const a=appData.find(x=>x.id===id);
   if(!confirm('ลบผู้สมัครคนนี้?'))return;
+  logAudit('ลบ','ผู้สมัคร',a?.name||id,'');
   appData=appData.filter(a=>a.id!==id);
   saveToStorage();renderAppTable();renderAppStatusBadges();
 }
@@ -3874,7 +4536,7 @@ function appRowHtml(a,i,isArchive){
     :'<span style="color:var(--muted);font-size:11px">–</span>';
   const actionBtn=isArchive
     ?`<button class="tbl-edit-btn" onclick="unarchiveApp(${a.id})" style="background:#f0f4f7;color:var(--muted)">↩ คืนสถานะ</button><button class="tbl-edit-btn" onclick="showAuditLog(${a.id})" style="background:#f0f4f7;color:var(--muted)" title="ประวัติสถานะ">📋</button>`
-    :`<button class="tbl-edit-btn" onclick="editAppEntry(${a.id})">แก้ไข</button><button class="tbl-edit-btn" onclick="showAuditLog(${a.id})" style="background:#f0f4f7;color:var(--muted)" title="ประวัติสถานะ">📋</button><button class="tbl-del-btn" onclick="deleteAppEntry(${a.id})">ลบ</button>`;
+    :`<button class="tbl-edit-btn" onclick="editAppEntry(${a.id})">แก้ไข</button><button class="tbl-edit-btn" onclick="showAuditLog(${a.id})" style="background:#f0f4f7;color:var(--muted)" title="ประวัติสถานะ">📋</button>${adminBtn(`<button class="tbl-del-btn" onclick="deleteAppEntry(${a.id})">ลบ</button>`)}`;
   return `<tr style="${isArchive?'opacity:0.75;':''}">
     <td>${i+1}</td>
     <td><strong>${a.name}</strong></td>
@@ -4000,20 +4662,22 @@ function applySession(user, userData){
   const btn=document.getElementById('loginBtn');
   if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ';}
   // Topbar: just show name badge (logout moved to sidebar)
+  const roleLabel=isAdmin()?'Admin':'HR';
   const tu=document.getElementById('topbarUser');
   if(tu)tu.innerHTML=`
     <span style="font-size:12px;color:var(--muted)">${_currentUserName}</span>
-    <span class="role-badge ${_currentUserRole==='admin'?'role-admin':'role-user'}">${_currentUserRole==='admin'?'Admin':'Staff'}</span>`;
+    <span class="role-badge ${isAdmin()?'role-admin':'role-user'}">${roleLabel}</span>`;
   // Sidebar user info
   const sui=document.getElementById('sidebarUserInfo');
   if(sui){
     document.getElementById('sidebarUserName').textContent=_currentUserName;
-    document.getElementById('sidebarUserRole').innerHTML=`<span class="role-badge ${_currentUserRole==='admin'?'role-admin':'role-user'}" style="font-size:10px">${_currentUserRole==='admin'?'Admin':'Staff'}</span>`;
+    document.getElementById('sidebarUserRole').innerHTML=`<span class="role-badge ${isAdmin()?'role-admin':'role-user'}" style="font-size:10px">${roleLabel}</span>`;
     sui.style.display='';
   }
   // Admin-only nav
   const adminUserNav=document.getElementById('adminUserNav');
-  if(adminUserNav) adminUserNav.style.display=_currentUserRole==='admin'?'':'none';
+  if(adminUserNav) adminUserNav.style.display=isAdmin()?'':'none';
+  applyRoleUI();
 }
 
 // ===================== USER MANAGEMENT =====================
@@ -4226,6 +4890,229 @@ function exportAppCSV(){
   dlCSV([header,...rows],`applicants_${today}.csv`);
 }
 
+function exportSSCSV(){
+  const header=['ชื่อ-นามสกุล','ตำแหน่ง','สาขา','วันเริ่มงาน','วันเข้าประกันสังคม','บริษัทประกันสังคม','โรงพยาบาลที่เลือก','หมายเหตุ','สถานะ'];
+  const rows=empData.filter(e=>e.status!=='ลาออก').map(e=>[
+    e.name,e.pos||e.position||'',e.branch||'',e.startdate||'',
+    e.ssDate||'',e.ssCompany||'',e.ssHospital||'',e.ssNote||'',
+    e.ssDate?'ลงทะเบียนแล้ว':'ยังไม่ลง'
+  ]);
+  dlCSV([header,...rows],`social_security_${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+function exportWpCSV(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const header=['ชื่อ-นามสกุล','สัญชาติ','ตำแหน่ง','สาขา',
+    'เลขพาสปอร์ต','พาสปอร์ตหมดอายุ',
+    'เลขใบอนุญาต','ออกวันที่','WP หมดอายุ','สถานะ WP',
+    'เลข Visa','รายงานตัว 90 วัน','Visa หมดอายุ','สถานะ Visa','หมายเหตุ'];
+  const rows=empData.filter(e=>e.nationality&&e.nationality!=='ไทย'&&e.status!=='ลาออก').map(e=>{
+    const wp=e.workPermit||{};
+    return [
+      e.name,e.nationality||'',e.pos||e.position||'',e.branch||'',
+      wp.passportNo||'',wp.passportExpire||'',
+      wp.permitNo||'',wp.issueDate||'',wp.expireDate||'',_wpBadge(wp.expireDate,today).status,
+      wp.visaNo||'',wp.visa90Date||'',wp.visaExpire||'',_wpBadge(wp.visaExpire,today).status,wp.note||''
+    ];
+  });
+  dlCSV([header,...rows],`work_permit_${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+// ===================== MOBILE SIDEBAR =====================
+function toggleMobileSidebar(){
+  const sb=document.querySelector('.sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  const open=sb.classList.contains('mobile-open');
+  if(open){closeMobileSidebar();}else{sb.classList.add('mobile-open');ov.classList.add('active');document.body.style.overflow='hidden';}
+}
+function closeMobileSidebar(){
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+  document.body.style.overflow='';
+}
+
+// ===================== PRINT / PDF =====================
+function openPrintModal(){document.getElementById('printModal').classList.add('open');}
+function closePrintModal(){document.getElementById('printModal').classList.remove('open');}
+
+function executePrint(){
+  const sel={
+    exec:   document.getElementById('pchk_exec')?.checked,
+    workforce: document.getElementById('pchk_workforce')?.checked,
+    resign: document.getElementById('pchk_resign')?.checked,
+    probation: document.getElementById('pchk_probation')?.checked,
+    ss:     document.getElementById('pchk_ss')?.checked,
+    wp:     document.getElementById('pchk_wp')?.checked,
+    training: document.getElementById('pchk_training')?.checked,
+  };
+  if(!Object.values(sel).some(Boolean)){alert('กรุณาเลือกอย่างน้อย 1 รายงาน');return;}
+  closePrintModal();
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const dateStr=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const activeEmp=empData.filter(e=>e.status!=='ลาออก');
+  const workingEmp=empData.filter(e=>e.status==='ทำงานอยู่');
+
+  const CSS=`
+    *{box-sizing:border-box;font-family:'Sarabun','Segoe UI',Arial,sans-serif}
+    body{margin:0;padding:24px 32px;color:#1e293b;font-size:12px;background:#fff}
+    .report-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:2px solid #1B3A4B;margin-bottom:20px}
+    .report-header h1{font-size:20px;font-weight:800;color:#1B3A4B;margin:0}
+    .report-header .meta{font-size:11px;color:#64748b;text-align:right;line-height:1.8}
+    .section{margin-bottom:28px;page-break-inside:avoid}
+    .section-title{font-size:14px;font-weight:700;color:#1B3A4B;padding:8px 12px;background:#f1f5f9;border-left:4px solid #20B2AA;border-radius:0 6px 6px 0;margin-bottom:12px}
+    .kpi-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+    .kpi-box{flex:1;min-width:120px;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;text-align:center}
+    .kpi-box .val{font-size:22px;font-weight:800;color:#1B3A4B}
+    .kpi-box .lbl{font-size:10px;color:#64748b;margin-top:2px}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    th{background:#1B3A4B;color:#fff;padding:6px 10px;text-align:left;font-size:10px;white-space:nowrap}
+    td{padding:5px 10px;border-bottom:1px solid #f1f5f9}
+    tr:nth-child(even) td{background:#f8fafc}
+    .badge{display:inline-block;border-radius:20px;padding:1px 8px;font-size:10px;font-weight:600}
+    .page-break{page-break-before:always;margin-top:0}
+    @media print{body{padding:10px 16px}.report-header{margin-bottom:12px}}
+  `;
+
+  let body='';
+
+  // ---- HEADER ----
+  body+=`<div class="report-header">
+    <div><h1>THE SKY GROUP</h1><div style="font-size:11px;color:#64748b;margin-top:3px">รายงาน HR Dashboard</div></div>
+    <div class="meta">วันที่พิมพ์: ${dateStr}<br>จำนวนพนักงาน: ${workingEmp.length} คน<br>ผู้พิมพ์: ${_currentUserName||'HR'}</div>
+  </div>`;
+
+  // ---- EXEC SUMMARY ----
+  if(sel.exec){
+    const resigned=resignData.length;
+    const turnover=workingEmp.length>0?(resigned/workingEmp.length*100).toFixed(1):0;
+    const totalNeed=posData.reduce((s,p)=>s+p.need,0);
+    const totalHired=posData.reduce((s,p)=>s+p.hired,0);
+    const pending=appData.filter(a=>a.status==='รอเริ่มงาน').length;
+    const probInProgress=activeEmp.filter(e=>e.probationDays&&!e.archivedProbation&&e.status!=='ลาออก').length;
+    body+=`<div class="section">
+      <div class="section-title">📊 Executive Summary</div>
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="val">${workingEmp.length}</div><div class="lbl">พนักงานปัจจุบัน</div></div>
+        <div class="kpi-box"><div class="val">${resigned}</div><div class="lbl">ลาออกสะสม</div></div>
+        <div class="kpi-box"><div class="val">${turnover}%</div><div class="lbl">Turnover Rate</div></div>
+        <div class="kpi-box"><div class="val">${posData.length}</div><div class="lbl">ตำแหน่งที่เปิดรับ</div></div>
+        <div class="kpi-box"><div class="val">${totalNeed-totalHired}</div><div class="lbl">ยังขาดอีก</div></div>
+        <div class="kpi-box"><div class="val">${pending}</div><div class="lbl">รอเริ่มงาน</div></div>
+        <div class="kpi-box"><div class="val">${probInProgress}</div><div class="lbl">อยู่ระหว่างทดลองงาน</div></div>
+      </div>
+    </div>`;
+  }
+
+  // ---- WORKFORCE ----
+  if(sel.workforce){
+    const rows=workingEmp.map((e,i)=>`<tr>
+      <td>${i+1}</td><td>${e.name}</td><td>${e.empId||'–'}</td>
+      <td>${e.pos||'–'}</td><td>${e.branch||'–'}</td>
+      <td>${e.startdate?fmtDate(e.startdate):'–'}</td>
+      <td>${e.nationality||'ไทย'}</td><td>${e.status}</td>
+    </tr>`).join('');
+    body+=`<div class="section page-break">
+      <div class="section-title">👥 รายชื่อพนักงาน (${workingEmp.length} คน)</div>
+      <table><thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>รหัส</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>สัญชาติ</th><th>สถานะ</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="8" style="text-align:center;color:#999">ไม่มีข้อมูล</td></tr>'}</tbody></table>
+    </div>`;
+  }
+
+  // ---- RESIGN ----
+  if(sel.resign){
+    const all=_getResignedAll().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const rows=all.map((r,i)=>`<tr>
+      <td>${i+1}</td><td>${r.name}</td><td>${r.pos||'–'}</td><td>${r.branch||'–'}</td>
+      <td>${r.date?fmtDate(r.date):'–'}</td><td>${r.reason||'ไม่ระบุ'}</td>
+    </tr>`).join('');
+    body+=`<div class="section page-break">
+      <div class="section-title">📉 รายงานการลาออก (${all.length} ราย)</div>
+      <table><thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันลาออก</th><th>สาเหตุ</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="6" style="text-align:center;color:#999">ไม่มีข้อมูล</td></tr>'}</tbody></table>
+    </div>`;
+  }
+
+  // ---- PROBATION ----
+  if(sel.probation){
+    const probEmp=activeEmp.filter(e=>e.probationDays&&!e.archivedProbation&&e.status!=='ลาออก');
+    const rows=probEmp.map((e,i)=>{
+      const d=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
+      const evals=PROB_PERIODS.map(p=>{const ev=getProbEval(e,p);return ev.result||'รอ';}).join(' / ');
+      return `<tr><td>${i+1}</td><td>${e.name}</td><td>${e.pos||'–'}</td><td>${e.branch||'–'}</td><td>${e.startdate?fmtDate(e.startdate):'–'}</td><td>${d} วัน</td><td>${evals}</td></tr>`;
+    }).join('');
+    body+=`<div class="section page-break">
+      <div class="section-title">🔄 ติดตามทดลองงาน (${probEmp.length} คน)</div>
+      <table><thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเริ่มงาน</th><th>อยู่นาน</th><th>ผล (30/60/90/120)</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="7" style="text-align:center;color:#999">ไม่มีข้อมูล</td></tr>'}</tbody></table>
+    </div>`;
+  }
+
+  // ---- SS ----
+  if(sel.ss){
+    const ssRows=activeEmp.map((e,i)=>`<tr>
+      <td>${i+1}</td><td>${e.name}</td><td>${e.pos||'–'}</td><td>${e.branch||'–'}</td>
+      <td>${e.ssDate?fmtDate(e.ssDate):'–'}</td><td>${e.ssCompany||'–'}</td><td>${e.ssHospital||'–'}</td>
+      <td>${e.ssDate?'<span class="badge" style="background:#dcfce7;color:#15803d">ลงทะเบียนแล้ว</span>':'<span class="badge" style="background:#fef2f2;color:#b91c1c">ยังไม่ลง</span>'}</td>
+    </tr>`).join('');
+    const regCount=activeEmp.filter(e=>e.ssDate).length;
+    body+=`<div class="section page-break">
+      <div class="section-title">🏥 ประกันสังคม (ลงทะเบียนแล้ว ${regCount}/${activeEmp.length} คน)</div>
+      <table><thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>วันเข้าประกัน</th><th>บริษัทประกัน</th><th>โรงพยาบาล</th><th>สถานะ</th></tr></thead>
+      <tbody>${ssRows||'<tr><td colspan="8" style="text-align:center;color:#999">ไม่มีข้อมูล</td></tr>'}</tbody></table>
+    </div>`;
+  }
+
+  // ---- WORK PERMIT ----
+  if(sel.wp){
+    const foreign=activeEmp.filter(e=>e.nationality&&e.nationality!=='ไทย');
+    const wpRows=foreign.map((e,i)=>{
+      const wp=e.workPermit||{};
+      const ps=_wpBadge(wp.expireDate,today).status;
+      const vs=_wpBadge(wp.visaExpire,today).status;
+      return `<tr><td>${i+1}</td><td>${e.name}</td><td>${e.nationality}</td><td>${e.pos||'–'}</td><td>${e.branch||'–'}</td>
+        <td>${wp.expireDate||'–'}</td><td>${ps}</td><td>${wp.visaExpire||'–'}</td><td>${vs}</td></tr>`;
+    }).join('');
+    body+=`<div class="section page-break">
+      <div class="section-title">📄 ใบอนุญาตทำงาน & Visa (${foreign.length} คน)</div>
+      <table><thead><tr><th>#</th><th>ชื่อ</th><th>สัญชาติ</th><th>ตำแหน่ง</th><th>สาขา</th><th>WP หมดอายุ</th><th>สถานะ WP</th><th>Visa หมดอายุ</th><th>สถานะ Visa</th></tr></thead>
+      <tbody>${wpRows||'<tr><td colspan="9" style="text-align:center;color:#999">ไม่มีแรงงานต่างด้าว</td></tr>'}</tbody></table>
+    </div>`;
+  }
+
+  // ---- TRAINING ----
+  if(sel.training){
+    const probEmp=activeEmp.filter(e=>e.probationDays&&!e.archivedProbation);
+    const trainRows=probEmp.map((e,i)=>{
+      const done=trainingCourses.filter(c=>{const r=getTrainResult(e,c.id).result;return c.noEval?r==='รับทราบ':r==='ผ่าน';}).length;
+      const total=trainingCourses.length;
+      const pct=total>0?Math.round(done/total*100):0;
+      return `<tr><td>${i+1}</td><td>${e.name}</td><td>${e.pos||'–'}</td><td>${e.branch||'–'}</td>
+        <td style="text-align:center">${done}/${total}</td>
+        <td><div style="background:#e2e8f0;border-radius:20px;height:6px;width:80px;display:inline-block;vertical-align:middle"><div style="background:${pct>=80?'#16a34a':pct>=50?'#d97706':'#dc2626'};width:${pct}%;height:100%;border-radius:20px"></div></div> ${pct}%</td>
+        <td>${pct===100?'✅ ครบ':pct>0?'🔄 กำลังอบรม':'⏳ ยังไม่เริ่ม'}</td>
+      </tr>`;
+    }).join('');
+    body+=`<div class="section page-break">
+      <div class="section-title">🎓 สรุปการอบรม (${probEmp.length} คน)</div>
+      <table><thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th style="text-align:center">ผ่านแล้ว</th><th>ความคืบหน้า</th><th>สถานะ</th></tr></thead>
+      <tbody>${trainRows||'<tr><td colspan="7" style="text-align:center;color:#999">ไม่มีข้อมูล</td></tr>'}</tbody></table>
+    </div>`;
+  }
+
+  // ---- Open print window ----
+  const win=window.open('','_blank','width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>HR Report – The Sky Group</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>${CSS}</style></head><body>${body}
+    <div style="margin-top:40px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center">
+      พิมพ์เมื่อ ${dateStr} · The Sky Group HR Dashboard · หน้านี้สร้างโดยอัตโนมัติ
+    </div>
+    <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
 function exportMonthlyCSV(){
   const header=['เดือน','เข้าใหม่','ลาออก','Turnover%','เปิดรับ','ปิดตำแหน่ง','รอเริ่มงาน','เริ่มงานแล้ว','ไม่ผ่านสัมภาษณ์','ไม่มาเริ่มงาน'];
   const rows=[];
@@ -4341,6 +5228,10 @@ function getAlerts(){
 
   // 2. Probation checkpoint รอประเมิน (due แล้วยังไม่ได้ประเมิน)
   empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.status!=='ลาออก').forEach(e=>{
+    const daysWorked=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
+    // ถ้าเริ่มงาน >180 วัน และไม่เคยบันทึกผลใดเลย = เข้าระบบย้อนหลัง ข้ามไป
+    const hasAnyEval=PROB_PERIODS.some(p=>getProbEval(e,p).result);
+    if(daysWorked>180&&!hasAnyEval)return;
     PROB_PERIODS.forEach(p=>{
       const ev=getProbEval(e,p);
       if(ev.result==='ผ่าน')return;
@@ -4357,15 +5248,19 @@ function getAlerts(){
     });
   });
 
-  // 2a2. Training — พนักงานที่ยังไม่ผ่านครบ (เริ่มงาน >7 วัน)
+  // 2a2. Training — พนักงานที่ยังไม่ผ่านครบ (เริ่มงาน 7–90 วัน เท่านั้น)
   empData.filter(e=>e.status!=='ลาออก'&&e.startdate).forEach(e=>{
     if(trainStatus(e)==='ผ่านครบ')return;
     const daysIn=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
-    if(daysIn<7)return; // grace period
-    const pending=trainingCourses.filter(c=>getTrainResult(e,c.id).result!=='ผ่าน').map(c=>c.name);
+    if(daysIn<7||daysIn>90)return; // alert เฉพาะช่วงทดลองงาน
+    // นับวิชาค้าง โดยแยก noEval ออกให้ถูกต้อง
+    const pending=trainingCourses.filter(c=>{
+      const r=getTrainResult(e,c.id).result;
+      return c.noEval ? r!=='รับทราบ' : r!=='ผ่าน';
+    }).map(c=>c.name);
     if(pending.length){
       alerts.push({type:'training',icon:'🎓',color:'var(--yellow)',
-        title:`Training ยังไม่ครบ (${pending.length} หลักสูตร)`,
+        title:`Training ยังไม่ครบ (${pending.length} หลักสูตร) · เข้างาน ${daysIn} วัน`,
         body:`${e.name} · ค้าง: ${pending.slice(0,2).join(', ')}${pending.length>2?` +${pending.length-2}`:''}`,
         action:()=>showSection('training',null)
       });
@@ -4493,6 +5388,7 @@ let _firestoreReady = false;
 function saveToStorage(){
   HR_DOC.set({
     resignData, posData, appData, empData,
+    auditLog: auditLog.slice(0,500),
     nextRid, nextPid, nextAid, nextEid,
     savedAt: new Date().toISOString()
   }).catch(e=>console.error('Firestore save error:',e));
@@ -4527,6 +5423,7 @@ function applyData(d){
   if(d.posData&&d.posData.length) posData=d.posData;
   if(d.appData&&d.appData.length) appData=d.appData;
   if(d.empData&&d.empData.length) empData=d.empData;
+  if(d.auditLog&&d.auditLog.length) auditLog=d.auditLog;
   if(d.nextRid) nextRid=d.nextRid;
   if(d.nextPid) nextPid=d.nextPid;
   if(d.nextAid) nextAid=d.nextAid;
@@ -4548,6 +5445,7 @@ renderSection=function(id){
   else if(id==='entry-pos'){cancelPosEdit();renderPosTable();}
   else if(id==='entry-app'){cancelAppEdit();populatePosLinkDropdown();renderAppTable();renderAppStatusBadges();}
   else if(id==='manage-users'){renderUserTable();}
+  else if(id==='audit-log'){renderAuditLog();}
   else _origRenderSection(id);
 };
 
