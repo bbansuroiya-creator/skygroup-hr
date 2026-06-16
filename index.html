@@ -393,6 +393,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
     <div class="nav-item" onclick="showSection('entry-emp',this)"><span class="icon">🏢</span>ฐานข้อมูลพนักงาน</div>
     <div class="nav-item" id="navEntryPos" onclick="showSection('entry-pos',this)"><span class="icon">✏️</span>ตำแหน่งว่าง</div>
     <div class="nav-item" onclick="showSection('entry-app',this)"><span class="icon">📝</span>ผู้สมัคร</div>
+    <div class="nav-item" id="navEntryCourse" onclick="showSection('entry-course',this)"><span class="icon">🎓</span>หลักสูตรฝึกอบรม</div>
   </div>
   <div class="nav-group" id="adminUserNav" style="display:none">
     <div class="nav-label">ผู้ดูแลระบบ</div>
@@ -851,20 +852,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <div><label>บริษัทประกันสังคม</label>
         <select id="ss_company" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px">
           <option value="">– ไม่ระบุ –</option>
-          <option>BACK OFFICE (H.Q.)</option>
-          <option>FIREPORK TERMINAL 21 ASOK</option>
-          <option>Headquarters</option>
-          <option>THE FOREST BY THE SKY</option>
-          <option>THE LUNAR BEACH HOUSE (1)</option>
-          <option>THE LUNAR BEACH HOUSE (2)</option>
-          <option>THE MOMENT BEACH HOUSE RESTAURANT</option>
-          <option>THE OXYGEN BEACH FRONT OASIS</option>
-          <option>THE SKY GALLERY</option>
-          <option>TWIN MADE BUS TERMINAL PATTAYA</option>
-          <option>TWIN MADE FASHION ISLAND</option>
-          <option>TWIN MADE MEGA BANGNA</option>
-          <option>TWIN MADE TERMINAL 21 ASOK</option>
-          <option>TWIN MADE TERMINAL 21 PATTAYA</option>
         </select>
       </div>
       <div class="full"><label>โรงพยาบาลที่เลือก</label><input id="ss_hospital" type="text" placeholder="เช่น รพ.บำรุงราษฎร์" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
@@ -1019,7 +1006,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
 <div class="overlay" id="trainEvalModal">
   <div class="modal" style="max-width:380px">
     <h3 id="trainEvalTitle" style="margin:0 0 4px;font-size:16px;color:var(--teal-d)">บันทึกผล Training</h3>
-    <p id="trainEvalSub" style="color:var(--muted);font-size:12px;margin:0 0 18px"></p>
+    <p id="trainEvalSub" style="color:var(--muted);font-size:12px;margin:0 0 6px"></p>
+    <div id="trainPassHint" style="display:none;margin-bottom:14px;padding:6px 12px;background:#fef3c7;color:#92400e;border-radius:8px;font-size:12px;font-weight:600"></div>
     <!-- วิชาที่มีวัดผล -->
     <div id="trainResultBtns" style="display:flex;gap:10px;margin-bottom:14px">
       <button id="trainPassBtn" onclick="setTrainResult('ผ่าน')" style="flex:1;padding:14px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s">✅ ผ่าน</button>
@@ -1030,7 +1018,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <button id="trainAckBtn" onclick="setTrainResult('รับทราบ')" style="width:100%;padding:14px;border-radius:10px;border:2px solid #e5e7eb;background:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s">📋 รับทราบแล้ว</button>
     </div>
     <div class="form-grid">
-      <div id="trainScoreWrap"><label>คะแนนที่ได้</label><input id="trainEvalScore" type="number" min="0" max="100" placeholder="เช่น 85" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
+      <div id="trainScoreWrap"><label>คะแนนที่ได้</label><input id="trainEvalScore" type="number" min="0" max="9999" placeholder="เช่น 85" oninput="autoSuggestTrainResult()" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
       <div id="trainMaxScoreWrap"><label>คะแนนเต็ม</label><input id="trainEvalMaxScore" type="number" min="1" value="100" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
       <div class="full"><label>วันที่อบรม</label><input id="trainEvalDate" type="date" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
       <div class="full"><label>หมายเหตุ</label><input id="trainEvalNote" type="text" placeholder="บันทึกเพิ่มเติม" style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px"></div>
@@ -1044,18 +1032,40 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   </div>
 </div>
 
-<!-- Modal: จัดการหลักสูตร -->
-<div class="overlay" id="courseManagerModal">
-  <div class="modal" style="max-width:480px">
-    <h3 style="margin:0 0 12px;font-size:16px;color:var(--teal-d)">⚙️ จัดการหลักสูตร Training</h3>
-    <div id="courseList" style="margin-bottom:14px"></div>
-    <div style="display:flex;gap:8px">
-      <input id="newCourseName" type="text" placeholder="ชื่อหลักสูตรใหม่" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px">
-      <button class="btn btn-primary" onclick="addCourse()" style="padding:8px 14px;font-size:13px">+ เพิ่ม</button>
+<!-- ===== ENTRY: หลักสูตรฝึกอบรม ===== -->
+<div class="section" id="sec-entry-course">
+  <div class="sec-title"><span>🎓</span>หลักสูตรฝึกอบรม</div>
+
+  <div class="entry-card">
+    <div class="entry-card-header" onclick="toggleEntryCard('courseFormBody','courseFormToggle')">
+      <span>➕ เพิ่มหลักสูตรใหม่</span>
+      <span class="entry-card-toggle" id="courseFormToggle">▲</span>
     </div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="btn btn-primary" onclick="saveCourses()">💾 บันทึก</button>
+    <div class="entry-card-body" id="courseFormBody">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px">ชื่อหลักสูตร *</label>
+          <input id="newCourseName" type="text" placeholder="เช่น วิชาบาร์กาแฟ" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;background:var(--card)" onkeydown="if(event.key==='Enter')addCourse()">
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding-bottom:1px">
+          <input type="checkbox" id="newCourseNoEval" style="width:15px;height:15px;accent-color:var(--teal);cursor:pointer">
+          <label for="newCourseNoEval" style="font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap">ไม่มีวัดผล (แค่รับทราบ)</label>
+        </div>
+        <button class="btn btn-primary" onclick="addCourse()" style="padding:8px 18px;white-space:nowrap">+ เพิ่ม</button>
+      </div>
     </div>
+  </div>
+
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header">
+      <h3 style="margin:0;font-size:14px;color:var(--dark)">📋 หลักสูตรทั้งหมด</h3>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--muted)">เลือกสาขาที่ใช้แต่ละหลักสูตร — ว่างไว้ = ทุกสาขา</span>
+        <button class="btn btn-primary" onclick="saveCourses()" style="padding:6px 14px;font-size:12px">💾 บันทึก</button>
+      </div>
+    </div>
+    <div id="sectionCourseList" style="padding:4px 0"></div>
+    <div id="courseSaveMsg" style="display:none;padding:10px 16px;background:#d1fae5;color:#065f46;border-radius:8px;font-size:13px;font-weight:600;margin:8px 16px 12px">✅ บันทึกหลักสูตรเรียบร้อยแล้ว</div>
   </div>
 </div>
 
@@ -1125,20 +1135,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         <div class="entry-field"><label>ร้าน / สาขา</label>
           <select id="ep_branch" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
             <option value="">– เลือกสาขา –</option>
-            <option>BACK OFFICE (H.Q.)</option>
-            <option>FIREPORK TERMINAL 21 ASOK</option>
-            <option>Headquarters</option>
-            <option>THE FOREST BY THE SKY</option>
-            <option>THE LUNAR BEACH HOUSE (1)</option>
-            <option>THE LUNAR BEACH HOUSE (2)</option>
-            <option>THE MOMENT BEACH HOUSE RESTAURANT</option>
-            <option>THE OXYGEN BEACH FRONT OASIS</option>
-            <option>THE SKY GALLERY</option>
-            <option>TWIN MADE BUS TERMINAL PATTAYA</option>
-            <option>TWIN MADE FASHION ISLAND</option>
-            <option>TWIN MADE MEGA BANGNA</option>
-            <option>TWIN MADE TERMINAL 21 ASOK</option>
-            <option>TWIN MADE TERMINAL 21 PATTAYA</option>
           </select>
         </div>
         <div class="entry-field"><label>แผนก</label>
@@ -1413,20 +1409,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         <div class="entry-field"><label>บริษัทประกันสังคม</label>
           <select id="ee_sscompany">
             <option value="">– ไม่ระบุ –</option>
-            <option>BACK OFFICE (H.Q.)</option>
-            <option>FIREPORK TERMINAL 21 ASOK</option>
-            <option>Headquarters</option>
-            <option>THE FOREST BY THE SKY</option>
-            <option>THE LUNAR BEACH HOUSE (1)</option>
-            <option>THE LUNAR BEACH HOUSE (2)</option>
-            <option>THE MOMENT BEACH HOUSE RESTAURANT</option>
-            <option>THE OXYGEN BEACH FRONT OASIS</option>
-            <option>THE SKY GALLERY</option>
-            <option>TWIN MADE BUS TERMINAL PATTAYA</option>
-            <option>TWIN MADE FASHION ISLAND</option>
-            <option>TWIN MADE MEGA BANGNA</option>
-            <option>TWIN MADE TERMINAL 21 ASOK</option>
-            <option>TWIN MADE TERMINAL 21 PATTAYA</option>
           </select>
         </div>
         <div class="entry-field" style="grid-column:1/-1">
@@ -1797,20 +1779,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <div><label>บริษัทประกันสังคม</label>
         <select id="aem_sscompany">
           <option value="">– ไม่ระบุ –</option>
-          <option>BACK OFFICE (H.Q.)</option>
-          <option>FIREPORK TERMINAL 21 ASOK</option>
-          <option>Headquarters</option>
-          <option>THE FOREST BY THE SKY</option>
-          <option>THE LUNAR BEACH HOUSE (1)</option>
-          <option>THE LUNAR BEACH HOUSE (2)</option>
-          <option>THE MOMENT BEACH HOUSE RESTAURANT</option>
-          <option>THE OXYGEN BEACH FRONT OASIS</option>
-          <option>THE SKY GALLERY</option>
-          <option>TWIN MADE BUS TERMINAL PATTAYA</option>
-          <option>TWIN MADE FASHION ISLAND</option>
-          <option>TWIN MADE MEGA BANGNA</option>
-          <option>TWIN MADE TERMINAL 21 ASOK</option>
-          <option>TWIN MADE TERMINAL 21 PATTAYA</option>
         </select>
       </div>
     </div>
@@ -1986,14 +1954,34 @@ const fmtDate=d=>d?new Date(d).toLocaleDateString('th-TH',{day:'numeric',month:'
 const daysSince=d=>{if(!d)return 0;return Math.floor((new Date()-new Date(d))/(1000*60*60*24));};
 const mkChart=(id,cfg)=>{const c=document.getElementById(id);if(!c)return;if(chartInstances[id])chartInstances[id].destroy();chartInstances[id]=new Chart(c,cfg);return chartInstances[id];};
 
+// ===================== BRANCH MASTER LIST =====================
+const BRANCH_LIST = [
+  'BACK OFFICE (H.Q.)',
+  'FIREPORK TERMINAL 21 ASOK',
+  'Headquarters',
+  'THE FOREST BY THE SKY',
+  'THE LUNAR BEACH HOUSE (1)',
+  'THE LUNAR BEACH HOUSE (2)',
+  'THE MOMENT BEACH HOUSE RESTAURANT',
+  'THE OXYGEN BEACH FRONT OASIS',
+  'THE SKY GALLERY',
+  'TWIN MADE BUS TERMINAL PATTAYA',
+  'TWIN MADE FASHION ISLAND',
+  'TWIN MADE MEGA BANGNA',
+  'TWIN MADE TERMINAL 21 ASOK',
+  'TWIN MADE TERMINAL 21 PATTAYA',
+];
+
 // ===================== PERMISSIONS =====================
-const ADMIN_ONLY_SECTIONS = ['entry-pos','manage-users','audit-log'];
+const ADMIN_ONLY_SECTIONS = ['entry-pos','entry-course','manage-users','audit-log'];
 function isAdmin(){ return _currentUserRole==='admin'; }
 function adminBtn(html){ return isAdmin()?html:''; }
 function applyRoleUI(){
   // entry-pos nav: admin only
   const ep=document.getElementById('navEntryPos');
   if(ep) ep.style.display=isAdmin()?'':'none';
+  const ec=document.getElementById('navEntryCourse');
+  if(ec) ec.style.display=isAdmin()?'':'none';
   // audit-log nav: admin only
   const al=document.getElementById('navAuditLog');
   if(al) al.style.display=isAdmin()?'':'none';
@@ -2074,6 +2062,7 @@ const titles={
   'entry-pos':'✏️ จัดการตำแหน่งว่าง',
   'entry-app':'📝 จัดการข้อมูลผู้สมัคร',
   'entry-emp':'🏢 ฐานข้อมูลพนักงาน',
+  'entry-course':'🎓 หลักสูตรฝึกอบรม',
   'manage-users':'👤 จัดการทีม HR',
   'audit-log':'🔍 Audit Log',
 };
@@ -2104,6 +2093,7 @@ function renderSection(id){
   else if(id==='work-permit')renderWorkPermit();
   else if(id==='training')renderTraining();
   else if(id==='resign-analysis')renderResignAnalysis();
+  else if(id==='entry-course')renderCourseList();
 }
 
 // ===================== EXEC =====================
@@ -2908,13 +2898,13 @@ function saveWpModal() {
 
 // ===================== TRAINING =====================
 const DEFAULT_COURSES = [
-  {id:1, name:'กฎระเบียบ สวัสดิการ โครงสร้างองค์กร', noEval:true},
-  {id:2, name:'วิชาเมนูของร้านที่ประจำ'},
-  {id:3, name:'วิชา I-Order'},
-  {id:4, name:'วิชา Operation'},
-  {id:5, name:'ภาษาอังกฤษเพื่อการสื่อสารสำหรับร้านอาหาร'},
+  {id:1, name:'กฎระเบียบ สวัสดิการ โครงสร้างองค์กร', noEval:true, branches:[], maxScore:null, passScore:null},
+  {id:2, name:'วิชาเมนูของร้านที่ประจำ', branches:[], maxScore:100, passScore:70},
+  {id:3, name:'วิชา I-Order', branches:[], maxScore:100, passScore:70},
+  {id:4, name:'วิชา Operation', branches:[], maxScore:100, passScore:70},
+  {id:5, name:'ภาษาอังกฤษเพื่อการสื่อสารสำหรับร้านอาหาร', branches:[], maxScore:100, passScore:70},
 ];
-const COURSES_VERSION = 2;
+const COURSES_VERSION = 4;
 const _savedCourses = JSON.parse(localStorage.getItem('skygroup_courses')||'null');
 const _savedCoursesVer = parseInt(localStorage.getItem('skygroup_courses_ver')||'0');
 let trainingCourses = (_savedCourses && _savedCoursesVer === COURSES_VERSION)
@@ -2926,15 +2916,25 @@ function getTrainResult(emp, courseId) {
   return (emp.trainingResults||{})[courseId] || { result:null, date:null, note:'' };
 }
 
+// คืนหลักสูตรที่ใช้กับพนักงานคนนี้ (branches:[] = ทุกสาขา)
+function getCoursesForEmp(emp) {
+  const br = (emp.branch||'').trim();
+  return trainingCourses.filter(c => !c.branches || c.branches.length===0 || c.branches.includes(br));
+}
+
 function isTrainComplete(emp) {
-  return trainingCourses.every(c => {
+  const courses = getCoursesForEmp(emp);
+  if(courses.length===0) return true;
+  return courses.every(c => {
     const r=getTrainResult(emp,c.id).result;
     return c.noEval ? r==='รับทราบ' : r==='ผ่าน';
   });
 }
 
 function trainStatus(emp) {
-  const normalized = trainingCourses.map(c => {
+  const courses = getCoursesForEmp(emp);
+  if(courses.length===0) return 'ผ่านครบ';
+  const normalized = courses.map(c => {
     const r=getTrainResult(emp,c.id).result;
     return c.noEval ? (r==='รับทราบ'?'ผ่าน':r) : r;
   });
@@ -2969,8 +2969,12 @@ function renderTraining() {
     return;
   }
 
-  const thCourses = trainingCourses.map(c=>
-    `<th style="text-align:center;width:90px;padding:6px 4px;font-size:11px;line-height:1.4;white-space:normal;word-break:break-word">📚 ${c.name}</th>`).join('');
+  const thCourses = trainingCourses.map(c=>{
+    const std = !c.noEval && c.passScore!=null
+      ? `<br><span style="font-size:9px;font-weight:400;color:var(--muted)">ผ่าน ≥${c.passScore}/${c.maxScore!=null?c.maxScore:100}</span>`
+      : '';
+    return `<th style="text-align:center;width:90px;padding:6px 4px;font-size:11px;line-height:1.4;white-space:normal;word-break:break-word">📚 ${c.name}${std}</th>`;
+  }).join('');
 
   table.innerHTML = `
     <thead><tr>
@@ -2980,6 +2984,10 @@ function renderTraining() {
     </tr></thead>
     <tbody>${rows.map((e,i)=>{
       const cells = trainingCourses.map(c=>{
+        const applicable = !c.branches||c.branches.length===0||c.branches.includes((e.branch||'').trim());
+        if(!applicable){
+          return `<td style="padding:6px 4px;text-align:center;background:#f9fafb;color:#d1d5db;font-size:13px">–</td>`;
+        }
         const tr = getTrainResult(e,c.id);
         let cell;
         if(c.noEval){
@@ -3030,8 +3038,20 @@ function openTrainEvalModal(empId, courseId) {
   document.getElementById('trainEvalSub').textContent = `${emp.name} · ${emp.pos||''} · ${emp.branch||''}`;
   document.getElementById('trainEvalDate').value = tr.date||new Date().toISOString().slice(0,10);
   document.getElementById('trainEvalScore').value = tr.score!=null ? tr.score : '';
-  document.getElementById('trainEvalMaxScore').value = tr.maxScore||100;
+  // pre-fill maxScore จาก course standard (override ด้วยค่าที่เคยบันทึกไว้แล้ว)
+  const courseMax = course.maxScore!=null ? course.maxScore : 100;
+  document.getElementById('trainEvalMaxScore').value = tr.maxScore||courseMax;
   document.getElementById('trainEvalNote').value = tr.note||'';
+  // แสดง hint เกณฑ์ผ่าน
+  const hint = document.getElementById('trainPassHint');
+  if(hint){
+    if(!_trainNoEval && course.passScore!=null){
+      hint.textContent = `📊 เกณฑ์ผ่าน: ≥ ${course.passScore} / ${courseMax} คะแนน`;
+      hint.style.display = '';
+    } else {
+      hint.style.display = 'none';
+    }
+  }
   // show/hide ผ่าน-ไม่ผ่าน vs รับทราบ
   document.getElementById('trainResultBtns').style.display = _trainNoEval ? 'none' : '';
   document.getElementById('trainAckRow').style.display = _trainNoEval ? '' : 'none';
@@ -3041,6 +3061,15 @@ function openTrainEvalModal(empId, courseId) {
   _updateTrainBtns();
   document.getElementById('trainResetBtn').style.display = tr.result ? '' : 'none';
   document.getElementById('trainEvalModal').classList.add('open');
+}
+
+function autoSuggestTrainResult() {
+  const course = trainingCourses.find(c=>c.id===_trainCourseId);
+  if(!course || course.passScore==null) return;
+  const scoreEl = document.getElementById('trainEvalScore');
+  if(scoreEl.value==='') return;
+  const score = +scoreEl.value;
+  setTrainResult(score >= course.passScore ? 'ผ่าน' : 'ไม่ผ่าน');
 }
 
 function setTrainResult(val) {
@@ -3093,24 +3122,126 @@ function resetTrainEval() {
 
 // --- Course Manager ---
 function openCourseManager() {
+  showSection('entry-course', document.getElementById('navEntryCourse'));
+}
+
+// Populate branch selects ที่ไม่ได้ dynamic จาก posData
+function populateBranchSelects() {
+  ['ep_branch','ss_company','ee_sscompany','aem_sscompany'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const cur = sel.value;
+    const placeholder = id==='ep_branch'||id==='ee_branch' ? '– เลือกสาขา –' : '– ไม่ระบุ –';
+    sel.innerHTML = `<option value="">${placeholder}</option>`;
+    BRANCH_LIST.forEach(b=>{
+      const o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);
+    });
+    if(cur) sel.value=cur;
+  });
+}
+
+function updateCourseField(courseId, field, value) {
+  const c = trainingCourses.find(x=>x.id===courseId);
+  if(c) c[field] = value===''||value===null ? null : +value;
+}
+
+function toggleCourseBranch(courseId, branch) {
+  const c = trainingCourses.find(x=>x.id===courseId);
+  if(!c) return;
+  if(!c.branches) c.branches=[];
+  const isTraining = c.branches.length===0 || c.branches.includes(branch);
+  if(isTraining) {
+    // ย้ายไป "ไม่ต้องฝึกอบรม"
+    c.branches = c.branches.length===0
+      ? BRANCH_LIST.filter(b=>b!==branch)
+      : c.branches.filter(b=>b!==branch);
+  } else {
+    // ย้ายกลับ "ฝึกอบรม"
+    c.branches.push(branch);
+    if(c.branches.length===BRANCH_LIST.length) c.branches=[];
+  }
   renderCourseList();
-  document.getElementById('courseManagerModal').classList.add('open');
 }
 
 function renderCourseList() {
-  document.getElementById('courseList').innerHTML = trainingCourses.map((c,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="flex:1;font-size:13px">📚 ${c.name}${c.noEval?'<span style="margin-left:6px;font-size:10px;background:#dbeafe;color:#1e40af;padding:1px 6px;border-radius:10px">ไม่มีวัดผล</span>':''}</span>
-      ${adminBtn(`<button onclick="deleteCourse(${c.id})" style="background:#fde8e8;color:#c0392b;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">🗑 ลบ</button>`)}
-    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">ยังไม่มีหลักสูตร</p>';
+  const el = document.getElementById('sectionCourseList');
+  if(!el) return;
+  const chip = (b, courseId, inTrain) => {
+    const esc = b.replace(/'/g,"\\'");
+    if(inTrain) {
+      return `<span onclick="toggleCourseBranch(${courseId},'${esc}')"
+        title="คลิกเพื่อย้ายไป ไม่ต้องฝึกอบรม"
+        style="display:inline-flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:3px 10px;
+        background:#d1fae5;color:#065f46;border-radius:20px;margin:2px 2px 2px 0;user-select:none;
+        border:1px solid #a7f3d0;transition:opacity .15s" onmouseenter="this.style.opacity='.7'" onmouseleave="this.style.opacity='1'">
+        ${b} <span style="font-size:9px;opacity:.6">→</span>
+      </span>`;
+    } else {
+      return `<span onclick="toggleCourseBranch(${courseId},'${esc}')"
+        title="คลิกเพื่อย้ายไป ฝึกอบรม"
+        style="display:inline-flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:3px 10px;
+        background:#f3f4f6;color:#6b7280;border-radius:20px;margin:2px 2px 2px 0;user-select:none;
+        border:1px solid #e5e7eb;transition:opacity .15s" onmouseenter="this.style.opacity='.7'" onmouseleave="this.style.opacity='1'">
+        <span style="font-size:9px;opacity:.6">←</span> ${b}
+      </span>`;
+    }
+  };
+  el.innerHTML = trainingCourses.map((c,i)=>{
+    const brs = c.branches||[];
+    const allSelected = brs.length===0;
+    const trainList = allSelected ? [...BRANCH_LIST] : BRANCH_LIST.filter(b=>brs.includes(b));
+    const noTrainList = allSelected ? [] : BRANCH_LIST.filter(b=>!brs.includes(b));
+    const scoreRow = !c.noEval ? `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap">📊 เกณฑ์สอบ:</span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px">คะแนนเต็ม
+          <input type="number" min="1" max="9999" value="${c.maxScore!=null?c.maxScore:100}" placeholder="100"
+            oninput="updateCourseField(${c.id},'maxScore',this.value)"
+            style="width:58px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center">
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px">ผ่านเมื่อได้ ≥
+          <input type="number" min="0" max="9999" value="${c.passScore!=null?c.passScore:''}" placeholder="–"
+            oninput="updateCourseField(${c.id},'passScore',this.value)"
+            style="width:58px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center">
+          <span style="font-size:11px;color:var(--muted)">คะแนน</span>
+        </label>
+      </div>` : '';
+    return `
+      <div style="padding:14px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="flex:1;font-size:14px;font-weight:600;color:var(--dark)">📚 ${c.name}
+            ${c.noEval?'<span style="margin-left:6px;font-size:10px;background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:10px;font-weight:400">ไม่มีวัดผล</span>':''}
+          </span>
+          ${adminBtn(`<button onclick="deleteCourse(${c.id})" style="background:#fde8e8;color:#c0392b;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer">🗑 ลบ</button>`)}
+        </div>
+        ${scoreRow}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:#f0fdf4;border-radius:10px;padding:10px 12px;min-height:56px">
+            <div style="font-size:10px;font-weight:700;color:#065f46;letter-spacing:.3px;margin-bottom:6px">
+              ✅ ฝึกอบรม
+              ${allSelected?'<span style="font-size:10px;font-weight:400;color:#059669;margin-left:4px">(ทุกสาขา)</span>':''}
+            </div>
+            <div>${trainList.map(b=>chip(b,c.id,true)).join('')||
+              '<span style="font-size:11px;color:#9ca3af;font-style:italic">ไม่มีสาขา</span>'}</div>
+          </div>
+          <div style="background:#fafafa;border-radius:10px;padding:10px 12px;min-height:56px;border:1px solid #f3f4f6">
+            <div style="font-size:10px;font-weight:700;color:#9ca3af;letter-spacing:.3px;margin-bottom:6px">⊘ ไม่ต้องฝึกอบรม</div>
+            <div>${noTrainList.map(b=>chip(b,c.id,false)).join('')||
+              '<span style="font-size:11px;color:#9ca3af;font-style:italic">–</span>'}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('') || '<p style="color:var(--muted);font-size:13px;padding:12px 0">ยังไม่มีหลักสูตร</p>';
 }
 
 function addCourse() {
   const name = document.getElementById('newCourseName').value.trim();
   if(!name) return;
+  const noEval = document.getElementById('newCourseNoEval')?.checked||false;
   const maxId = trainingCourses.reduce((m,c)=>Math.max(m,c.id),0);
-  trainingCourses.push({id: maxId+1, name});
+  trainingCourses.push({id: maxId+1, name, noEval, branches:[], maxScore: noEval?null:100, passScore: null});
   document.getElementById('newCourseName').value = '';
+  if(document.getElementById('newCourseNoEval')) document.getElementById('newCourseNoEval').checked=false;
   renderCourseList();
 }
 
@@ -3126,8 +3257,9 @@ function deleteCourse(id) {
 function saveCourses() {
   localStorage.setItem('skygroup_courses', JSON.stringify(trainingCourses));
   localStorage.setItem('skygroup_courses_ver', COURSES_VERSION);
-  closeModal('courseManagerModal');
   renderTraining();
+  const msg = document.getElementById('courseSaveMsg');
+  if(msg){ msg.style.display='block'; setTimeout(()=>msg.style.display='none', 2500); }
 }
 
 // ===================== MONTHLY =====================
@@ -3663,10 +3795,11 @@ function toggleEmpWpLink(){
     const emp = editingEmpId ? empData.find(e=>e.id===editingEmpId) : null;
     if(!emp) { trainEl.innerHTML = '<span style="color:var(--muted)">บันทึกพนักงานก่อนเพื่อดูสถานะ Training</span>'; }
     else {
-      const done = trainingCourses.filter(c=>getTrainResult(emp,c.id).result==='ผ่าน').length;
-      const total = trainingCourses.length;
+      const empCourses = getCoursesForEmp(emp);
+      const done = empCourses.filter(c=>getTrainResult(emp,c.id).result==='ผ่าน').length;
+      const total = empCourses.length;
       const st = trainStatus(emp);
-      const pills = trainingCourses.map(c=>{
+      const pills = empCourses.map(c=>{
         const tr = getTrainResult(emp,c.id);
         const color = tr.result==='ผ่าน'?'#d1fae5;color:#065f46' : tr.result==='ไม่ผ่าน'?'#fee2e2;color:#991b1b' : '#f3f4f6;color:#6b7280';
         const icon = tr.result==='ผ่าน'?'✅':tr.result==='ไม่ผ่าน'?'❌':'⏳';
@@ -3800,8 +3933,9 @@ function renderEmpTable(){
       <td style="text-align:center">${wpBadge}</td>
       <td style="text-align:center">${(()=>{
         const st=trainStatus(e);
-        const done=trainingCourses.filter(c=>getTrainResult(e,c.id).result==='ผ่าน').length;
-        const total=trainingCourses.length;
+        const ec=getCoursesForEmp(e);
+        const done=ec.filter(c=>getTrainResult(e,c.id).result==='ผ่าน').length;
+        const total=ec.length;
         if(st==='ผ่านครบ') return `<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;font-size:10px">🏆 ผ่านครบ</span>`;
         if(st==='กำลังฝึก') return `<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:10px">📚 ${done}/${total}</span>`;
         return `<span style="background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:10px;font-size:10px">⏳ 0/${total}</span>`;
@@ -4132,8 +4266,7 @@ function populateEmpBranchDropdown(keepVal){
   if(!sel)return;
   const cur=keepVal!==undefined?keepVal:sel.value;
   sel.innerHTML='<option value="">– เลือกสาขา –</option>';
-  const branches=[...new Set(posData.map(p=>p.branch).filter(Boolean))].sort();
-  branches.forEach(b=>{
+  BRANCH_LIST.forEach(b=>{
     const o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);
   });
   if(cur)sel.value=cur;
@@ -4685,6 +4818,7 @@ function applySession(user, userData){
   const adminUserNav=document.getElementById('adminUserNav');
   if(adminUserNav) adminUserNav.style.display=isAdmin()?'':'none';
   applyRoleUI();
+  populateBranchSelects(); // populate static branch dropdowns จาก BRANCH_LIST
 }
 
 // ===================== USER MANAGEMENT =====================
@@ -5091,8 +5225,9 @@ function executePrint(){
   if(sel.training){
     const probEmp=activeEmp.filter(e=>e.probationDays&&!e.archivedProbation);
     const trainRows=probEmp.map((e,i)=>{
-      const done=trainingCourses.filter(c=>{const r=getTrainResult(e,c.id).result;return c.noEval?r==='รับทราบ':r==='ผ่าน';}).length;
-      const total=trainingCourses.length;
+      const ec=getCoursesForEmp(e);
+      const done=ec.filter(c=>{const r=getTrainResult(e,c.id).result;return c.noEval?r==='รับทราบ':r==='ผ่าน';}).length;
+      const total=ec.length;
       const pct=total>0?Math.round(done/total*100):0;
       return `<tr><td>${i+1}</td><td>${e.name}</td><td>${e.pos||'–'}</td><td>${e.branch||'–'}</td>
         <td style="text-align:center">${done}/${total}</td>
@@ -5260,8 +5395,8 @@ function getAlerts(){
     if(trainStatus(e)==='ผ่านครบ')return;
     const daysIn=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
     if(daysIn<7||daysIn>90)return; // alert เฉพาะช่วงทดลองงาน
-    // นับวิชาค้าง โดยแยก noEval ออกให้ถูกต้อง
-    const pending=trainingCourses.filter(c=>{
+    // นับวิชาค้าง เฉพาะหลักสูตรที่ใช้กับสาขาพนักงานคนนี้
+    const pending=getCoursesForEmp(e).filter(c=>{
       const r=getTrainResult(e,c.id).result;
       return c.noEval ? r!=='รับทราบ' : r!=='ผ่าน';
     }).map(c=>c.name);
