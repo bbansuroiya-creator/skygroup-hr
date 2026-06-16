@@ -1224,52 +1224,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         </div>
         <div class="entry-field">
           <label>ตำแหน่งที่สมัคร *</label>
-          <select id="ea_pos" onchange="toggleAppPosCustom()" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
-            <option value="">– เลือกตำแหน่ง –</option>
-            <optgroup label="🍽️ Service & Front of House">
+          <select id="ea_pos" onchange="autoFillBranchFromPos()" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
+            <option value="">– เลือกตำแหน่งจากที่เปิดรับ –</option>
+            <optgroup label="🍽️ Service & Front of House" id="_ea_pos_dummy_og" style="display:none">
               <option>เสิร์ฟ</option><option>แคชเชียร์</option><option>พนักงานต้อนรับ</option>
               <option>Service Back-End</option><option>พนักงานรันเนอร์</option><option>สจ๊วต</option>
             </optgroup>
-            <optgroup label="🍳 ครัว">
-              <option>พ่อครัว/แม่ครัว ครัวไทย</option><option>พ่อครัว/แม่ครัว ครัวอินเตอร์</option><option>พ่อครัว/แม่ครัว ครัวญี่ปุ่น</option>
-            </optgroup>
-            <optgroup label="🍹 Bar">
-              <option>Coffee Bar</option><option>Beach Bar</option><option>Juice Bar</option><option>Dessert Bar</option>
-            </optgroup>
-            <optgroup label="👔 Management">
-              <option>ผู้จัดการร้าน</option><option>ผู้ช่วยผู้จัดการร้าน</option>
-            </optgroup>
-            <optgroup label="🔧 Support">
-              <option>คนสวน</option><option>คนขับรถ</option><option>คนขับรถส่งของ</option>
-              <option>แม่บ้าน</option><option>ช่าง</option><option>พนักงานสโตร์</option><option>พนักงานสต็อก</option>
-            </optgroup>
-            <optgroup label="💼 Admin & Back Office">
-              <option>เลขาผู้บริหาร</option><option>ออดิท</option><option>Admin Call Center</option>
-              <option>Admin (HR)</option><option>ไอที</option>
-            </optgroup>
-            <optgroup label="⏰ อื่น ๆ"><option>Part Time</option></optgroup>
-            <option value="__custom__">➕ เพิ่มตำแหน่งใหม่ (ระบุเอง)</option>
           </select>
-          <input id="ea_pos_custom" type="text" style="display:none;margin-top:6px;width:100%;border:1px solid var(--teal);border-radius:8px;padding:8px 12px;font-size:13px;outline:none" placeholder="พิมพ์ตำแหน่งใหม่...">
+          <div id="ea_pos_hint" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
         </div>
         <div class="entry-field">
           <label>ร้าน / สาขา</label>
           <select id="ea_branch" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
             <option value="">– เลือกสาขา –</option>
-            <option>BACK OFFICE (H.Q.)</option>
-            <option>FIREPORK TERMINAL 21 ASOK</option>
-            <option>Headquarters</option>
-            <option>THE FOREST BY THE SKY</option>
-            <option>THE LUNAR BEACH HOUSE (1)</option>
-            <option>THE LUNAR BEACH HOUSE (2)</option>
-            <option>THE MOMENT BEACH HOUSE RESTAURANT</option>
-            <option>THE OXYGEN BEACH FRONT OASIS</option>
-            <option>THE SKY GALLERY</option>
-            <option>TWIN MADE BUS TERMINAL PATTAYA</option>
-            <option>TWIN MADE FASHION ISLAND</option>
-            <option>TWIN MADE MEGA BANGNA</option>
-            <option>TWIN MADE TERMINAL 21 ASOK</option>
-            <option>TWIN MADE TERMINAL 21 PATTAYA</option>
           </select>
         </div>
         <div class="entry-field"><label>ช่องทางการสมัคร</label>
@@ -1407,33 +1374,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
         <div class="entry-field"><label>ชื่อ-นามสกุล *</label><input id="ee_name" type="text" placeholder="ชื่อพนักงาน"></div>
         <div class="entry-field">
           <label>ตำแหน่ง *</label>
-          <select id="ee_pos" onchange="toggleEmpPosCustom()" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
-            <option value="">– เลือกตำแหน่ง –</option>
-            <optgroup label="🍽️ Service & Front of House">
-              <option>เสิร์ฟ</option><option>แคชเชียร์</option><option>พนักงานต้อนรับ</option>
-              <option>Service Back-End</option><option>พนักงานรันเนอร์</option><option>สจ๊วต</option>
-            </optgroup>
-            <optgroup label="🍳 ครัว">
-              <option>พ่อครัว/แม่ครัว ครัวไทย</option><option>พ่อครัว/แม่ครัว ครัวอินเตอร์</option><option>พ่อครัว/แม่ครัว ครัวญี่ปุ่น</option>
-            </optgroup>
-            <optgroup label="🍹 Bar">
-              <option>Coffee Bar</option><option>Beach Bar</option><option>Juice Bar</option><option>Dessert Bar</option>
-            </optgroup>
-            <optgroup label="👔 Management">
-              <option>ผู้จัดการร้าน</option><option>ผู้ช่วยผู้จัดการร้าน</option>
-            </optgroup>
-            <optgroup label="🔧 Support">
-              <option>คนสวน</option><option>คนขับรถ</option><option>คนขับรถส่งของ</option>
-              <option>แม่บ้าน</option><option>ช่าง</option><option>พนักงานสโตร์</option><option>พนักงานสต็อก</option>
-            </optgroup>
-            <optgroup label="💼 Admin & Back Office">
-              <option>เลขาผู้บริหาร</option><option>ออดิท</option><option>Admin Call Center</option>
-              <option>Admin (HR)</option><option>ไอที</option>
-            </optgroup>
-            <optgroup label="⏰ อื่น ๆ"><option>Part Time</option></optgroup>
-            <option value="__custom__">➕ เพิ่มตำแหน่งใหม่ (ระบุเอง)</option>
+          <select id="ee_pos" onchange="autoFillEmpBranchFromPos()" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
+            <option value="">– เลือกตำแหน่งจากที่เปิดรับ –</option>
           </select>
-          <input id="ee_pos_custom" type="text" style="display:none;margin-top:6px;width:100%;border:1px solid var(--teal);border-radius:8px;padding:8px 12px;font-size:13px;outline:none" placeholder="พิมพ์ตำแหน่งใหม่...">
+          <div id="ee_pos_hint" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
         </div>
         <div class="entry-field"><label>แผนก</label>
           <select id="ee_dept"><option>Reception</option><option>แคชเชียร์</option><option>Coffee Bar</option><option>Beach Bar</option><option>Juice Bar</option><option>Dessert Bar</option><option>Service</option><option>คนขับรถ</option><option>Service Back-End</option><option>Cleaner</option><option>MK Inter</option><option>MK THAI</option><option>แผนกสโตร์</option><option>แผนกช่าง</option><option>แผนกบัญชี</option><option>แผนก IT</option><option>แผนกบุคคล</option><option>แผนก Reservation</option><option>แผนก Audit</option><option>แผนก รปภ.</option><option>แผนก Engineer</option><option>แผนกจัดซื้อ</option><option>TWINS BAKERY</option><option>แผนกครัวกลาง</option><option>แผนก MK Center</option><option>แผนก Staff Admin</option><option>แม่บ้านผู้บริหาร (M.D.)</option><option>เลขาผู้บริหาร</option><option>อื่น ๆ</option></select>
@@ -1442,20 +1386,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
           <label>ร้าน / สาขา</label>
           <select id="ee_branch" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
             <option value="">– เลือกสาขา –</option>
-            <option>BACK OFFICE (H.Q.)</option>
-            <option>FIREPORK TERMINAL 21 ASOK</option>
-            <option>Headquarters</option>
-            <option>THE FOREST BY THE SKY</option>
-            <option>THE LUNAR BEACH HOUSE (1)</option>
-            <option>THE LUNAR BEACH HOUSE (2)</option>
-            <option>THE MOMENT BEACH HOUSE RESTAURANT</option>
-            <option>THE OXYGEN BEACH FRONT OASIS</option>
-            <option>THE SKY GALLERY</option>
-            <option>TWIN MADE BUS TERMINAL PATTAYA</option>
-            <option>TWIN MADE FASHION ISLAND</option>
-            <option>TWIN MADE MEGA BANGNA</option>
-            <option>TWIN MADE TERMINAL 21 ASOK</option>
-            <option>TWIN MADE TERMINAL 21 PATTAYA</option>
           </select>
         </div>
         <div class="entry-field"><label>วันที่เริ่มงาน *</label><input id="ee_startdate" type="date"></div>
@@ -3613,10 +3543,7 @@ function calcTenure(startdate){
 
 function saveEmpEntry(){
   const name=document.getElementById('ee_name').value.trim();
-  const eePosSel=document.getElementById('ee_pos');
-  const pos=eePosSel.value==='__custom__'
-    ?(document.getElementById('ee_pos_custom')?.value.trim()||'')
-    :eePosSel.value;
+  const pos=document.getElementById('ee_pos').value.trim();
   if(!name||!pos){alert('กรุณากรอกชื่อและตำแหน่ง');return;}
   const obj={
     id:editingEmpId||++nextEid,
@@ -3668,10 +3595,9 @@ function editEmpEntry(id){
   editingEmpId=id;
   document.getElementById('ee_id').value=e.empId||'';
   document.getElementById('ee_name').value=e.name;
-  setDropdownOrCustom('ee_pos','ee_pos_custom',e.pos||'');
+  populateEmpPosDropdown(e.pos||'');
   document.getElementById('ee_dept').value=e.dept||'Reception';
-  const eeBrSel=document.getElementById('ee_branch');
-  if(eeBrSel)eeBrSel.value=e.branch||'';
+  populateEmpBranchDropdown(e.branch||'');
   document.getElementById('ee_startdate').value=e.startdate||'';
   document.getElementById('ee_status').value=e.status||'ทำงานอยู่';
   document.getElementById('ee_enddate').value=e.enddate||'';
@@ -3782,9 +3708,8 @@ function toggleResignFields(){
 function cancelEmpEdit(){
   editingEmpId=null;
   ['ee_id','ee_name','ee_startdate','ee_enddate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('ee_pos').value='';
-  const eeC=document.getElementById('ee_pos_custom');if(eeC){eeC.value='';eeC.style.display='none';}
-  document.getElementById('ee_branch').value='';
+  populateEmpPosDropdown('');
+  populateEmpBranchDropdown('');
   const r=document.getElementById('ee_reason');if(r)r.value='';
   const d=document.getElementById('ee_dept');if(d)d.value='Reception';
   const s=document.getElementById('ee_status');if(s)s.value='ทำงานอยู่';
@@ -4137,16 +4062,107 @@ function togglePosCustom(){
   if(sel.value==='__custom__'){custom.style.display='block';custom.focus();}
   else{custom.style.display='none';custom.value='';}
 }
-function toggleAppPosCustom(){
+function populateAppPosDropdown(keepVal){
   const sel=document.getElementById('ea_pos');
-  const custom=document.getElementById('ea_pos_custom');
-  if(sel.value==='__custom__'){custom.style.display='block';custom.focus();}
-  else{custom.style.display='none';custom.value='';}
+  const hint=document.getElementById('ea_pos_hint');
+  if(!sel)return;
+  const cur=keepVal!==undefined?keepVal:sel.value;
+  // Remove all options except placeholder
+  sel.innerHTML='<option value="">– เลือกตำแหน่งจากที่เปิดรับ –</option>';
+  if(!posData.length){
+    if(hint){hint.textContent='⚠️ ยังไม่มีตำแหน่งว่าง — กรุณาสร้างตำแหน่งก่อนใน "จัดการตำแหน่งว่าง"';hint.style.color='var(--red)';}
+    return;
+  }
+  // Unique position names from posData
+  const positions=[...new Set(posData.map(p=>p.pos).filter(Boolean))].sort();
+  positions.forEach(pos=>{
+    const o=document.createElement('option');
+    o.value=pos;o.textContent=pos;
+    sel.appendChild(o);
+  });
+  if(cur)sel.value=cur;
+  if(hint){hint.textContent=`${posData.length} ตำแหน่งที่เปิดรับอยู่`;hint.style.color='var(--muted)';}
 }
-function toggleEmpPosCustom(){
+function toggleAppPosCustom(){/* no-op: custom input removed */}
+
+function populateAppBranchDropdown(keepVal){
+  const sel=document.getElementById('ea_branch');
+  if(!sel)return;
+  const cur=keepVal!==undefined?keepVal:sel.value;
+  sel.innerHTML='<option value="">– เลือกสาขา –</option>';
+  const branches=[...new Set(posData.map(p=>p.branch).filter(Boolean))].sort();
+  branches.forEach(b=>{
+    const o=document.createElement('option');
+    o.value=b;o.textContent=b;
+    sel.appendChild(o);
+  });
+  if(cur)sel.value=cur;
+}
+
+function autoFillBranchFromPos(){
+  const pos=document.getElementById('ea_pos').value;
+  const hint=document.getElementById('ea_pos_hint');
+  if(!pos){if(hint)hint.textContent=posData.length+' ตำแหน่งที่เปิดรับอยู่';return;}
+  const matches=posData.filter(p=>p.pos===pos);
+  const brSel=document.getElementById('ea_branch');
+  if(!brSel)return;
+  if(matches.length===1){
+    brSel.value=matches[0].branch||'';
+    if(hint){hint.textContent='✅ Auto-fill สาขา: '+matches[0].branch;hint.style.color='var(--teal-d)';}
+  } else if(matches.length>1){
+    const branches=[...new Set(matches.map(p=>p.branch).filter(Boolean))];
+    brSel.value='';
+    if(hint){hint.textContent='📍 ตำแหน่งนี้เปิดรับ '+branches.length+' สาขา: '+branches.join(', ') +' — กรุณาเลือกสาขา';hint.style.color='var(--yellow)';}
+  }
+}
+function populateEmpPosDropdown(keepVal){
+  const sel=document.getElementById('ee_pos');
+  const hint=document.getElementById('ee_pos_hint');
+  if(!sel)return;
+  const cur=keepVal!==undefined?keepVal:sel.value;
+  sel.innerHTML='<option value="">– เลือกตำแหน่งจากที่เปิดรับ –</option>';
+  if(!posData.length){
+    if(hint){hint.textContent='⚠️ ยังไม่มีตำแหน่งว่าง — กรุณาสร้างตำแหน่งก่อนใน "จัดการตำแหน่งว่าง"';hint.style.color='var(--red)';}
+    return;
+  }
+  const positions=[...new Set(posData.map(p=>p.pos).filter(Boolean))].sort();
+  positions.forEach(pos=>{
+    const o=document.createElement('option');o.value=pos;o.textContent=pos;sel.appendChild(o);
+  });
+  if(cur)sel.value=cur;
+  if(hint){hint.textContent=posData.length+' ตำแหน่งที่เปิดรับอยู่';hint.style.color='var(--muted)';}
+}
+function populateEmpBranchDropdown(keepVal){
+  const sel=document.getElementById('ee_branch');
+  if(!sel)return;
+  const cur=keepVal!==undefined?keepVal:sel.value;
+  sel.innerHTML='<option value="">– เลือกสาขา –</option>';
+  const branches=[...new Set(posData.map(p=>p.branch).filter(Boolean))].sort();
+  branches.forEach(b=>{
+    const o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);
+  });
+  if(cur)sel.value=cur;
+}
+function autoFillEmpBranchFromPos(){
+  const pos=document.getElementById('ee_pos').value;
+  const hint=document.getElementById('ee_pos_hint');
+  if(!pos){if(hint)hint.textContent=posData.length+' ตำแหน่งที่เปิดรับอยู่';return;}
+  const matches=posData.filter(p=>p.pos===pos);
+  const brSel=document.getElementById('ee_branch');
+  if(!brSel)return;
+  if(matches.length===1){
+    brSel.value=matches[0].branch||'';
+    if(hint){hint.textContent='✅ Auto-fill สาขา: '+matches[0].branch;hint.style.color='var(--teal-d)';}
+  } else if(matches.length>1){
+    const branches=[...new Set(matches.map(p=>p.branch).filter(Boolean))];
+    brSel.value='';
+    if(hint){hint.textContent='📍 ตำแหน่งนี้เปิดรับ '+branches.length+' สาขา: '+branches.join(', ')+' — กรุณาเลือกสาขา';hint.style.color='var(--yellow)';}
+  }
+}
+function toggleEmpPosCustom(){/* no-op */
   const sel=document.getElementById('ee_pos');
   const custom=document.getElementById('ee_pos_custom');
-  if(sel.value==='__custom__'){custom.style.display='block';custom.focus();}
+  if(sel&&custom&&sel.value==='__custom__'){custom.style.display='block';custom.focus();}
   else{custom.style.display='none';custom.value='';}
   autoFillEmpDept();
 }
@@ -4318,7 +4334,8 @@ function applyPosLink(){
   if(!sel||!sel.value)return;
   const p=posData.find(x=>String(x.id)===sel.value);
   if(!p)return;
-  setDropdownOrCustom('ea_pos','ea_pos_custom',p.pos||'');
+  const eaPos=document.getElementById('ea_pos');
+  if(eaPos)eaPos.value=p.pos||'';
   const brSel=document.getElementById('ea_branch');
   if(brSel)brSel.value=p.branch||'';
 }
@@ -4334,10 +4351,7 @@ function calcTTF(app){
 
 function saveAppEntry(){
   const name=document.getElementById('ea_name').value.trim();
-  const eaPosSel=document.getElementById('ea_pos');
-  const pos=eaPosSel.value==='__custom__'
-    ?(document.getElementById('ea_pos_custom')?.value.trim()||'')
-    :eaPosSel.value;
+  const pos=document.getElementById('ea_pos').value.trim();
   if(!name||!pos){alert('กรุณากรอกชื่อและตำแหน่ง');return;}
   const poslinkId=document.getElementById('ea_poslink')?.value||'';
   const obj={
@@ -4456,9 +4470,8 @@ function editAppEntry(id){
   const a=appData.find(x=>x.id===id);if(!a)return;
   editingAppId=id;
   document.getElementById('ea_name').value=a.name;
-  setDropdownOrCustom('ea_pos','ea_pos_custom',a.pos||'');
-  const eaBrSel=document.getElementById('ea_branch');
-  if(eaBrSel)eaBrSel.value=a.branch||'';
+  populateAppPosDropdown(a.pos||'');
+  populateAppBranchDropdown(a.branch||'');
   document.getElementById('ea_channel').value=a.channel||'JobThai';
   document.getElementById('ea_date').value=a.date||'';
   document.getElementById('ea_status').value=a.status||'สมัคร';
@@ -4491,9 +4504,8 @@ function deleteAppEntry(id){
 function cancelAppEdit(){
   editingAppId=null;
   ['ea_name','ea_date','ea_interviewdate','ea_startdate','ea_rec','ea_note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('ea_pos').value='';
-  const eaC=document.getElementById('ea_pos_custom');if(eaC){eaC.value='';eaC.style.display='none';}
-  document.getElementById('ea_branch').value='';
+  populateAppPosDropdown('');
+  populateAppBranchDropdown('');
   document.getElementById('ea_nationality').value='ไทย';
   toggleTransferField();
   document.getElementById('ea_channel').value='JobThai';
@@ -5441,9 +5453,9 @@ const _da=deleteApp;deleteApp=function(id){_da(id);saveToStorage();};
 // renderSection additions
 const _origRenderSection=renderSection;
 renderSection=function(id){
-  if(id==='entry-emp'){cancelEmpEdit();renderEmpTable();renderEmpKpi();}
+  if(id==='entry-emp'){cancelEmpEdit();populateEmpPosDropdown();populateEmpBranchDropdown();renderEmpTable();renderEmpKpi();}
   else if(id==='entry-pos'){cancelPosEdit();renderPosTable();}
-  else if(id==='entry-app'){cancelAppEdit();populatePosLinkDropdown();renderAppTable();renderAppStatusBadges();}
+  else if(id==='entry-app'){cancelAppEdit();populatePosLinkDropdown();populateAppPosDropdown();populateAppBranchDropdown();renderAppTable();renderAppStatusBadges();}
   else if(id==='manage-users'){renderUserTable();}
   else if(id==='audit-log'){renderAuditLog();}
   else _origRenderSection(id);
