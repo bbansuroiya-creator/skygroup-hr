@@ -496,26 +496,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
   <div class="sec-title"><span>👥</span>สถานะกำลังคน</div>
   <div class="cards cards-4" id="wf-cards"></div>
   <div class="row row-2">
-    <div class="chart-card tall">
-      <h3>📈 พนักงานเข้าใหม่ vs ลาออก รายเดือน</h3>
-      <canvas id="wfTrendChart"></canvas>
-    </div>
-    <div class="chart-card">
-      <h3>🏢 แผนกที่ลาออกมากที่สุด</h3>
-      <div id="wfDeptChart" class="html-bar-chart"></div>
-    </div>
-  </div>
-  <div class="row row-2">
-    <div class="chart-card">
-      <h3>💼 ตำแหน่งที่ลาออกมากที่สุด</h3>
-      <div id="wfPosChart" class="html-bar-chart"></div>
-    </div>
-    <div class="chart-card">
-      <h3>💬 เหตุผลการลาออก</h3>
-      <canvas id="wfReasonChart"></canvas>
-    </div>
-  </div>
-  <div class="row row-2">
     <div class="chart-card">
       <h3>🏪 Headcount Target vs Actual รายสาขา</h3>
       <div id="wfBranchTarget" class="html-bar-chart"></div>
@@ -524,16 +504,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       <h3>📉 Turnover Rate รายสาขา (%)</h3>
       <div id="wfBranchTurnover" class="html-bar-chart"></div>
     </div>
-  </div>
-  <div class="table-card">
-    <div class="table-card-header">
-      <h3>รายการพนักงานลาออก</h3>
-      <span style="font-size:12px;color:var(--muted)">อัปเดตสถานะพนักงานใน <strong>ฐานข้อมูลพนักงาน</strong> เพื่อเพิ่มรายการ</span>
-    </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>แผนก</th><th>ร้าน/สาขา</th><th>วันที่ลาออก</th><th>เหตุผล</th></tr></thead>
-      <tbody id="resignTbody"></tbody>
-    </table></div>
   </div>
 </div>
 
@@ -2313,25 +2283,6 @@ function renderWorkforce(){
     <div class="kpi-card blue"><div class="kpi-icon">👥</div><div class="kpi-label">พนักงานปัจจุบัน</div><div class="kpi-value blue">${totalStaff}</div><div class="kpi-sub">คน</div></div>
   `;
 
-  mkChart('wfTrendChart',{type:'bar',data:{labels:months,datasets:[
-    {label:'เข้าใหม่',data:[12,10,14,11,13,8,0,0,0,0,0,0],backgroundColor:'#3D9494',borderRadius:4},
-    {label:'ลาออก',data:[5,4,6,7,5,4,0,0,0,0,0,0],backgroundColor:'#C0544A',borderRadius:4}
-  ]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
-
-  const allResignedForCharts=[...empData.filter(e=>e.status==='ลาออก'),...resignData.filter(r=>!empData.find(e=>e.name===r.name&&e.status==='ลาออก'))];
-  const depts=['Reception','แคชเชียร์','Coffee Bar','Beach Bar','Juice Bar','Dessert Bar','Service','Service Back-End','MK Inter','MK THAI','แผนกสโตร์','แผนกช่าง','แผนกบัญชี','แผนก IT','แผนกบุคคล','แผนก Reservation','แผนก Audit','แผนก รปภ.','แผนก Engineer','แผนกจัดซื้อ','TWINS BAKERY','แผนกครัวกลาง','แผนก MK Center','แผนก Staff Admin','อื่น ๆ'];
-  const dCounts=depts.map(d=>allResignedForCharts.filter(r=>r.dept===d).length);
-  renderHtmlBars('wfDeptChart', depts, dCounts, '#C0544A');
-
-  const positions=['เสิร์ฟ','แคชเชียร์','พนักงานต้อนรับ','Service Back-End','พ่อครัว/แม่ครัว ครัวไทย','พ่อครัว/แม่ครัว ครัวอินเตอร์','พ่อครัว/แม่ครัว ครัวญี่ปุ่น','Coffee Bar','Beach Bar','Juice Bar','Dessert Bar','ผู้จัดการร้าน','ผู้ช่วยผู้จัดการร้าน','Part Time','อื่น ๆ'];
-  const pCounts=positions.map(p=>allResignedForCharts.filter(r=>r.pos===p).length);
-  renderHtmlBars('wfPosChart', positions, pCounts, '#C5913A');
-
-  const reasons=['ได้งานที่อื่น','เงินเดือนไม่ตรงตามต้องการ','ย้ายที่อยู่','เรียนต่อ','ปัญหาสุขภาพ','ลาออกโดยไม่แจ้งเหตุผล','ไม่ผ่านทดลองงาน','สวัสดิการไม่เพียงพอ','ไม่ได้หยุดตรงตามเทศกาล','เลิกจ้าง/ยุติการจ้าง','หมดสัญญา','อื่น ๆ'];
-  const rCounts=reasons.map(r=>resignData.filter(x=>x.reason===r).length);
-  mkChart('wfReasonChart',{type:'doughnut',data:{labels:reasons,datasets:[{data:rCounts,backgroundColor:['#C0544A','#C5913A','#E07030','#7A8FA0','#3D9494','#6B90A8','#A8B8C4'],hoverOffset:8}]},
-    options:{responsive:true,plugins:{legend:{position:'right'}},cutout:'55%'}});
-
   // Branch Target vs Actual
   const activeEmp=empData.filter(e=>e.status==='ทำงานอยู่');
   const allBranches=[...new Set([...branchTargets.map(b=>b.branch),...activeEmp.map(e=>e.branch).filter(Boolean)])];
@@ -2371,26 +2322,6 @@ function renderWorkforce(){
   const turnoverPct=allEmpByBranch.map(b=>b.total>0?Math.round(b.resigned/b.total*100):0);
   renderHtmlBars('wfBranchTurnover',allBranches,turnoverPct,'#C0544A');
 
-  // Build resign list from empData (status=ลาออก) merged with legacy resignData
-  const empResigned=empData.filter(e=>e.status==='ลาออก').map(e=>({
-    name:e.name,pos:e.pos,dept:e.dept||'–',branch:e.branch||'–',
-    date:e.enddate||'',reason:e.reason||'–'
-  }));
-  const combinedResign=[...empResigned];
-  // Add legacy resignData entries not already in empData
-  resignData.forEach(r=>{
-    if(!empResigned.find(e=>e.name===r.name))combinedResign.push(r);
-  });
-  const selMonthR=parseInt(document.getElementById('filterMonth')?.value||'all');
-  const selYearR=parseInt(document.getElementById('filterYear')?.value||2026);
-  const filteredResign=combinedResign.filter(r=>{
-    if(!r.date)return true;
-    const d=new Date(r.date);
-    return d.getFullYear()===selYearR&&(isNaN(selMonthR)||d.getMonth()+1===selMonthR);
-  });
-  document.getElementById('resignTbody').innerHTML=filteredResign.length?filteredResign.map((r,i)=>`
-    <tr><td>${i+1}</td><td><strong>${r.name}</strong></td><td>${r.pos}</td><td>${r.dept}</td><td>${r.branch}</td><td>${fmtDate(r.date)}</td><td><span class="badge badge-red">${r.reason||'–'}</span></td></tr>
-  `).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">ไม่มีรายการลาออกในช่วงเวลาที่เลือก</td></tr>';
 }
 
 // ===================== RESIGN ANALYSIS =====================
