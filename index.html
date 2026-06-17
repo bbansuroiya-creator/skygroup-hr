@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -5643,25 +5642,6 @@ function saveToStorage(){
 
 function loadFromStorage(){
   return false; // handled async in INIT
-}
-
-const DEMO_FOREIGN_WORKERS = [
-  {id:101,empId:'SKY101',name:'Zaw Lin',pos:'Steward',dept:'Kitchen',branch:'FIREPORK TERMINAL 21 ASOK',startdate:'2025-01-15',nationality:'เมียนมา',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน',
-    workPermit:{passportNo:'MA123456',passportExpire:'2028-01-14',type:'WP',permitNo:'WP-6701-00234',issueDate:'2025-02-01',expireDate:'2026-07-20',visaNo:'B-TH-88821',visa90Date:'2026-07-05',visaIssue:'2025-02-01',visaExpire:'2026-08-31',note:''}},
-  {id:102,empId:'SKY102',name:'Kyaw Kyaw',pos:'Kitchen Helper',dept:'Kitchen',branch:'THE SKY GALLERY',startdate:'2024-08-10',nationality:'เมียนมา',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน',
-    workPermit:{passportNo:'MA654321',passportExpire:'2027-08-09',type:'WP',permitNo:'WP-6701-00198',issueDate:'2024-09-01',expireDate:'2025-09-01',visaNo:'B-TH-77710',visa90Date:'2026-06-30',visaIssue:'2024-09-01',visaExpire:'2025-09-01',note:'ต่ออายุแล้ว'}},
-  {id:103,empId:'SKY103',name:'Nguyen Van An',pos:'Dishwasher',dept:'Kitchen',branch:'TWIN MADE MEGA BANGNA',startdate:'2025-04-01',nationality:'เวียดนาม',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน',
-    workPermit:{passportNo:'VN-B9182736',passportExpire:'2029-03-31',type:'WP',permitNo:'WP-6701-00312',issueDate:'2025-04-15',expireDate:'2026-04-14',visaNo:'B-TH-55593',visa90Date:'2026-08-01',visaIssue:'2025-04-15',visaExpire:'2026-04-14',note:''}},
-  {id:104,empId:'SKY104',name:'Thin Thin Aye',pos:'Food Runner',dept:'Service',branch:'THE LUNAR BEACH HOUSE (1)',startdate:'2025-09-01',nationality:'เมียนมา',status:'ทำงานอยู่',probationDays:90,probationResult:'ผ่าน',
-    workPermit:{passportNo:'MA999001',passportExpire:'2030-08-31',type:'WP',permitNo:'',issueDate:'',expireDate:'',visaNo:'',visa90Date:'',visaIssue:'',visaExpire:'',note:'อยู่ระหว่างดำเนินการ'}},
-];
-function seedDemoForeignWorkers(){
-  const demoIds = DEMO_FOREIGN_WORKERS.map(e=>e.id);
-  const hasForeign = empData.some(e=>e.nationality && e.nationality!=='ไทย' && !demoIds.includes(e.id));
-  if(hasForeign) return; // real foreign workers exist — don't seed
-  DEMO_FOREIGN_WORKERS.forEach(demo=>{
-    if(!empData.find(e=>e.id===demo.id)) empData.push(demo);
-  });
 }
 
 function applyData(d){
