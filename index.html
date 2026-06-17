@@ -393,11 +393,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
     <div class="nav-item" onclick="showSection('entry-emp',this)"><span class="icon">🏢</span>ฐานข้อมูลพนักงาน</div>
     <div class="nav-item" id="navEntryPos" onclick="showSection('entry-pos',this)"><span class="icon">✏️</span>ตำแหน่งว่าง</div>
     <div class="nav-item" onclick="showSection('entry-app',this)"><span class="icon">📝</span>ผู้สมัคร</div>
-    <div class="nav-item" id="navEntryCourse" onclick="showSection('entry-course',this)"><span class="icon">🎓</span>หลักสูตรฝึกอบรม</div>
   </div>
   <div class="nav-group" id="adminUserNav" style="display:none">
     <div class="nav-label">ผู้ดูแลระบบ</div>
     <div class="nav-item" onclick="showSection('manage-users',this)"><span class="icon">👤</span>จัดการทีม HR</div>
+    <div class="nav-item" id="navCompany" onclick="showSection('company',this)"><span class="icon">🏢</span>ข้อมูลบริษัท</div>
+    <div class="nav-item" id="navEntryCourse" onclick="showSection('entry-course',this)"><span class="icon">🎓</span>หลักสูตรฝึกอบรม</div>
     <div class="nav-item" id="navAuditLog" onclick="showSection('audit-log',this)" style="display:none"><span class="icon">🔍</span>Audit Log</div>
   </div>
   <!-- Sidebar user info -->
@@ -1104,31 +1105,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
           <label>ตำแหน่ง *</label>
           <select id="ep_pos" onchange="togglePosCustom();autoFillPosDept()" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;background:var(--card)">
             <option value="">– เลือกตำแหน่ง –</option>
-            <optgroup label="🍽️ Service & Front of House">
-              <option>เสิร์ฟ</option><option>แคชเชียร์</option><option>พนักงานต้อนรับ</option>
-              <option>Service Back-End</option><option>พนักงานรันเนอร์</option><option>สจ๊วต</option>
-            </optgroup>
-            <optgroup label="🍳 ครัว">
-              <option>พ่อครัว/แม่ครัว ครัวไทย</option><option>พ่อครัว/แม่ครัว ครัวอินเตอร์</option><option>พ่อครัว/แม่ครัว ครัวญี่ปุ่น</option>
-            </optgroup>
-            <optgroup label="🍹 Bar">
-              <option>Coffee Bar</option><option>Beach Bar</option><option>Juice Bar</option><option>Dessert Bar</option>
-            </optgroup>
-            <optgroup label="👔 Management">
-              <option>ผู้จัดการร้าน</option><option>ผู้ช่วยผู้จัดการร้าน</option>
-            </optgroup>
-            <optgroup label="🔧 Support">
-              <option>คนสวน</option><option>คนขับรถ</option><option>คนขับรถส่งของ</option>
-              <option>แม่บ้าน</option><option>ช่าง</option><option>พนักงานสโตร์</option><option>พนักงานสต็อก</option>
-            </optgroup>
-            <optgroup label="💼 Admin & Back Office">
-              <option>เลขาผู้บริหาร</option><option>ออดิท</option><option>Admin Call Center</option>
-              <option>Admin (HR)</option><option>ไอที</option>
-            </optgroup>
-            <optgroup label="⏰ อื่น ๆ">
-              <option>Part Time</option>
-            </optgroup>
-            <option value="__custom__" style="color:var(--primary);font-weight:600">➕ เพิ่มตำแหน่งใหม่ (ระบุเอง)</option>
           </select>
           <input id="ep_pos_custom" type="text" placeholder="ระบุชื่อตำแหน่งใหม่..." style="display:none;margin-top:6px;width:100%;border:1px solid var(--primary);border-radius:8px;padding:8px 12px;font-size:13px;outline:none">
         </div>
@@ -1538,6 +1514,113 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
       </thead>
       <tbody id="auditTbody"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- ===== COMPANY INFO ===== -->
+<div class="section" id="sec-company">
+  <div class="sec-title"><span>🏢</span>ข้อมูลบริษัท</div>
+
+  <!-- Add Branch -->
+  <div class="entry-card" style="margin-bottom:16px">
+    <div class="entry-card-header" onclick="toggleEntryCard('companyFormBody','companyFormToggle')">
+      <span>➕ เพิ่มสาขาใหม่</span>
+      <span class="entry-card-toggle" id="companyFormToggle">▲</span>
+    </div>
+    <div class="entry-card-body" id="companyFormBody">
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:4px 0">
+        <div style="flex:1;min-width:220px">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px">ชื่อสาขา / ร้าน</label>
+          <input id="newBranchInput" type="text" placeholder="เช่น TWIN MADE CENTRAL WORLD" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;background:var(--bg)">
+        </div>
+        <button onclick="addBranch()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">➕ เพิ่ม</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Branch List -->
+  <div class="table-card">
+    <div class="table-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <h3>📋 สาขาทั้งหมด</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="branchCount" style="font-size:12px;color:var(--muted)">0 สาขา</span>
+        <button onclick="saveCompanyConfig()" style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:7px 18px;font-size:13px;font-weight:600;cursor:pointer;color:#15803d">💾 บันทึก</button>
+      </div>
+    </div>
+    <div id="companyBranchList" style="padding:8px 0"></div>
+    <div id="companySaveMsg" style="display:none;margin:8px 4px 4px;padding:8px 14px;background:#f0fdf4;color:#166534;border-radius:8px;font-size:13px;font-weight:600">✅ บันทึกข้อมูลบริษัทเรียบร้อยแล้ว</div>
+  </div>
+
+  <!-- System Config -->
+  <div class="table-card" style="margin-top:16px">
+    <div class="table-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <h3>⚙️ ตั้งค่าระบบ</h3>
+      <button onclick="saveSystemConfig()" style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:7px 18px;font-size:13px;font-weight:600;cursor:pointer;color:#15803d">💾 บันทึก</button>
+    </div>
+    <div style="padding:16px 16px 8px;display:grid;gap:20px">
+
+      <!-- Probation checkpoints -->
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--primary-d);margin-bottom:10px">🔄 Probation Checkpoints (วันที่นับจากวันเริ่มงาน)</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:11px;color:var(--muted)">ช่วงที่ 1</span>
+            <input id="cfg_prob_1" type="number" min="1" max="365" placeholder="14" style="width:72px;text-align:center;border:1px solid var(--border);border-radius:8px;padding:7px 8px;font-size:14px;font-weight:600;background:var(--bg)">
+          </div>
+          <span style="color:var(--muted);font-size:16px;margin-top:12px">→</span>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:11px;color:var(--muted)">ช่วงที่ 2</span>
+            <input id="cfg_prob_2" type="number" min="1" max="365" placeholder="30" style="width:72px;text-align:center;border:1px solid var(--border);border-radius:8px;padding:7px 8px;font-size:14px;font-weight:600;background:var(--bg)">
+          </div>
+          <span style="color:var(--muted);font-size:16px;margin-top:12px">→</span>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:11px;color:var(--muted)">ช่วงที่ 3</span>
+            <input id="cfg_prob_3" type="number" min="1" max="365" placeholder="60" style="width:72px;text-align:center;border:1px solid var(--border);border-radius:8px;padding:7px 8px;font-size:14px;font-weight:600;background:var(--bg)">
+          </div>
+          <span style="color:var(--muted);font-size:16px;margin-top:12px">→</span>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:11px;color:var(--muted)">ช่วงที่ 4 (ผ่านโปร)</span>
+            <input id="cfg_prob_4" type="number" min="1" max="365" placeholder="90" style="width:72px;text-align:center;border:1px solid var(--border);border-radius:8px;padding:7px 8px;font-size:14px;font-weight:700;color:var(--teal-d);background:var(--bg)">
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:var(--muted)">ช่วงที่ว่าง = ไม่ใช้</div>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--muted)">แจ้งเตือนล่วงหน้า</span>
+          <input id="cfg_probAlert" type="number" min="0" max="30" style="width:60px;text-align:center;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:13px;background:var(--bg)">
+          <span style="font-size:12px;color:var(--muted)">วัน ก่อนถึง checkpoint</span>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--primary-d);margin-bottom:12px">🔔 Alert Threshold</div>
+        <div style="display:grid;grid-template-columns:auto 80px auto;gap:10px 12px;align-items:center">
+          <span style="font-size:13px">📄 Work permit / Visa ใกล้หมดอายุภายใน</span>
+          <input id="cfg_wpAlert" type="number" min="1" max="365" style="text-align:center;border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;font-weight:600;background:var(--bg)">
+          <span style="font-size:12px;color:var(--muted)">วัน</span>
+
+          <span style="font-size:13px">🏥 ประกันสังคม แจ้งเตือนถ้ายังไม่ลงทะเบียนใน</span>
+          <input id="cfg_ssAlert" type="number" min="1" max="365" style="text-align:center;border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;font-weight:600;background:var(--bg)">
+          <span style="font-size:12px;color:var(--muted)">วันแรกของงาน</span>
+
+          <span style="font-size:13px">🎓 Training ยังไม่ครบ แจ้งเตือนภายใน</span>
+          <input id="cfg_trainAlert" type="number" min="1" max="365" style="text-align:center;border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;font-weight:600;background:var(--bg)">
+          <span style="font-size:12px;color:var(--muted)">วันแรกของงาน</span>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--primary-d);margin-bottom:10px">✉️ Email Domain</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:13px;color:var(--muted)">Username ของ HR ใช้ domain</span>
+          <input id="cfg_emailDomain" type="text" placeholder="@thesky.co.th" style="width:200px;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;background:var(--bg)">
+          <span style="font-size:11px;color:var(--muted)">เช่น <code>@thesky.co.th</code> → login ด้วย <code>somchai</code> = <code>somchai@thesky.co.th</code></span>
+        </div>
+      </div>
+
+    </div>
+
+    </div>
+    <div id="sysConfigSaveMsg" style="display:none;margin:0 16px 12px;padding:8px 14px;background:#f0fdf4;color:#166534;border-radius:8px;font-size:13px;font-weight:600">✅ บันทึกการตั้งค่าเรียบร้อยแล้ว</div>
   </div>
 </div>
 
@@ -1954,8 +2037,19 @@ const fmtDate=d=>d?new Date(d).toLocaleDateString('th-TH',{day:'numeric',month:'
 const daysSince=d=>{if(!d)return 0;return Math.floor((new Date()-new Date(d))/(1000*60*60*24));};
 const mkChart=(id,cfg)=>{const c=document.getElementById(id);if(!c)return;if(chartInstances[id])chartInstances[id].destroy();chartInstances[id]=new Chart(c,cfg);return chartInstances[id];};
 
+// ===================== SYSTEM CONFIG =====================
+const DEFAULT_SYS_CONFIG = {
+  probPeriods:   [14, 30, 60, 90], // probation checkpoint days
+  probAlertDays: 3,                // days before checkpoint to alert
+  wpAlertDays:   60,               // days before work permit / visa expiry to alert
+  ssAlertDays:   60,               // new employee SS enrollment alert window (days)
+  trainAlertDays:90,               // training incomplete alert window (days from start)
+  emailDomain:   '@skygroup.hr',   // email domain suffix for login username → email
+};
+let SYS_CONFIG = Object.assign({}, DEFAULT_SYS_CONFIG);
+
 // ===================== BRANCH MASTER LIST =====================
-const BRANCH_LIST = [
+const DEFAULT_BRANCH_LIST = [
   'BACK OFFICE (H.Q.)',
   'FIREPORK TERMINAL 21 ASOK',
   'Headquarters',
@@ -1971,9 +2065,10 @@ const BRANCH_LIST = [
   'TWIN MADE TERMINAL 21 ASOK',
   'TWIN MADE TERMINAL 21 PATTAYA',
 ];
+let BRANCH_LIST = [...DEFAULT_BRANCH_LIST];
 
 // ===================== PERMISSIONS =====================
-const ADMIN_ONLY_SECTIONS = ['entry-pos','entry-course','manage-users','audit-log'];
+const ADMIN_ONLY_SECTIONS = ['entry-pos','entry-course','manage-users','audit-log','company'];
 function isAdmin(){ return _currentUserRole==='admin'; }
 function adminBtn(html){ return isAdmin()?html:''; }
 function applyRoleUI(){
@@ -2065,6 +2160,7 @@ const titles={
   'entry-course':'🎓 หลักสูตรฝึกอบรม',
   'manage-users':'👤 จัดการทีม HR',
   'audit-log':'🔍 Audit Log',
+  'company':'🏢 ข้อมูลบริษัท',
 };
 function showSection(id,el){
   if(ADMIN_ONLY_SECTIONS.includes(id)&&!isAdmin()){
@@ -2736,7 +2832,7 @@ function _wpBadge(expireDate, today) {
   const daysStr = dl < 0 ? `เกิน ${Math.abs(dl)} วัน` : `${dl} วัน`;
   let badge, status;
   if(dl < 0){ badge=`<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:11px">🚨 หมดอายุ</span>`; status='หมดอายุ'; }
-  else if(dl<=60){ badge=`<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:11px">⚠️ ${daysStr}</span>`; status='ใกล้หมดอายุ'; }
+  else if(dl<=SYS_CONFIG.wpAlertDays){ badge=`<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-size:11px">⚠️ ${daysStr}</span>`; status='ใกล้หมดอายุ'; }
   else { badge=`<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;font-size:11px">✅ ${daysStr}</span>`; status='ปกติ'; }
   return { badge, days:dl, status };
 }
@@ -2927,7 +3023,7 @@ function isTrainComplete(emp) {
   if(courses.length===0) return true;
   return courses.every(c => {
     const r=getTrainResult(emp,c.id).result;
-    return c.noEval ? r==='รับทราบ' : r==='ผ่าน';
+    return c.noEval ? (r==='ผ่าน'||r==='รับทราบ') : r==='ผ่าน';
   });
 }
 
@@ -2936,7 +3032,7 @@ function trainStatus(emp) {
   if(courses.length===0) return 'ผ่านครบ';
   const normalized = courses.map(c => {
     const r=getTrainResult(emp,c.id).result;
-    return c.noEval ? (r==='รับทราบ'?'ผ่าน':r) : r;
+    return c.noEval ? ((r==='ผ่าน'||r==='รับทราบ')?'ผ่าน':r) : r;
   });
   if(normalized.every(r=>r==='ผ่าน')) return 'ผ่านครบ';
   if(normalized.some(r=>r!=null)) return 'กำลังฝึก';
@@ -2991,10 +3087,13 @@ function renderTraining() {
         const tr = getTrainResult(e,c.id);
         let cell;
         if(c.noEval){
-          if(tr.result==='รับทราบ'){
-            cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#dbeafe;color:#1e40af;border:none;border-radius:8px;padding:4px 6px;font-size:11px;cursor:pointer;width:100%">📋 รับทราบ${tr.date?`<br><span style="font-size:10px;opacity:.7">${tr.date}</span>`:''}</button>`;
+          const noEvalPassed = tr.result==='ผ่าน'||tr.result==='รับทราบ';
+          if(noEvalPassed){
+            cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#d1fae5;color:#065f46;border:none;border-radius:8px;padding:4px 6px;font-size:11px;cursor:pointer;width:100%">✅ ผ่าน${tr.date?`<br><span style="font-size:10px;opacity:.7">${tr.date}</span>`:''}</button>`;
+          } else if(tr.result==='ไม่ผ่าน'){
+            cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#fee2e2;color:#991b1b;border:none;border-radius:8px;padding:4px 6px;font-size:11px;cursor:pointer;width:100%">❌ ไม่ผ่าน${tr.date?`<br><span style="font-size:10px;opacity:.7">${tr.date}</span>`:''}</button>`;
           } else {
-            cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:6px 4px;font-size:11px;cursor:pointer;width:100%">📋 บันทึก</button>`;
+            cell=`<button onclick="openTrainEvalModal(${e.id},${c.id})" style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:6px 4px;font-size:11px;cursor:pointer;width:100%">📝 บันทึก</button>`;
           }
         } else {
           const scoreStr = tr.score!=null ? `${tr.score}/${tr.maxScore||100}` : '';
@@ -3052,11 +3151,13 @@ function openTrainEvalModal(empId, courseId) {
       hint.style.display = 'none';
     }
   }
-  // show/hide ผ่าน-ไม่ผ่าน vs รับทราบ
-  document.getElementById('trainResultBtns').style.display = _trainNoEval ? 'none' : '';
-  document.getElementById('trainAckRow').style.display = _trainNoEval ? '' : 'none';
+  // noEval = แสดง ผ่าน/ไม่ผ่าน แต่ซ่อนช่องคะแนน; มีวัดผล = แสดงทั้งหมด
+  document.getElementById('trainResultBtns').style.display = '';
+  document.getElementById('trainAckRow').style.display = 'none';
   document.getElementById('trainScoreWrap').style.display = _trainNoEval ? 'none' : '';
   document.getElementById('trainMaxScoreWrap').style.display = _trainNoEval ? 'none' : '';
+  // normalize legacy รับทราบ → ผ่าน
+  if(_trainResult==='รับทราบ') _trainResult='ผ่าน';
   _trainResult = tr.result||null;
   _updateTrainBtns();
   document.getElementById('trainResetBtn').style.display = tr.result ? '' : 'none';
@@ -3338,7 +3439,7 @@ function renderHtmlBars(elId, labels, counts, color){
 
 
 // ===================== PROBATION (4-Checkpoint System) =====================
-const PROB_PERIODS = [14, 30, 60, 90];
+// SYS_CONFIG.probPeriods is now SYS_CONFIG.probPeriods (configurable via ข้อมูลบริษัท → ตั้งค่าระบบ)
 
 function getProbEval(emp, period) {
   if (!emp.probationEvals) emp.probationEvals = {};
@@ -3355,7 +3456,7 @@ function getProbDueDate(emp, period) {
 
 function isProbComplete(emp) {
   if (!emp.probationDays) return false;
-  return PROB_PERIODS.every(p => getProbEval(emp, p).result === 'ผ่าน');
+  return SYS_CONFIG.probPeriods.every(p => getProbEval(emp, p).result === 'ผ่าน');
 }
 
 function probCellHtml(emp, period) {
@@ -3409,7 +3510,7 @@ function renderProbation() {
 
   // Count pending per period (due & not yet passed)
   const pendingByPeriod = {};
-  PROB_PERIODS.forEach(p => {
+  SYS_CONFIG.probPeriods.forEach(p => {
     pendingByPeriod[p] = active.filter(e => {
       const ev = getProbEval(e, p);
       if (ev.result === 'ผ่าน') return false;
@@ -3418,13 +3519,15 @@ function renderProbation() {
     }).length;
   });
 
-  const kpiColors = { 14: 'yellow', 30: 'yellow', 60: 'yellow', 90: 'green' };
-  document.getElementById('prob-cards').innerHTML = PROB_PERIODS.map(p => `
-    <div class="kpi-card ${pendingByPeriod[p] > 0 ? kpiColors[p] : ''}">
-      <div class="kpi-label">รอประเมิน Day ${p}${p===90?' (ผ่านโปร)':''}</div>
-      <div class="kpi-value ${pendingByPeriod[p] > 0 ? kpiColors[p] : ''}">${pendingByPeriod[p]}</div>
+  const _lastPeriod = SYS_CONFIG.probPeriods[SYS_CONFIG.probPeriods.length-1];
+  document.getElementById('prob-cards').innerHTML = SYS_CONFIG.probPeriods.map(p => {
+    const col = p===_lastPeriod ? 'green' : 'yellow';
+    return `<div class="kpi-card ${pendingByPeriod[p] > 0 ? col : ''}">
+      <div class="kpi-label">รอประเมิน Day ${p}${p===_lastPeriod?' (ผ่านโปร)':''}</div>
+      <div class="kpi-value ${pendingByPeriod[p] > 0 ? col : ''}">${pendingByPeriod[p]}</div>
       <div class="kpi-sub">คน</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   document.getElementById('probTbody').innerHTML = active.length
     ? active.map((e, i) => {
@@ -3435,7 +3538,7 @@ function renderProbation() {
           <td style="font-size:12px">${e.pos}</td>
           <td style="font-size:12px">${e.branch||'–'}</td>
           <td style="font-size:12px">${fmtDate(e.startdate)}</td>
-          ${PROB_PERIODS.map(p => probCellHtml(e, p)).join('')}
+          ${SYS_CONFIG.probPeriods.map(p => probCellHtml(e, p)).join('')}
           <td>${complete ? `<button class="tbl-del-btn" style="background:#E0F2F2;color:var(--teal-d);font-size:11px" onclick="archiveProbation(${e.id})">Archive</button>` : ''}</td>
         </tr>`;
       }).join('')
@@ -3483,7 +3586,7 @@ function renderProbArchive() {
     <tr style="opacity:.8">
       <td>${i+1}</td><td><strong>${e.name}</strong></td><td style="font-size:12px">${e.pos}</td><td style="font-size:12px">${e.branch||'–'}</td>
       <td style="font-size:12px">${fmtDate(e.startdate)}</td>
-      ${PROB_PERIODS.map(p => {
+      ${SYS_CONFIG.probPeriods.map(p => {
         const ev = getProbEval(e, p);
         if (ev.result === 'ผ่าน') return `<td style="text-align:center;font-size:14px">✅</td>`;
         if (ev.result === 'ไม่ผ่าน') return `<td style="text-align:center;font-size:14px">❌</td>`;
@@ -4148,6 +4251,62 @@ function toggleEntryCard(bodyId,toggleId){
 // ===================== ENTRY: ตำแหน่งว่าง =====================
 let editingPosId=null;
 
+// ===================== POSITION PRESETS =====================
+const PRESET_POSITIONS = {
+  '🍽️ Service & Front of House': ['เสิร์ฟ','แคชเชียร์','พนักงานต้อนรับ','Service Back-End','พนักงานรันเนอร์','สจ๊วต'],
+  '🍳 ครัว': ['พ่อครัว/แม่ครัว ครัวไทย','พ่อครัว/แม่ครัว ครัวอินเตอร์','พ่อครัว/แม่ครัว ครัวญี่ปุ่น'],
+  '🍹 Bar': ['Coffee Bar','Beach Bar','Juice Bar','Dessert Bar'],
+  '👔 Management': ['ผู้จัดการร้าน','ผู้ช่วยผู้จัดการร้าน'],
+  '🔧 Support': ['คนสวน','คนขับรถ','คนขับรถส่งของ','แม่บ้าน','ช่าง','พนักงานสโตร์','พนักงานสต็อก'],
+  '💼 Admin & Back Office': ['เลขาผู้บริหาร','ออดิท','Admin Call Center','Admin (HR)','ไอที'],
+  '⏰ อื่น ๆ': ['Part Time'],
+};
+const _PRESET_FLAT = Object.values(PRESET_POSITIONS).flat();
+
+// All positions ever used across posData + empData
+function _getAllUsedPositions(){
+  return [...new Set([
+    ...posData.map(p=>p.pos),
+    ...empData.map(e=>e.pos),
+  ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+}
+
+function populatePosEntryDropdown(keepVal){
+  const sel = document.getElementById('ep_pos');
+  if(!sel) return;
+  const cur = keepVal !== undefined ? keepVal : sel.value;
+  sel.innerHTML = '<option value="">– เลือกตำแหน่ง –</option>';
+
+  // Custom positions not in presets (from posData / empData)
+  const custom = _getAllUsedPositions().filter(p => !_PRESET_FLAT.includes(p));
+  if(custom.length){
+    const og = document.createElement('optgroup');
+    og.label = '📋 เคยใช้งาน';
+    custom.forEach(p => {
+      const o = document.createElement('option'); o.value=p; o.textContent=p; og.appendChild(o);
+    });
+    sel.appendChild(og);
+  }
+
+  // Preset groups
+  Object.entries(PRESET_POSITIONS).forEach(([group, positions]) => {
+    const og = document.createElement('optgroup');
+    og.label = group;
+    positions.forEach(p => {
+      const o = document.createElement('option'); o.value=p; o.textContent=p; og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+
+  // Custom entry option
+  const cust = document.createElement('option');
+  cust.value='__custom__'; cust.textContent='➕ เพิ่มตำแหน่งใหม่ (ระบุเอง)';
+  cust.style.color='var(--primary)'; cust.style.fontWeight='600';
+  sel.appendChild(cust);
+
+  if(cur) sel.value = cur;
+}
+
 const POS_DEPT_MAP={
   'เสิร์ฟ':'Service',
   'แคชเชียร์':'แคชเชียร์',
@@ -4249,17 +4408,28 @@ function populateEmpPosDropdown(keepVal){
   const hint=document.getElementById('ee_pos_hint');
   if(!sel)return;
   const cur=keepVal!==undefined?keepVal:sel.value;
-  sel.innerHTML='<option value="">– เลือกตำแหน่งจากที่เปิดรับ –</option>';
-  if(!posData.length){
-    if(hint){hint.textContent='⚠️ ยังไม่มีตำแหน่งว่าง — กรุณาสร้างตำแหน่งก่อนใน "จัดการตำแหน่งว่าง"';hint.style.color='var(--red)';}
+  sel.innerHTML='<option value="">– เลือกตำแหน่ง –</option>';
+  const openPositions=[...new Set(posData.map(p=>p.pos).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+  const usedPositions=[...new Set(empData.map(e=>e.pos).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+  // Open positions first
+  if(openPositions.length){
+    const og=document.createElement('optgroup'); og.label='📢 ตำแหน่งที่เปิดรับ';
+    openPositions.forEach(pos=>{const o=document.createElement('option');o.value=pos;o.textContent=pos;og.appendChild(o);});
+    sel.appendChild(og);
+  }
+  // Previously used positions not in open list
+  const extraUsed=usedPositions.filter(p=>!openPositions.includes(p));
+  if(extraUsed.length){
+    const og=document.createElement('optgroup'); og.label='📋 ตำแหน่งที่เคยใช้';
+    extraUsed.forEach(pos=>{const o=document.createElement('option');o.value=pos;o.textContent=pos;og.appendChild(o);});
+    sel.appendChild(og);
+  }
+  if(!openPositions.length&&!extraUsed.length){
+    if(hint){hint.textContent='⚠️ ยังไม่มีข้อมูลตำแหน่ง';hint.style.color='var(--red)';}
     return;
   }
-  const positions=[...new Set(posData.map(p=>p.pos).filter(Boolean))].sort();
-  positions.forEach(pos=>{
-    const o=document.createElement('option');o.value=pos;o.textContent=pos;sel.appendChild(o);
-  });
   if(cur)sel.value=cur;
-  if(hint){hint.textContent=posData.length+' ตำแหน่งที่เปิดรับอยู่';hint.style.color='var(--muted)';}
+  if(hint){hint.textContent=openPositions.length+' ตำแหน่งที่เปิดรับ';hint.style.color='var(--muted)';}
 }
 function populateEmpBranchDropdown(keepVal){
   const sel=document.getElementById('ee_branch');
@@ -4348,15 +4518,15 @@ function savePosEntry(){
 function editPosEntry(id){
   const p=posData.find(x=>x.id===id);if(!p)return;
   editingPosId=id;
+  populatePosEntryDropdown(p.pos);
   const posSel=document.getElementById('ep_pos');
-  const opts=[...posSel.options].map(o=>o.value);
-  if(opts.includes(p.pos)){
-    posSel.value=p.pos;
-    document.getElementById('ep_pos_custom').style.display='none';
-  } else {
+  if(!posSel.value){
+    // position not found in dropdown (shouldn't happen) — fallback to custom
     posSel.value='__custom__';
     document.getElementById('ep_pos_custom').value=p.pos;
     document.getElementById('ep_pos_custom').style.display='block';
+  } else {
+    document.getElementById('ep_pos_custom').style.display='none';
   }
   document.getElementById('ep_dept').value=p.dept||'';
   document.getElementById('ep_branch').value=p.branch||'';
@@ -4381,7 +4551,7 @@ function deletePosEntry(id){
 
 function cancelPosEdit(){
   editingPosId=null;
-  document.getElementById('ep_pos').value='';
+  populatePosEntryDropdown('');
   document.getElementById('ep_pos_custom').value='';
   document.getElementById('ep_pos_custom').style.display='none';
   document.getElementById('ep_dept').value='';
@@ -4734,7 +4904,7 @@ let _currentUser = null;
 let _currentUserRole = null;
 let _currentUserName = null;
 
-const USERNAME_DOMAIN='@skygroup.hr';
+// SYS_CONFIG.emailDomain is now SYS_CONFIG.emailDomain (configurable via ข้อมูลบริษัท → ตั้งค่าระบบ)
 
 // ===================== INACTIVITY AUTO-LOGOUT (30 min) =====================
 const INACTIVITY_MS = 30 * 60 * 1000; // 30 minutes
@@ -4766,7 +4936,7 @@ setInterval(checkInactivity, 60*1000);
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible') checkInactivity();
 });
-function usernameToEmail(u){ return u.toLowerCase().replace(/\s+/g,'')+(u.includes('@')?'':USERNAME_DOMAIN); }
+function usernameToEmail(u){ return u.toLowerCase().replace(/\s+/g,'')+(u.includes('@')?'':SYS_CONFIG.emailDomain); }
 
 function doLogin(){
   const username=document.getElementById('l_email').value.trim();
@@ -5179,7 +5349,7 @@ function executePrint(){
     const probEmp=activeEmp.filter(e=>e.probationDays&&!e.archivedProbation&&e.status!=='ลาออก');
     const rows=probEmp.map((e,i)=>{
       const d=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
-      const evals=PROB_PERIODS.map(p=>{const ev=getProbEval(e,p);return ev.result||'รอ';}).join(' / ');
+      const evals=SYS_CONFIG.probPeriods.map(p=>{const ev=getProbEval(e,p);return ev.result||'รอ';}).join(' / ');
       return `<tr><td>${i+1}</td><td>${e.name}</td><td>${e.pos||'–'}</td><td>${e.branch||'–'}</td><td>${e.startdate?fmtDate(e.startdate):'–'}</td><td>${d} วัน</td><td>${evals}</td></tr>`;
     }).join('');
     body+=`<div class="section page-break">
@@ -5372,15 +5542,15 @@ function getAlerts(){
   empData.filter(e=>e.probationDays&&!e.archivedProbation&&e.status!=='ลาออก').forEach(e=>{
     const daysWorked=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
     // ถ้าเริ่มงาน >180 วัน และไม่เคยบันทึกผลใดเลย = เข้าระบบย้อนหลัง ข้ามไป
-    const hasAnyEval=PROB_PERIODS.some(p=>getProbEval(e,p).result);
+    const hasAnyEval=SYS_CONFIG.probPeriods.some(p=>getProbEval(e,p).result);
     if(daysWorked>180&&!hasAnyEval)return;
-    PROB_PERIODS.forEach(p=>{
+    SYS_CONFIG.probPeriods.forEach(p=>{
       const ev=getProbEval(e,p);
       if(ev.result==='ผ่าน')return;
       if(ev.result==='ไม่ผ่าน'&&ev.extendUntil&&today<=new Date(ev.extendUntil+'T00:00:00'))return;
       const due=getProbDueDate(e,p);due.setHours(0,0,0,0);
       const daysLeft=Math.round((due-today)/(1000*60*60*24));
-      if(daysLeft<=3){
+      if(daysLeft<=SYS_CONFIG.probAlertDays){
         alerts.push({type:'probation',icon:'🔄',color:daysLeft<0?'var(--red)':'var(--yellow)',
           title:daysLeft<0?`Probation Day ${p} เกินกำหนด ${Math.abs(daysLeft)} วัน`:`Probation Day ${p} ครบใน ${daysLeft} วัน`,
           body:`${e.name} — ${e.pos} (${e.branch||'–'})`,
@@ -5394,7 +5564,7 @@ function getAlerts(){
   empData.filter(e=>e.status!=='ลาออก'&&e.startdate).forEach(e=>{
     if(trainStatus(e)==='ผ่านครบ')return;
     const daysIn=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
-    if(daysIn<7||daysIn>90)return; // alert เฉพาะช่วงทดลองงาน
+    if(daysIn<7||daysIn>SYS_CONFIG.trainAlertDays)return; // alert เฉพาะช่วงทดลองงาน
     // นับวิชาค้าง เฉพาะหลักสูตรที่ใช้กับสาขาพนักงานคนนี้
     const pending=getCoursesForEmp(e).filter(c=>{
       const r=getTrainResult(e,c.id).result;
@@ -5412,7 +5582,7 @@ function getAlerts(){
   // 2b. ประกันสังคม — พนักงานใหม่ยังไม่ลงทะเบียน (<=60 วัน)
   empData.filter(e=>e.status!=='ลาออก'&&!e.ssDate&&e.startdate).forEach(e=>{
     const daysIn=Math.round((today-new Date(e.startdate+'T00:00:00'))/86400000);
-    if(daysIn>=0&&daysIn<=60){
+    if(daysIn>=0&&daysIn<=SYS_CONFIG.ssAlertDays){
       alerts.push({type:'social-sec',icon:'🏥',color:'var(--yellow)',
         title:`ยังไม่ลงทะเบียนประกันสังคม (เข้างาน ${daysIn} วัน)`,
         body:`${e.name} — ${e.pos||e.position||''} (${e.branch||'–'})`,
@@ -5428,7 +5598,7 @@ function getAlerts(){
       if(!dateStr)return;
       const exp=new Date(dateStr+'T00:00:00');
       const dl=Math.round((exp-today)/86400000);
-      if(dl<=60){
+      if(dl<=SYS_CONFIG.wpAlertDays){
         alerts.push({type:'work-permit',icon:'📄',color:dl<0?'var(--red)':'var(--yellow)',
           title:dl<0?`${label} หมดอายุ ${Math.abs(dl)} วันแล้ว`:`${label} จะหมดใน ${dl} วัน`,
           body:`${e.name} — ${e.nationality} (${e.branch||'–'}) · หมด ${dateStr}`,
@@ -5523,6 +5693,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const HR_DOC = db.collection('hr').doc('data');
+const CONFIG_DOC = db.collection('hr').doc('config');
 const auth = firebase.auth();
 
 let _firestoreReady = false;
@@ -5584,12 +5755,128 @@ const _da=deleteApp;deleteApp=function(id){_da(id);saveToStorage();};
 const _origRenderSection=renderSection;
 renderSection=function(id){
   if(id==='entry-emp'){cancelEmpEdit();populateEmpPosDropdown();populateEmpBranchDropdown();renderEmpTable();renderEmpKpi();}
-  else if(id==='entry-pos'){cancelPosEdit();renderPosTable();}
+  else if(id==='entry-pos'){cancelPosEdit();populatePosEntryDropdown();renderPosTable();}
   else if(id==='entry-app'){cancelAppEdit();populatePosLinkDropdown();populateAppPosDropdown();populateAppBranchDropdown();renderAppTable();renderAppStatusBadges();}
   else if(id==='manage-users'){renderUserTable();}
   else if(id==='audit-log'){renderAuditLog();}
+  else if(id==='company'){renderCompanySection();}
   else _origRenderSection(id);
 };
+
+// ===================== COMPANY / BRANCH MANAGEMENT =====================
+function renderCompanySection(){
+  renderSystemConfig();
+  const list = document.getElementById('companyBranchList');
+  const count = document.getElementById('branchCount');
+  if(!list) return;
+  count.textContent = BRANCH_LIST.length + ' สาขา';
+  if(BRANCH_LIST.length===0){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">ยังไม่มีสาขา — เพิ่มสาขาแรกได้เลย</div>';
+    return;
+  }
+  list.innerHTML = BRANCH_LIST.map((b,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);gap:10px">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <span style="font-size:11px;font-weight:600;color:var(--muted);width:24px;text-align:right;flex-shrink:0">${i+1}</span>
+        <span id="branchLabel_${i}" style="font-size:13px;font-weight:500;flex:1;word-break:break-all">${b}</span>
+        <input id="branchEdit_${i}" type="text" value="${b}" style="display:none;flex:1;border:1px solid var(--primary);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--bg)">
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button id="branchEditBtn_${i}" onclick="startBranchEdit(${i})" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;color:#1d4ed8">✏️ แก้ไข</button>
+        <button id="branchSaveBtn_${i}" onclick="confirmBranchEdit(${i})" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;color:#15803d">✅ ยืนยัน</button>
+        <button onclick="deleteBranch(${i})" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;color:#dc2626">🗑 ลบ</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function startBranchEdit(i){
+  document.getElementById('branchLabel_'+i).style.display='none';
+  document.getElementById('branchEdit_'+i).style.display='';
+  document.getElementById('branchEditBtn_'+i).style.display='none';
+  document.getElementById('branchSaveBtn_'+i).style.display='';
+  document.getElementById('branchEdit_'+i).focus();
+}
+
+function confirmBranchEdit(i){
+  const val = document.getElementById('branchEdit_'+i).value.trim();
+  if(!val){ alert('กรุณากรอกชื่อสาขา'); return; }
+  BRANCH_LIST[i] = val;
+  renderCompanySection();
+}
+
+function addBranch(){
+  const inp = document.getElementById('newBranchInput');
+  const val = (inp.value||'').trim();
+  if(!val){ inp.focus(); return; }
+  if(BRANCH_LIST.includes(val)){ alert('มีสาขานี้อยู่แล้ว'); return; }
+  BRANCH_LIST.push(val);
+  inp.value='';
+  renderCompanySection();
+}
+
+function deleteBranch(i){
+  const name = BRANCH_LIST[i];
+  if(!confirm('ลบสาขา "'+name+'" ?\n\nหมายเหตุ: ข้อมูลพนักงาน/ผู้สมัครที่ใช้สาขานี้จะยังคงอยู่ แต่จะไม่ปรากฏในเมนูดรอปดาวน์')) return;
+  BRANCH_LIST.splice(i,1);
+  renderCompanySection();
+}
+
+function saveCompanyConfig(){
+  CONFIG_DOC.set({ branches: BRANCH_LIST, updatedAt: new Date().toISOString() }, { merge:true })
+    .then(()=>{
+      populateBranchSelects();
+      populateEmpBranchDropdown();
+      renderCourseList();
+      const msg = document.getElementById('companySaveMsg');
+      if(msg){ msg.style.display='block'; setTimeout(()=>msg.style.display='none', 2500); }
+      logAudit('บันทึก','ข้อมูลบริษัท','อัปเดตรายชื่อสาขา ('+BRANCH_LIST.length+' สาขา)');
+    })
+    .catch(e=>{ alert('บันทึกไม่สำเร็จ: '+e.message); });
+}
+
+function saveSystemConfig(){
+  // Read values from inputs
+  const periods = [1,2,3,4].map(n=>{
+    const v = parseInt(document.getElementById('cfg_prob_'+n)?.value||'0');
+    return isNaN(v)||v<=0 ? null : v;
+  }).filter(v=>v!==null);
+  if(periods.length<1){ alert('ต้องมี checkpoint อย่างน้อย 1 ช่วง'); return; }
+  const probAlert  = parseInt(document.getElementById('cfg_probAlert')?.value)||3;
+  const wpAlert    = parseInt(document.getElementById('cfg_wpAlert')?.value)||60;
+  const ssAlert    = parseInt(document.getElementById('cfg_ssAlert')?.value)||60;
+  const trainAlert = parseInt(document.getElementById('cfg_trainAlert')?.value)||90;
+  const emailDomain = (document.getElementById('cfg_emailDomain')?.value||'').trim();
+  SYS_CONFIG.probPeriods   = periods;
+  SYS_CONFIG.probAlertDays = probAlert;
+  SYS_CONFIG.wpAlertDays   = wpAlert;
+  SYS_CONFIG.ssAlertDays   = ssAlert;
+  SYS_CONFIG.trainAlertDays= trainAlert;
+  if(emailDomain) SYS_CONFIG.emailDomain = emailDomain.startsWith('@') ? emailDomain : '@'+emailDomain;
+  CONFIG_DOC.set({ sysConfig: SYS_CONFIG, updatedAt: new Date().toISOString() }, { merge:true })
+    .then(()=>{
+      renderAlerts();
+      const msg = document.getElementById('sysConfigSaveMsg');
+      if(msg){ msg.style.display='block'; setTimeout(()=>msg.style.display='none', 2500); }
+      logAudit('บันทึก','ตั้งค่าระบบ','อัปเดต SYS_CONFIG');
+    })
+    .catch(e=>{ alert('บันทึกไม่สำเร็จ: '+e.message); });
+}
+
+function renderSystemConfig(){
+  const periods = SYS_CONFIG.probPeriods;
+  // Fill 4 slots (pad with empty)
+  [1,2,3,4].forEach(n=>{
+    const el = document.getElementById('cfg_prob_'+n);
+    if(el) el.value = periods[n-1]||'';
+  });
+  const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.value=val; };
+  set('cfg_probAlert',   SYS_CONFIG.probAlertDays);
+  set('cfg_wpAlert',     SYS_CONFIG.wpAlertDays);
+  set('cfg_ssAlert',     SYS_CONFIG.ssAlertDays);
+  set('cfg_trainAlert',  SYS_CONFIG.trainAlertDays);
+  set('cfg_emailDomain', SYS_CONFIG.emailDomain);
+}
 
 // ===================== INIT =====================
 document.getElementById('topbarDate').textContent = todayStr();
@@ -5604,6 +5891,28 @@ let _firestoreLoaded=false;
 function loadFirestoreData(){
   if(_firestoreLoaded)return;
   document.getElementById('sectionTitle').textContent='กำลังโหลดข้อมูล…';
+  // Load company config (branches) first
+  CONFIG_DOC.get().then(cfgDoc=>{
+    if(cfgDoc.exists){
+      const d=cfgDoc.data();
+      if(d.branches&&d.branches.length) BRANCH_LIST=d.branches;
+      if(d.sysConfig) Object.assign(SYS_CONFIG, d.sysConfig);
+    }
+    // Real-time listener for config changes
+    CONFIG_DOC.onSnapshot(snap=>{
+      if(!snap.exists) return;
+      const d=snap.data();
+      if(d.branches && d.branches.length){
+        BRANCH_LIST = d.branches;
+        populateBranchSelects();
+        populateEmpBranchDropdown();
+        renderCourseList();
+      }
+      if(d.sysConfig) Object.assign(SYS_CONFIG, d.sysConfig);
+      if(_currentSection==='company') renderCompanySection();
+    });
+  }).catch(()=>{/* config doc not yet created — use DEFAULT_BRANCH_LIST */});
+
   HR_DOC.get().then(doc=>{
     if(doc.exists) applyData(doc.data());
     renderExec();
@@ -5635,7 +5944,7 @@ auth.onAuthStateChanged(user=>{
       // Auto-bootstrap: ถ้าไม่มีข้อมูล user เลย (ครั้งแรก) ให้คนที่ login อยู่เป็น admin
       if(!userData){
         const isFirstUser=Object.keys(users).length===0;
-        const username=user.email?user.email.replace(USERNAME_DOMAIN,''):user.uid;
+        const username=user.email?user.email.replace(SYS_CONFIG.emailDomain,''):user.uid;
         userData={uid:user.uid,username,email:user.email||'',displayName:isFirstUser?'Admin':username,role:isFirstUser?'admin':'staff',createdAt:new Date().toISOString()};
         usersRef.set({[user.uid]:userData},{merge:true});
       }
