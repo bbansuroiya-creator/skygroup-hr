@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -1592,6 +1593,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 
     </div>
     <div id="sysConfigSaveMsg" style="display:none;margin:0 16px 12px;padding:8px 14px;background:#f0fdf4;color:#166534;border-radius:8px;font-size:13px;font-weight:600">✅ บันทึกการตั้งค่าเรียบร้อยแล้ว</div>
   </div>
+
 </div>
 
 </div><!-- /content -->
@@ -5663,10 +5665,10 @@ function seedDemoForeignWorkers(){
 }
 
 function applyData(d){
-  if(d.resignData&&d.resignData.length) resignData=d.resignData;
-  if(d.posData&&d.posData.length) posData=d.posData;
-  if(d.appData&&d.appData.length) appData=d.appData;
-  if(d.empData&&d.empData.length) empData=d.empData;
+  if('resignData' in d) resignData=d.resignData||[];
+  if('posData'    in d) posData=d.posData||[];
+  if('appData'    in d) appData=d.appData||[];
+  if('empData'    in d) empData=d.empData||[];
   if(d.auditLog&&d.auditLog.length) auditLog=d.auditLog;
   if(d.nextRid) nextRid=d.nextRid;
   if(d.nextPid) nextPid=d.nextPid;
@@ -5764,6 +5766,34 @@ function saveCompanyConfig(){
       logAudit('บันทึก','ข้อมูลบริษัท','อัปเดตรายชื่อสาขา ('+BRANCH_LIST.length+' สาขา)');
     })
     .catch(e=>{ alert('บันทึกไม่สำเร็จ: '+e.message); });
+}
+
+function confirmResetData(){
+  const toReset=[];
+  if(document.getElementById('reset_emp')?.checked) toReset.push('empData');
+  if(document.getElementById('reset_pos')?.checked) toReset.push('posData');
+  if(document.getElementById('reset_app')?.checked) toReset.push('appData');
+  if(document.getElementById('reset_resign')?.checked) toReset.push('resignData');
+  if(!toReset.length){ alert('ยังไม่ได้เลือกข้อมูลที่จะล้าง'); return; }
+  const labels={'empData':'ฐานข้อมูลพนักงาน','posData':'ตำแหน่งว่าง','appData':'ผู้สมัครงาน','resignData':'รายการลาออก'};
+  const names=toReset.map(k=>labels[k]).join(', ');
+  if(!confirm(`⚠️ ยืนยันการล้างข้อมูล\n\n${names}\n\nการดำเนินการนี้ไม่สามารถย้อนกลับได้ ต้องการดำเนินการต่อไหม?`)) return;
+  // Build update payload
+  const patch={};
+  if(toReset.includes('empData')){ empData=[]; patch.empData=[]; }
+  if(toReset.includes('posData')){ posData=[]; patch.posData=[]; }
+  if(toReset.includes('appData')){ appData=[]; patch.appData=[]; }
+  if(toReset.includes('resignData')){ resignData=[]; patch.resignData=[]; }
+  HR_DOC.set(patch,{merge:true}).then(()=>{
+    logAudit('ลบข้อมูล','ล้างข้อมูลทดสอบ',names);
+    const msg=document.getElementById('resetDataMsg');
+    if(msg){ msg.style.display='inline'; setTimeout(()=>msg.style.display='none',4000); }
+    // Re-render affected sections
+    if(patch.empData!==undefined){ renderEmpTable(); renderProbation(); renderSocialSec(); renderWorkforce(); }
+    if(patch.posData!==undefined){ renderPosTable(); }
+    if(patch.appData!==undefined){ renderAppTable(); }
+    if(patch.resignData!==undefined && typeof renderResignAnalysis==='function') renderResignAnalysis();
+  }).catch(e=>alert('เกิดข้อผิดพลาด: '+e.message));
 }
 
 function saveSystemConfig(){
